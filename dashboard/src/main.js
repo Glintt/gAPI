@@ -11,6 +11,7 @@ Vue.config.productionTip = false;
 
 Vue.prototype.$chartColors = require("@/configs/chartColors");
 Vue.prototype.$random = require("@/configs/random");
+Vue.prototype.$utils = require("@/utils");
 
 new Vue({
   router,

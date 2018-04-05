@@ -87,15 +87,15 @@ func CORSHandle(ctx *fasthttp.RequestCtx) {
 }
 
 func LogRequest(ctx *fasthttp.RequestCtx, beginTime int64){
-	if ! config.GApiConfiguration.Logs.Active {
+	if ! config.GApiConfiguration.Logs.Active || string(ctx.Method()) == "OPTIONS" {
 		return
 	}
 
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
-	service := ctx.Request.Header.Peek("service")
+	service := ctx.Response.Header.Peek("service")
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))
 	headers, _ := json.Marshal(http.GetHeadersFromRequest(ctx.Request))
-	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), int64(elapsedTime), string(service))
+	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), elapsedTime, string(service))
 	work := logs.LogWorkRequest{Name: "", LogToSave: logRequest}
 	logs.WorkQueue <- work
 }

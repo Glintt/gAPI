@@ -1,5 +1,6 @@
 const HTTP = require("@/api/http");
-const ServiceDiscoveryBaseURL="/service-discovery";
+const APIConfig = require("@/configs/urls").config.API;
+const ServiceDiscoveryBaseURL = APIConfig.SERVICE_DISCOVERY_BASEPATH;
 
 export function listServices(cb){
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + "/services"), {}).then(response => {
