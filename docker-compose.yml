@@ -2,7 +2,7 @@ version: "3"
 services:
   backend:
     build:
-      context: .
+      context: ./api
     environment: 
       - API_MANAGEMENT_PORT=${API_MANAGEMENT_PORT:-8080}
       - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
@@ -30,7 +30,7 @@ services:
 
   rabbitlistener:
     build:
-      context: .
+      context: ./api
       dockerfile: Dockerfile-rabbitlistener
     environment: 
       - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
