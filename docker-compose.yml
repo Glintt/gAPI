@@ -1,0 +1,74 @@
+version: "3"
+services:
+  backend:
+    build:
+      context: .
+    environment: 
+      - API_MANAGEMENT_PORT=${API_MANAGEMENT_PORT:-8080}
+      - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
+      - RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+      - RABBITMQ_USER=${RABBITMQ_USER:-gapi}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-gapi}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-gAPI-logqueue}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elastic}
+      - ELASTICSEARCH_PORT=${ELASTICSEARCH_URL:-9200}
+      - SERVICEDISCOVERY_HOST=${SERVICEDISCOVERY_HOST:-localhost}
+      - SERVICEDISCOVERY_PORT=${SERVICEDISCOVERY_PORT:-8080}
+      - MONGO_HOST=${MONGO_HOST:-mongodb}
+      - MONGO_DB=${MONGO_DB:-gapi}
+    ports:
+      - 8080:8080
+    volumes:
+      - ./configs:/go/src/api-management/configs/
+
+  frontend: 
+    build: 
+      context: ./dashboard 
+    restart: always
+    ports:
+      - 8081:80
+
+  rabbitlistener:
+    build:
+      context: .
+      dockerfile: Dockerfile-rabbitlistener
+    environment: 
+      - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
+      - RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+      - RABBITMQ_USER=${RABBITMQ_USER:-gapi}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-gapi}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-gAPI-logqueue}
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elastic}
+      - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-9200}
+    volumes:
+      - ./configs:/go/src/api-management/configs/
+
+  rabbit:
+    image: "rabbitmq:3-management"
+    hostname: "rabbit"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "gapi"
+      RABBITMQ_DEFAULT_PASS: "gapi"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq"
+  
+  elastic:
+    image: elasticsearch:latest
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./elasticsearch/storage/data:/usr/share/elasticsearch/data
+
+  mongodb:
+    image: mongo
+    restart: always
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"

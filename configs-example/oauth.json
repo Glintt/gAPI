@@ -1,0 +1,10 @@
+{
+    "host" : "http://localhost",
+    "port" : "8084",   
+    "authorize_endpoint" : "/oauth/authorize",
+    "token_user_information" : {
+        "active" : true,
+        "source": "header",
+        "name": "CallData"
+    }
+}
