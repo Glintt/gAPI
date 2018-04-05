@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"gAPIManagement/api/rabbit"
-	"gAPIManagement/api/utils"
 	"gAPIManagement/api/logs"
 	"os"
 	"encoding/json"
-	"github.com/valyala/fasthttp"
 	)
 
 func failOnError(err error, msg string) {
@@ -19,7 +17,9 @@ func failOnError(err error, msg string) {
 var ELASTICURL string
 var ELASTICPORT string
 
-func main(){
+
+
+func StartListeningToRabbit() {
 	ELASTICURL = os.Getenv("ELASTICSEARCH_HOST")
 	ELASTICPORT = os.Getenv("ELASTICSEARCH_PORT")
 	
@@ -53,11 +53,10 @@ func main(){
 	  
 	go func() {
 		for d := range msgs {
-
 			var reqLogging logs.RequestLogging
 			err := json.Unmarshal(d.Body, &reqLogging)
 			if err == nil{
-				PublishElastic(reqLogging)
+				logs.PublishElastic(&reqLogging)
 			}else{
 				fmt.Printf("Error logging message: %s", d.Body)		
 			}
@@ -68,29 +67,6 @@ func main(){
 	<-forever
 }
 
-
-func PublishElastic(reqLogging logs.RequestLogging){
-	currentDate := utils.CurrentDate()
-	logsURL := "http://"+ELASTICURL + ":"+ ELASTICPORT + "/request-logs-" + currentDate + "/logs"
-
-	fmt.Println(logsURL)
-	reqLoggingJson, _ := json.Marshal(reqLogging)
-
-	request := fasthttp.AcquireRequest()
-
-	request.SetRequestURI(logsURL)
-	request.Header.SetMethod("POST")
-
-	request.Header.SetContentType("application/json")
-	request.SetBody(reqLoggingJson)
-	client := fasthttp.Client{}
-
-	resp := fasthttp.AcquireResponse()
-	err := client.Do(request, resp)
-
-	fmt.Println(string(resp.Body()))
-	if err != nil {
-		fmt.Println(string(resp.Body()))
-		resp.SetStatusCode(400)
-	}
+func main(){
+	StartListeningToRabbit()
 }

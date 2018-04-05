@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gAPIManagement/api/sockets"
 	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
@@ -29,7 +30,13 @@ func main() {
 	router.Get("/invalidate-cache",authentication.AuthorizationMiddleware, InvalidateCache)
 	initServices()
 
+	InitSocketServices()
+
 	listenAPI(router)
+}
+func InitSocketServices(){
+	go sockets.SocketListen()
+	sockets.StartRequestsCounterSender()
 }
 
 func InvalidateCache(c *routing.Context) error {
@@ -87,6 +94,8 @@ func CORSHandle(ctx *fasthttp.RequestCtx) {
 }
 
 func LogRequest(ctx *fasthttp.RequestCtx, beginTime int64){
+	sockets.RequestsCount = sockets.RequestsCount + 1
+
 	if ! config.GApiConfiguration.Logs.Active || string(ctx.Method()) == "OPTIONS" {
 		return
 	}
@@ -98,4 +107,5 @@ func LogRequest(ctx *fasthttp.RequestCtx, beginTime int64){
 	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), elapsedTime, string(service))
 	work := logs.LogWorkRequest{Name: "", LogToSave: logRequest}
 	logs.WorkQueue <- work
+
 }

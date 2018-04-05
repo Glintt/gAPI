@@ -83,9 +83,7 @@ func PublishElastic(reqLogging *RequestLogging) {
 
 	if err != nil {
 		resp.SetStatusCode(400)
-		fmt.Println("ERROR" + err.Error())
 	}
-	fmt.Println("RESPONSE" + string(resp.Body()))
 }
 
 func PublishRabbit(reqLogging *RequestLogging) {

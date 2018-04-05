@@ -25,6 +25,7 @@
                    
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <router-link to="/analytics/by-api" class="dropdown-item">By API</router-link>
+                        <router-link to="/analytics/realtime" class="dropdown-item">Realtime</router-link>
                     </div>
                 </li>
             </ul>
