@@ -1,0 +1,7 @@
+go get "github.com/patrickmn/go-cache"
+go get "github.com/allegro/bigcache"
+go get "github.com/valyala/fasthttp"
+go get "github.com/qiangxue/fasthttp-routing"
+go get "github.com/streadway/amqp"
+go get "gopkg.in/mgo.v2"
+go get "github.com/dgrijalva/jwt-go"

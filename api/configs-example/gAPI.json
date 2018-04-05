@@ -1,0 +1,10 @@
+{
+    "Authentication":{
+        "Username": "admin",
+        "Password": "admin"
+    },
+    "Logs":{
+        "Active":true,
+        "Type":"Elastic"
+    }
+}
