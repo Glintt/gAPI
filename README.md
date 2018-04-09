@@ -10,7 +10,7 @@ In order to access more documentation, go to [Github Wiki](https://github.com/Gl
 
 ### Table of Contents
 
-1. [Requirements](docs/requirements)
-1. [Installation](docs/installation)
-1. [Architecture](docs/architecture)
-1. [Contributing](docs/contributing)
+1. [Requirements](docs/requirements.md)
+1. [Installation](docs/installation.md)
+1. [Architecture](docs/architecture.md)
+1. [Contributing](docs/contributing.md)
