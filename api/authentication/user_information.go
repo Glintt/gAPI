@@ -10,5 +10,6 @@ type UserTokenInformation struct {
 type ProtectionInfo struct {
 	Header   string
 	UserInfo string
+	Cached bool
 	Error    error
 }

@@ -89,23 +89,25 @@ func CORSHandle(ctx *fasthttp.RequestCtx) {
 
 	beginTime := utils.CurrentTimeMilliseconds()
 	router.HandleRequest(ctx)
-
-	LogRequest(ctx, beginTime)
+	service := ctx.Response.Header.Peek("service")
+	
+	RequestCounterSocket(service)
+	LogRequest(ctx, service, beginTime)
 }
 
-func LogRequest(ctx *fasthttp.RequestCtx, beginTime int64){
-	sockets.RequestsCount = sockets.RequestsCount + 1
+func RequestCounterSocket( service []byte){
+	sockets.IncrementRequestCounter()
+}
 
+func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64){
 	if ! config.GApiConfiguration.Logs.Active || string(ctx.Method()) == "OPTIONS" {
 		return
 	}
 
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
-	service := ctx.Response.Header.Peek("service")
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))
 	headers, _ := json.Marshal(http.GetHeadersFromRequest(ctx.Request))
 	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), elapsedTime, string(service))
 	work := logs.LogWorkRequest{Name: "", LogToSave: logRequest}
 	logs.WorkQueue <- work
-
 }

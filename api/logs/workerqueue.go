@@ -2,7 +2,7 @@ package logs
 
 import "fmt"
 
-var WorkQueue = make(chan LogWorkRequest, 500)
+var WorkQueue = make(chan LogWorkRequest, 1000)
 var LogWorkQueue chan chan LogWorkRequest
 
 func StartDispatcher(nworkers int) {

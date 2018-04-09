@@ -10,8 +10,11 @@ import (
 
 	"github.com/valyala/fasthttp"
 )
-
 var RabbitConnection *amqp.Connection
+/* 
+var RabbitConnection *amqp.Connection
+var RabbitChannel *amqp.Channel
+var LogQueue amqp.Queue */
 
 type RequestLogging struct {
 	Method      string
@@ -57,7 +60,7 @@ func (reqLogging *RequestLogging) Save() {
 }
 
 func PublishLog(reqLogging *RequestLogging) {
-	defer PreventCrash()
+	defer utils.PreventCrash()
 
 	LoggingType[config.GApiConfiguration.Logs.Type].(func(*RequestLogging))(reqLogging)
 }
@@ -87,43 +90,33 @@ func PublishElastic(reqLogging *RequestLogging) {
 }
 
 func PublishRabbit(reqLogging *RequestLogging) {
-	fmt.Println("RABBIT PUBLISH")
 	reqLoggingJson, _ := json.Marshal(reqLogging)
 
-	if RabbitConnection == nil {
+	if RabbitConnection == nil{
 		RabbitConnection = rabbit.ConnectToRabbit()
 	}
 
 	RabbitChannel := rabbit.CreateChannel(RabbitConnection)
-
-	logQueue, err := RabbitChannel.QueueDeclare(
+	
+	LogQueue, err := RabbitChannel.QueueDeclare(
 		rabbit.Queue(), // name
 		true,           // durable
 		false,          // delete when unused
 		false,          // exclusive
-		false,          // no-wait
+		false,          	// no-wait
 		nil,            // arguments
 	)
-
 	rabbit.FailOnError(err, "Failed to declare queue")
 
 	err = RabbitChannel.Publish(
 		"",            // exchange
-		logQueue.Name, // routing key
+		LogQueue.Name, // routing key
 		false,         // mandatory
-		false,         // immediate
+		false,         	// immediate
 		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        reqLoggingJson,
 		})
 
 	rabbit.FailOnError(err, "Failed to publish message")
-
-	defer RabbitChannel.Close()
-}
-
-func PreventCrash(){
-	if r := recover(); r != nil {
-		fmt.Println("Publish Log Panic")
-	}
 }

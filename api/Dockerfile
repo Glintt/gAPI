@@ -8,14 +8,13 @@ ENV RABBITMQ_QUEUE gAPI-logqueue
 
 
 WORKDIR /go/src/
-RUN mkdir /api-management 
-ADD . /go/src/gAPIManagement/api/ 
-WORKDIR /go/src/api-management
-
+RUN mkdir -p /gAPIManagement/api
+ADD . /go/src/gAPIManagement/api
+WORKDIR /go/src/gAPIManagement/api
 
 RUN ls /go/
 RUN ls /go/src
-RUN ls /go/src/api-management
+RUN ls /go/src/gAPIManagement/
 
 RUN sh install.sh
 RUN go build -o server ./server.go 

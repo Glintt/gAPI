@@ -1,3 +1,4 @@
+#!/bin/sh
 go get "github.com/patrickmn/go-cache"
 go get "github.com/allegro/bigcache"
 go get "github.com/valyala/fasthttp"

@@ -76,6 +76,7 @@ func StoreRequestInfoToCache(c *routing.Context, requestInfo CachedRequest) {
 
 	if requestInfo.UpdateProtectionCache {
 		fmt.Println("SET OAUTH CACHE")
+		requestInfo.Protection.Cached = true
 		protectionJson, _ := json.Marshal(requestInfo.Protection)
 		OAuthCacheStore(oauthCacheKey(c), protectionJson)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gAPIManagement/api/utils"
 	"fmt"
 	"gAPIManagement/api/rabbit"
 	"gAPIManagement/api/logs"
@@ -17,9 +18,9 @@ func failOnError(err error, msg string) {
 var ELASTICURL string
 var ELASTICPORT string
 
-
-
 func StartListeningToRabbit() {
+	utils.PreventCrash()
+
 	ELASTICURL = os.Getenv("ELASTICSEARCH_HOST")
 	ELASTICPORT = os.Getenv("ELASTICSEARCH_PORT")
 	

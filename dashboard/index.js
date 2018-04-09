@@ -11,6 +11,11 @@ app.engine('.html', require('ejs').renderFile)
 
 app.set('views', `${__dirname}/dist`)
 
+
+router.get('/assets/:file', (req, res, next) => {
+  res.sendFile(`${__dirname}/dist/assets/` + req.params.file)
+})
+
 router.get('/*', (req, res, next) => {
   res.sendFile(`${__dirname}/dist/index.html`)
 })

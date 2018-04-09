@@ -17,7 +17,7 @@
     export default {
         name: "live-requests",
         mounted(){
-            var socket = io.connect("http://localhost:5000")
+            var socket = io.connect("http://" + this.$config.API.SOCKET_HOST + ":" + this.$config.API.SOCKET_PORT)
             socket.on("logs", (msg) => {
                 this.updateMonitorInfo(msg)
             });
@@ -48,8 +48,7 @@
 
         methods: {
             updateMonitorInfo : function(msgs) {
-                console.log(msgs);
-                this.lastReceived = msgs
+                this.lastReceived = parseInt(msgs);
             },
 
             perSecondMonitor : function() {
@@ -66,7 +65,7 @@
             },
 
             shiftData: function () {
-                if(this.perSecondData.datasets[0].data.length > 10)
+                if(this.perSecondData.datasets[0].data.length > 60)
                 {
                     this.perSecondData.labels.shift();
                     this.perSecondData.datasets[0].data.shift();
