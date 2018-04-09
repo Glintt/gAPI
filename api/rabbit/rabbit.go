@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"time"
 	"github.com/streadway/amqp"
 	"fmt"
 	"os"
@@ -28,10 +29,17 @@ func Queue() string{
 
 
 func ConnectToRabbit() *amqp.Connection {
-
-	connection, err := amqp.Dial("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
-	FailOnError(err, "Failed to connect to RabbitMQ")
-	return connection
+	fmt.Println("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
+	
+	for {
+		connection, err := amqp.Dial("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
+		FailOnError(err, "Failed to connect to RabbitMQ")
+		if err == nil {
+			return connection
+		}
+		
+		time.Sleep(500 * time.Millisecond)
+	}
 }
 
 func CreateChannel(connection *amqp.Connection) *amqp.Channel {

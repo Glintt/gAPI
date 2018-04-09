@@ -13,8 +13,6 @@ It also provides analytics which are useful to take value from request logs.
 3. RabbitMQ - Optional
 4. Elasticsearch - Optional
 
-
-
 ### Configuration
 
 Before installing, some configurations are required on the API. Inside the *api/* folder, there is a folder called *configs-example/*. This folder contains an example of all configurations required.
@@ -28,8 +26,6 @@ Configuration files explanation:
 2. ***services.json*** - All microservices registered on the api management. (this can be replaced with mongodb)
 3. ***urls.json*** - base path for service-discovery and analytics api endpoints
 4. ***gAPI.json*** - general api configurations (Authentication; Request Logs) 
-
-
 
 ## Installation
 

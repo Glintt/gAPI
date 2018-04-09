@@ -6,6 +6,7 @@ import ListServices from "./views/ServiceDiscovery/ListServices.vue";
 import NewService from "./views/ServiceDiscovery/NewService.vue";
 import ViewService from "./views/Service/ViewService.vue";
 import ByApi from "./views/Analytics/ByApi.vue";
+import Realtime from "./views/Analytics/Realtime.vue";
 
 var OAuthValidator = require("@/auth");
 Vue.use(Router);
@@ -42,6 +43,12 @@ export default new Router({
       path: "/analytics/by-api",
       name: "analytics-by-api",
       component: ByApi,
+      beforeEnter: OAuthValidator.requireAuth
+    },
+    {
+      path: "/analytics/realtime",
+      name: "analytics-realtime",
+      component: Realtime,
       beforeEnter: OAuthValidator.requireAuth
     }
   ]

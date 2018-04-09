@@ -38,6 +38,32 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ ElapsedTimeInfo().avg }}</h5>
+                        <p class="card-text">Average Elapsed Time (ms)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ ElapsedTimeInfo().max }}</h5>
+                        <p class="card-text">Max Elapsed Time (ms)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ ElapsedTimeInfo().min }}</h5>
+                        <p class="card-text">Min Elapsed Time (ms)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     
         <div class="row">
             <div class="col-md">
@@ -74,6 +100,7 @@
                 </div>
             </div>
         </div>
+
     
         <div class="row">
             <div class="col-md">
@@ -111,12 +138,30 @@
                 fullAnalytics:  {},
                 selectedAPI: null,
                 apisList: [],
-                logs : []
+                logs : [],
+                elapsedTimeInfo:{
+                    max:0,
+                    min:0,
+                    avg:0
+                }
             }
         },
         methods: {
-            UpdateTableData:function(){
-              
+            ElapsedTimeInfo : function(){
+                var totalTime = 0;
+                var size =  this.fullAnalytics.length;
+
+                for (var i = 0; i < size; i++) {
+                    this.elapsedTimeInfo.max = this.fullAnalytics[i].MaxElapsedTime.value > this.elapsedTimeInfo.max ? this.fullAnalytics[i].MaxElapsedTime.value : this.elapsedTimeInfo.max;
+                    this.elapsedTimeInfo.min = this.fullAnalytics[i].MinElapsedTime.value > this.elapsedTimeInfo.min ? this.fullAnalytics[i].MinElapsedTime.value : this.elapsedTimeInfo.min;
+                    totalTime += this.fullAnalytics[i].AvgElapsedTime.value;
+                }
+
+                this.elapsedTimeInfo.avg = this.$utils.timeRound(totalTime / size);
+                
+                return this.elapsedTimeInfo;
+            },
+            UpdateTableData:function(){              
                 for(var i = 0; i < this.logs.length; i++){
                     var log = this.logs[i];
                     var obj = {

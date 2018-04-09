@@ -1,6 +1,7 @@
 package apianalytics
 
 import (
+	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/authentication"
@@ -12,12 +13,13 @@ func StartAPIAnalytics(router *routing.Router) {
 	var analyticsAPI *routing.RouteGroup
 	analyticsAPI = router.Group(config.ANALYTICS_GROUP)
 
-	analyticsAPI.Get("/api",authentication.AuthorizationMiddleware, APIAnalytics)
+	analyticsAPI.Get("/api", authentication.AuthorizationMiddleware, APIAnalytics)
 }
 
 func APIAnalytics(c *routing.Context) error {
 	logsURL := config.ELASTICSEARCH_URL + "/request-logs-*/logs/_search"
 
+	fmt.Println(logsURL)
 	apiEndpoint := string(c.QueryArgs().Peek("endpoint"))
 
 	//skip := c.QueryArgs().Peek("skip")

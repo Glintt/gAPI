@@ -1,3 +1,5 @@
-**/configs/
+api/configs/
 **/bin/
 
+dashboard/node_modules
+**/.env.*

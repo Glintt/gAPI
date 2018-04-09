@@ -8,13 +8,15 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "express": "4.16.3",
-    "ejs": "^2.5.8",
     "bootstrap": "^4.0.0",
     "chart.js": "^2.7.2",
+    "ejs": "^2.5.8",
+    "express": "4.16.3",
     "hchs-vue-charts": "^1.2.8",
     "jquery": "^3.3.1",
     "popper.js": "^1.14.1",
+    "socket.io-client": "^2.1.0",
+    "uws": "^9.14.0",
     "vue": "^2.5.13",
     "vue-chartjs": "^3.3.1",
     "vue-resource": "^1.5.0",
@@ -41,10 +43,8 @@
         {
           "include": [
             "NODE_ENV",
-            "SERVICE_DISCOVERY_HOST",            
-            "SERVICE_DISCOVERY_PORT",
-            "ANALYTICS_API_HOST",
-            "ANALYTICS_API_PORT"
+            "API_HOST",
+            "API_HOST"
           ]
         }
       ]

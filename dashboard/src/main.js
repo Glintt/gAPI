@@ -9,8 +9,10 @@ require("bootstrap");
 
 Vue.config.productionTip = false;
 
+Vue.prototype.$config = require("@/configs/urls").config;
 Vue.prototype.$chartColors = require("@/configs/chartColors");
 Vue.prototype.$random = require("@/configs/random");
+Vue.prototype.$utils = require("@/utils");
 
 new Vue({
   router,

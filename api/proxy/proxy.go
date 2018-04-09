@@ -46,11 +46,12 @@ func HandleRequest(c *routing.Context) error {
 		fmt.Println("SD FROM CACHE")
 	}
 
-	if cachedRequest.Protection.UserInfo == "" {
+	if ! cachedRequest.Protection.Cached {
 		fmt.Println("PROTECTION NOT FROM CACHE")
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
 		if cachedRequest.Protection.Error != nil {
+			fmt.Println("HER")
 			http.Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, cachedRequest.Service.MatchingURI)
 			return nil
 		}

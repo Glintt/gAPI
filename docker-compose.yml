@@ -16,10 +16,11 @@ services:
       - SERVICEDISCOVERY_PORT=${SERVICEDISCOVERY_PORT:-8080}
       - MONGO_HOST=${MONGO_HOST:-mongodb}
       - MONGO_DB=${MONGO_DB:-gapi}
+      - SOCKET_PORT=${SOCKET_PORT:-5000}
     ports:
       - 8080:8080
     volumes:
-      - ./configs:/go/src/api-management/configs/
+      - ./api/configs:/go/src/gAPIManagement/api/configs/
 
   frontend: 
     build: 
@@ -41,7 +42,7 @@ services:
       - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elastic}
       - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-9200}
     volumes:
-      - ./configs:/go/src/api-management/configs/
+      - ./api/configs:/go/src/gAPIManagement/api/configs/
 
   rabbit:
     image: "rabbitmq:3-management"
