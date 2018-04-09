@@ -1,4 +1,4 @@
-package authentication
+package thirdpartyauthentication
 
 import (
 	"gAPIManagement/api/config"
@@ -17,6 +17,7 @@ type OAuthServer struct {
 	UserTokenInformation UserTokenInformation `json:"token_user_information"`
 }
 
+
 func LoadFromConfig() OAuthServer {
 	authenticationJSON, err := utils.LoadJsonFile(config.CONFIGS_LOCATION + config.AUTHENTICATION_CONFIG_FILE)
 
@@ -30,6 +31,7 @@ func LoadFromConfig() OAuthServer {
 	oas.AuthorizeEndpoint = oas.Host + ":" + oas.Port + oas.AuthorizeEndpoint
 	return oas
 }
+
 
 func (oauthServer *OAuthServer) Authorize(request fasthttp.Request) (string, string, error) {
 

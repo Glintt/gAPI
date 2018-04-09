@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"gAPIManagement/api/authentication"
+	"gAPIManagement/api/thirdpartyauthentication"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 type CachedRequest struct {
 	Service               servicediscovery.Service
 	UpdateServiceCache    bool
-	Protection            authentication.ProtectionInfo
+	Protection            thirdpartyauthentication.ProtectionInfo
 	UpdateProtectionCache bool
 	Response              http.ResponseInfo
 	UpdateResponseCache   bool
@@ -41,7 +41,7 @@ func apiResponseCacheKey(c *routing.Context) string {
 
 func GetCacheForRequest(c *routing.Context) CachedRequest {
 	var serviceCache servicediscovery.Service
-	var protectionCacheObj authentication.ProtectionInfo
+	var protectionCacheObj thirdpartyauthentication.ProtectionInfo
 	var respObj http.ResponseInfo
 
 	sdCache, sdCacheErr := ServiceDiscoveryCacheGet(sdCacheKey(c))

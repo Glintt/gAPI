@@ -5,7 +5,6 @@ import (
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/authentication"
 	"encoding/json"
-	"os"
 	"github.com/qiangxue/fasthttp-routing"
 )
 
@@ -36,7 +35,7 @@ var funcMap = map[string]map[string]interface{}{
 		"get":    FindFile}}
 
 func StartServiceDiscovery(router *routing.Router) {
-	if os.Getenv("SD_TYPE") == "mongo" {
+	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
 		SD_TYPE = "mongo"
 		InitMongo()
 	} else {

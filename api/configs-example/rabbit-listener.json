@@ -1,6 +1,0 @@
-{
-    "CORS":{
-        "AllowedOrigins" : ["http://localhost:8080"],
-        "AllowCredentials" : true
-    }
-}

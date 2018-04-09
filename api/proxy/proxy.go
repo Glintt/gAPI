@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"gAPIManagement/api/authentication"
+	authentication "gAPIManagement/api/thirdpartyauthentication"
 	"gAPIManagement/api/cache"
 	"fmt"
 	"gAPIManagement/api/http"

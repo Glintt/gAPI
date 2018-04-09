@@ -42,12 +42,10 @@ func SocketListen(){
 		log.Println("error:", err)
 	})
 
-	config.LoadRabbitListenerConfig()
-	
 	mux := http.NewServeMux()
 	c := cors.New(cors.Options{
-		AllowedOrigins: config.RabbitListenerConfigurationObj.Cors.AllowedOrigins,
-		AllowCredentials: config.RabbitListenerConfigurationObj.Cors.AllowCredentials,
+		AllowedOrigins: config.GApiConfiguration.Cors.AllowedOrigins,
+		AllowCredentials: config.GApiConfiguration.Cors.AllowCredentials,
 	})
 
     handler := c.Handler(mux)

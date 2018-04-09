@@ -2,12 +2,9 @@ package config
 
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"os"
 )
 
-var URLS_CONFIG_FILE = "urls.json"
 var SERVICE_DISCOVERY_URL = "http://localhost:8080"
 var SERVICE_DISCOVERY_GROUP = "/service-discovery"
 var ANALYTICS_GROUP = "/analytics"
@@ -18,6 +15,7 @@ type UrlsConstants struct {
 	ANALYTICS_GROUP         string `json:ANALYTICS_GROUP`
 }
 
+/* 
 func LoadURLConstants() {
 	urlsJSON, err := ioutil.ReadFile(CONFIGS_LOCATION + URLS_CONFIG_FILE)
 
@@ -35,3 +33,11 @@ func LoadURLConstants() {
 	
 	return
 }
+ */
+
+ func LoadURLConstants(){
+	SERVICE_DISCOVERY_URL = "http://" + os.Getenv("SERVICEDISCOVERY_HOST") + ":" + os.Getenv("SERVICEDISCOVERY_PORT")
+	SERVICE_DISCOVERY_GROUP = GApiConfiguration.Urls.SERVICE_DISCOVERY_GROUP
+	ANALYTICS_GROUP = GApiConfiguration.Urls.ANALYTICS_GROUP
+	ELASTICSEARCH_URL = "http://" + os.Getenv("ELASTICSEARCH_HOST") + ":" + os.Getenv("ELASTICSEARCH_PORT")
+ }

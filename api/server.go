@@ -34,6 +34,7 @@ func main() {
 
 	listenAPI(router)
 }
+
 func InitSocketServices(){
 	go sockets.SocketListen()
 	sockets.StartRequestsCounterSender()

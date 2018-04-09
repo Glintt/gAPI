@@ -13,6 +13,6 @@ var PATCH = "PATCH"
 
 
 func LoadConfigs(){
-	LoadURLConstants()
 	LoadGApiConfig()
+	LoadURLConstants()
 }

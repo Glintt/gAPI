@@ -11,6 +11,9 @@ var GAPI_CONFIG_FILE = "gAPI.json"
 type GApiConfig struct {
 	Authentication GApiAuthenticationConfig
 	Logs GApiLogsConfig
+	Cors GApiCorsConfig
+	ServiceDiscovery GApiServiceDiscoveryConfig
+	Urls UrlsConstants
 }
 
 type GApiAuthenticationConfig struct {
@@ -19,6 +22,15 @@ type GApiAuthenticationConfig struct {
 }
 type GApiLogsConfig struct{
 	Active bool
+	Type string
+}
+
+type GApiCorsConfig struct {
+	AllowedOrigins []string
+	AllowCredentials bool
+}
+
+type GApiServiceDiscoveryConfig struct{
 	Type string
 }
 

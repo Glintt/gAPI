@@ -9,10 +9,6 @@ export RABBITMQ_PORT=5672
 export RABBITMQ_USER=gapi
 export RABBITMQ_PASSWORD=gapi
 export RABBITMQ_QUEUE=gAPI-logqueue
-export RABBITMQ_ERLANG_COOKIE=SWQOKODSQALRPCLNMEQG
-export RABBITMQ_DEFAULT_USER=gapi
-export RABBITMQ_DEFAULT_PASS=gapi
-export RABBITMQ_DEFAULT_VHOST=/
 
 sh install.sh
 go run server.go

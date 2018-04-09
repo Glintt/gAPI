@@ -6,5 +6,16 @@
     "Logs":{
         "Active":true,
         "Type":"Elastic"
+    },
+    "CORS":{
+        "AllowedOrigins" : ["http://localhost:8080"],
+        "AllowCredentials" : true
+    },
+    "ServiceDiscovery":{
+        "Type": "file"
+    },
+    "Urls": {
+        "SERVICE_DISCOVERY_GROUP": "/service-discovery",
+        "ANALYTICS_GROUP": "/analytics"
     }
 }

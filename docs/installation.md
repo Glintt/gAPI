@@ -10,36 +10,206 @@ Configuration files explanation:
 
 1. ***oauth.json*** - oauth server configuration (domain, port, endpoint)
 2. ***services.json*** - All microservices registered on the api management. (this can be replaced with mongodb)
-3. ***urls.json*** - base path for service-discovery and analytics api endpoints
-4. ***gAPI.json*** - general api configurations (Authentication; Request Logs) 
+3. ***gAPI.json*** 
+    * **Authentication** - user and password configuration to access admin area;
+    * **Logs** - activate/deactivate logs and type of logging (available: *Elastic* or *Rabbit*)
+    * **CORS** - AllowedOrigins (array with all allowed origins) and AllowCredentials
+    * **ServiceDiscovery** - configuration storage type (available: *file* and *mongo*) - note that when it is being used mongo, you MUST specify MONGO_HOST and MONGO_DB environment variables.
+    * **Urls** - Base urls for some of the services available on gAPI api:
+        * SERVICE_DISCOVERY_GROUP - service discovery base url
+        * ANALYTICS_GROUP - analytics base url
 
 ## Installation
 
-#### Using docker
+gAPI is composed by six parts:
 
-Run the following command:
+1. [gAPI Server](#gapi-server "gAPI Server")
+    1. Environment Variables
+    2. Run
+2. [gAPI Dashboard](#gapi-dashboard "gAPI Dashboard")
+    1. Environment Variables
+    2. Run
+2. [gAPI rabbit listener](#gapi-rabbit-listener "gAPI rabbit listener") - only required when using RabbitMQ for queueing logs storage
+    1. Environment Variables
+    2. Run
+3. Elasticsearch - logs storage
+4. RabbitMQ - used as queue for logs (*optional*)
+5. MongoDB - used as service discovery storage engine (*optional*)
+
+
+gAPI also can be run using docker:
+
+1. [Docker](#docker "gAPI Docker")
+    1. Environment Variables
+
+### gAPI Server
+
+##### Environment Variables
+
+1. Specify gAPI Server port:
+
+```
+API_MANAGEMENT_PORT=<new port>   (default: 8080)
+```
+
+2. Enable live analytics:
+
+```
+SOCKET_PORT=<socket port>
+```
+
+3. Elasticsearch is required for logging requests:
+```
+ELASTICSEARCH_HOST=<elastic host>
+ELASTICSEARCH_PORT=<elastic port>
+```
+
+4. To use RabbitMQ as queueing system for logging:
+
+```
+RABBITMQ_HOST=<rabbit host>
+RABBITMQ_PORT=<rabbit port>     (default: 5601)
+RABBITMQ_USER=<rabbit user>
+RABBITMQ_PASSWORD=<rabbit password>
+RABBITMQ_QUEUE=<rabbit gapi queue name>
+```
+
+5. Use MongoDB as service discovery storage engine:
+
+```
+MONGO_HOST=<mongodb host>
+MONGO_DB=<mongodb database name>
+```
+
+
+6. Service discovery is a separate service:
+
+```
+SERVICEDISCOVERY_HOST=<custom SD host>
+SERVICEDISCOVERY_PORT=<custom SD port>
+```
+
+##### Run
+
+To run gAPI Server, follow this steps:
+
+1. Copy the project to *go/src* folder
+2. Compile the code using the command:
+
+```
+go build -o server ./server.go
+```
+
+3. Start the server using the following command:
+
+```
+./server
+```
+
+### gAPI Rabbit Listener
+
+##### Environment Variables
+
+gAPI Rabbit Listener requires the following environement variables:
+
+```
+RABBITMQ_HOST=<rabbit host>
+RABBITMQ_PORT=<rabbit port>     (default: 5601)
+RABBITMQ_USER=<rabbit user>
+RABBITMQ_PASSWORD=<rabbit password>
+RABBITMQ_QUEUE=<rabbit gapi queue name>
+ELASTICSEARCH_HOST=<elastic host>
+ELASTICSEARCH_PORT=<elastic port>
+```
+
+These environment variables must go along with the ones specified on gAPI server.
+
+##### Run
+
+1. Copy the project to *go/src* folder
+2. Compile the code using the command:
+
+```
+go build -o rabbit-listener ./rabbit-listener.go 
+```
+
+3. Start the listener using the following command:
+
+```
+./rabbit-listener
+```
+
+
+
+
+### gAPI Dashboard
+
+All commands regarding the dashboard, must be run inside *dashboard/* folder.
+
+##### Environment Variables
+
+Some environment variables are required to build the dashboard. Env vars are located in *.env.{ENV_NAME}* files.
+
+These are the required env vars:
+
+```
+API_HOST=<gAPI host>
+API_PORT=<gAPI port>
+SOCKET_HOST=<gAPI socket host>
+SOCKET_PORT=<gAPI socket port>
+```
+
+##### Run
+
+To start the dashboard, follow this steps:
+
+1. Install all dependencies:
+```
+npm install
+```
+
+2. Build the sources:
+```
+npm run build
+```
+
+3. Start the service
+```
+node index.js
+```
+
+
+
+## Docker
+
+gAPI can also be run using [docker compose](https://docs.docker.com/compose/).
+
+
+To run all gAPI dependencies, just run the following command on the root of the project:
+
 
 ```
 docker-compose up -d
 ```
 
-#### API
 
-In order to run the API, you need Golang installed.
+##### Environment Variables
 
-Inside *api/* folder, run the following command:
-
-```
-sh start.sh
-```
-
-
-#### Dashboard
-
-In order to start the dashboard, run the following command inside *dashboard/* folder:
+When using docker, all environment variables have default values already which allow to start all services without any configuration. 
+If you want to customize it, you can override the following environment variables:
 
 ```
-npm run serve
+- API_MANAGEMENT_PORT=${API_MANAGEMENT_PORT:-8080}
+- RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
+- RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+- RABBITMQ_USER=${RABBITMQ_USER:-gapi}
+- RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-gapi}
+- RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-gAPI-logqueue}
+- ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elastic}
+- ELASTICSEARCH_PORT=${ELASTICSEARCH_URL:-9200}
+- SERVICEDISCOVERY_HOST=${SERVICEDISCOVERY_HOST:-localhost}
+- SERVICEDISCOVERY_PORT=${SERVICEDISCOVERY_PORT:-8080}
+- MONGO_HOST=${MONGO_HOST:-mongodb}
+- MONGO_DB=${MONGO_DB:-gapi}
+- SOCKET_PORT=${SOCKET_PORT:-5000}
 ```
-
-

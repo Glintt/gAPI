@@ -1,4 +1,4 @@
-package authentication
+package thirdpartyauthentication
 
 type UserTokenInformation struct {
 	Source      string `json:"source"`
