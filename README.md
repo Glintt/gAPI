@@ -1,7 +1,7 @@
-# gAPIManagement
+# gAPI
 
 
-gAPIManagement allows to easily manage all your microservices by providing a simple and intuitive dashboard.
+gAPI allows to easily manage all your microservices by providing a simple and intuitive dashboard.
 
 It also provides analytics which are useful to take value from request logs.
 
