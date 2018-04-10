@@ -19,8 +19,8 @@
                     <td>{{ service.Domain }}</td>
                     <td>{{ service.Port }}</td>
                     <td>{{ service.MatchingURI }}</td>
-                    <td><i :class="service.Protected ? 'fas fa-lock text-success' : 'fas fa-unlock text-danger'"></i></td>
-                    <td><i :class="service.IsActive ? 'fas fa-check-circle text-success' : 'fas fa-times-circle text-danger'"></i></td>
+                    <td><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
+                    <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
                     <td>{{ service.APIDocumentation }}</td>
                     <td>
                         <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >View</router-link>

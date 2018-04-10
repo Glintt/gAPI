@@ -3,7 +3,11 @@
         <div class="col-sm">
             <InformationPanel v-if="informationStatus.isActive" :msg="informationStatus.msg" :className="informationStatus.className"></InformationPanel>
             <div class="row">
-                <div class="col-sm-1 offset-md-11">
+                <div class="col-sm-1" v-if="serviceFetched">
+                    <span>Health: </span>
+                    <i class="fas fa-heartbeat fa-lg" :class="isActiveClass"></i>
+                </div>
+                <div class="col-sm-1 offset-md-10">
                     <button class="btn btn-danger" @click="deleteService">Delete</button>
                 </div>
             </div>
@@ -87,11 +91,14 @@
         mounted() {
             serviceDiscoveryAPI.getServices(this.$route.query.uri, (response) => {
                 this.service = response.body;
-                this.serviceUpdated()
+                this.serviceUpdated();
+                this.isActiveClass = this.service.IsActive ? 'text-success' : 'text-danger';
+                this.serviceFetched = true;
             })
         },
         data() {
             return {
+                serviceFetched:false,
                 service: {
                     "Name": "",
                     "Domain": "",
@@ -99,8 +106,10 @@
                     "MatchingURI": "",
                     "ToURI": "",
                     "Protected": false,
-                    "APIDocumentation": ""
+                    "APIDocumentation": "",
+                    "IsActive": true
                 },
+                isActiveClass : 'text-success',
                 informationStatus:{
                     isActive : false,
                     className: 'alert-success',
@@ -144,6 +153,7 @@
                 })
             },
             serviceUpdated:function(){
+                this.service.IsActive = this.service.IsActive;
                 this.$emit("serviceUpdated", this.service);
             }
         },
