@@ -1,11 +1,11 @@
 package proxy
 
 import (
-	authentication "gAPIManagement/api/thirdpartyauthentication"
-	"gAPIManagement/api/cache"
 	"fmt"
+	"gAPIManagement/api/cache"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
+	authentication "gAPIManagement/api/thirdpartyauthentication"
 
 	"github.com/qiangxue/fasthttp-routing"
 )
@@ -18,7 +18,7 @@ func StartProxy(router *routing.Router) {
 
 	router.To("GET,POST,PUT,PATCH,DELETE", "/*", HandleRequest)
 
-	sd.SetIsService(false)
+	sd = *servicediscovery.GetServiceDiscoveryObject()
 }
 
 func HandleRequest(c *routing.Context) error {
@@ -46,7 +46,7 @@ func HandleRequest(c *routing.Context) error {
 		fmt.Println("SD FROM CACHE")
 	}
 
-	if ! cachedRequest.Protection.Cached {
+	if !cachedRequest.Protection.Cached {
 		fmt.Println("PROTECTION NOT FROM CACHE")
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
@@ -70,7 +70,6 @@ func HandleRequest(c *routing.Context) error {
 	} else {
 		fmt.Println("RESPONSE FROM CACHE")
 	}
-
 
 	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI)
 

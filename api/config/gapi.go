@@ -7,36 +7,41 @@ import (
 
 var GAPI_CONFIG_FILE = "gAPI.json"
 
-
 type GApiConfig struct {
-	Authentication GApiAuthenticationConfig
-	Logs GApiLogsConfig
-	Cors GApiCorsConfig
+	Authentication   GApiAuthenticationConfig
+	Logs             GApiLogsConfig
+	Cors             GApiCorsConfig
 	ServiceDiscovery GApiServiceDiscoveryConfig
-	Urls UrlsConstants
+	Urls             UrlsConstants
+	Healthcheck      GApiHealthCheckConfig
 }
 
 type GApiAuthenticationConfig struct {
 	Username string
 	Password string
 }
-type GApiLogsConfig struct{
+type GApiLogsConfig struct {
 	Active bool
-	Type string
+	Type   string
 }
 
 type GApiCorsConfig struct {
-	AllowedOrigins []string
+	AllowedOrigins   []string
 	AllowCredentials bool
 }
 
-type GApiServiceDiscoveryConfig struct{
+type GApiServiceDiscoveryConfig struct {
 	Type string
+}
+
+type GApiHealthCheckConfig struct {
+	Active    bool
+	Frequency int
 }
 
 var GApiConfiguration GApiConfig
 
-func LoadGApiConfig(){
+func LoadGApiConfig() {
 	gapiJSON, err := ioutil.ReadFile(CONFIGS_LOCATION + GAPI_CONFIG_FILE)
 
 	if err != nil {

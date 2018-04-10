@@ -19,6 +19,7 @@ type Service struct {
 	APIDocumentation      string
 	CachingExpirationTime int
 	IsCachingActive       bool
+	IsActive              bool
 }
 
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
