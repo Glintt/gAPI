@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/servicediscovery"
-	"net"
+	"net/http"
 	"time"
 )
 
@@ -45,17 +45,19 @@ func ServicesList() []servicediscovery.Service {
 func CheckServicesHealth() {
 	services := ServicesList()
 
-	timeout := time.Duration(time.Duration(TimeoutDuration) * time.Second)
+/* 	timeout := time.Duration(time.Duration(TimeoutDuration) * time.Second) */
 	var servicesFinal []servicediscovery.Service
 
 	fmt.Println("##### HEALTH CHECK ##### ")
 
 	for _, s := range services {
 
-		fmt.Println("-----> " + s.Domain + ":" + s.Port)
 
-		_, err := net.DialTimeout("tcp", s.Domain+":"+s.Port, timeout)
-		if err != nil {
+		healthcheckURL := s.HealthcheckUrl
+
+		fmt.Println("-----> " + s.Domain + ":" + s.Port + healthcheckURL)
+		resp, err := http.Get("http://" + s.Domain+":"+s.Port + healthcheckURL)
+		if err != nil || resp.StatusCode != 200 {
 			s.IsActive = false
 		} else {
 			s.IsActive = true

@@ -79,6 +79,15 @@
                             v-model="service.APIDocumentation" class="form-control" id="serviceDocumentation" aria-describedby="serviceDocumentationHelp" placeholder="Enter domain">
                         <small id="serviceDocumentationHelp" class="form-text text-muted">API documentation URI.</small>
                     </div>
+
+                    <div class="form-group">
+                        <label for="serviceDocumentation">Healthcheck URL</label>
+                        <input type="text" 
+                            :disabled="!isLoggedIn()"
+                            v-model="service.HealthcheckUrl" class="form-control" id="serviceHealthcheckUrl" aria-describedby="serviceHealthcheckUrl" placeholder="Enter Healthcheck Url">
+                        <small id="serviceHealthcheckUrl" class="form-text text-muted">Healthcheck URL</small>
+                    </div>
+
                     <button type="submit" v-if="isLoggedIn()" class="btn btn-primary" v-on:click="store">Save</button>
                     <button type="submit" v-if="isLoggedIn()" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
                     <button class="btn btn-danger" v-if="isLoggedIn()" @click="deleteService">Delete</button>
@@ -115,7 +124,8 @@
                     "ToURI": "",
                     "Protected": false,
                     "APIDocumentation": "",
-                    "IsActive": true
+                    "IsActive": true,
+                    "HealthcheckUrl" : ""
                 },
                 isActiveClass : 'text-success',
                 informationStatus:{
