@@ -17,5 +17,9 @@
     "Urls": {
         "SERVICE_DISCOVERY_GROUP": "/service-discovery",
         "ANALYTICS_GROUP": "/analytics"
+    },
+    "Healthcheck":{
+        "Active":true,
+        "Frequency": 30
     }
 }

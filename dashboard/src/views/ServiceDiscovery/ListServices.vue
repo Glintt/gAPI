@@ -8,6 +8,7 @@
                     <th scope="col">Port</th>
                     <th scope="col">gAPI Path</th>
                     <th scope="col">Secured?</th>
+                    <th scope="col">Health</th>
                     <th scope="col">API Documentation</th>
                     <th scope="col">Actions</th>
                 </tr>
@@ -18,7 +19,8 @@
                     <td>{{ service.Domain }}</td>
                     <td>{{ service.Port }}</td>
                     <td>{{ service.MatchingURI }}</td>
-                    <td>{{ service.Protected }}</td>
+                    <td><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
+                    <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
                     <td>{{ service.APIDocumentation }}</td>
                     <td>
                         <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >View</router-link>

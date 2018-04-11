@@ -1,10 +1,11 @@
 package servicediscovery
 
 import (
+	"encoding/json"
+	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
-	"gAPIManagement/api/authentication"
-	"encoding/json"
+
 	"github.com/qiangxue/fasthttp-routing"
 )
 
@@ -33,6 +34,14 @@ var funcMap = map[string]map[string]interface{}{
 		"create": CreateServiceFile,
 		"list":   ListServicesFile,
 		"get":    FindFile}}
+
+func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []Service) {
+	serviceDisc.registeredServices = rs
+}
+
+func GetServiceDiscoveryObject() *ServiceDiscovery {
+	return &sd
+}
 
 func StartServiceDiscovery(router *routing.Router) {
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
@@ -126,7 +135,7 @@ func GetEndpointHandler(c *routing.Context) error {
 		fmt.Println("SERVICE DISCOVERY =====> uri param = " + string(matchingURI))
 		fmt.Println("=============================================================\n")
 	*/
-	
+
 	service, err := sd.GetEndpointForUri(string(matchingURI))
 	serviceJSON, err1 := json.Marshal(service)
 

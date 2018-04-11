@@ -18,6 +18,10 @@ Configuration files explanation:
     * **Urls** - Base urls for some of the services available on gAPI api:
         * SERVICE_DISCOVERY_GROUP - service discovery base url
         * ANALYTICS_GROUP - analytics base url
+    * **Healthcheck** - Healthcheck configuration
+        * Active - boolean to activate or deactivate healthcheck monitoring
+        * Frequency - Frequency in seconds at which monitor is done
+
 
 ## Installation
 

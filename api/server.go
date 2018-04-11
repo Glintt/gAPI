@@ -1,20 +1,22 @@
 package main
 
 import (
-	"gAPIManagement/api/sockets"
+	"encoding/json"
+	"fmt"
 	apianalytics "gAPIManagement/api/api-analytics"
+	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/healthcheck"
+	"gAPIManagement/api/http"
 	"gAPIManagement/api/logs"
-	"gAPIManagement/api/utils"
 	"gAPIManagement/api/proxy"
 	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/authentication"
-	"gAPIManagement/api/http"
-	"fmt"
+	"gAPIManagement/api/sockets"
+	"gAPIManagement/api/utils"
 	"os"
 	"time"
-	"encoding/json"
+
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
 )
@@ -26,8 +28,8 @@ func main() {
 	config.LoadConfigs()
 
 	router = routing.New()
-	router.Get("/reload",authentication.AuthorizationMiddleware, ReloadServices)
-	router.Get("/invalidate-cache",authentication.AuthorizationMiddleware, InvalidateCache)
+	router.Get("/reload", authentication.AuthorizationMiddleware, ReloadServices)
+	router.Get("/invalidate-cache", authentication.AuthorizationMiddleware, InvalidateCache)
 	initServices()
 
 	InitSocketServices()
@@ -35,7 +37,7 @@ func main() {
 	listenAPI(router)
 }
 
-func InitSocketServices(){
+func InitSocketServices() {
 	go sockets.SocketListen()
 	sockets.StartRequestsCounterSender()
 }
@@ -62,6 +64,7 @@ func initServices() {
 	servicediscovery.StartServiceDiscovery(router)
 	apianalytics.StartAPIAnalytics(router)
 	proxy.StartProxy(router)
+	healthcheck.InitHealthCheck()
 }
 
 func listenAPI(router *routing.Router) {
@@ -91,17 +94,17 @@ func CORSHandle(ctx *fasthttp.RequestCtx) {
 	beginTime := utils.CurrentTimeMilliseconds()
 	router.HandleRequest(ctx)
 	service := ctx.Response.Header.Peek("service")
-	
+
 	RequestCounterSocket(service)
 	LogRequest(ctx, service, beginTime)
 }
 
-func RequestCounterSocket( service []byte){
+func RequestCounterSocket(service []byte) {
 	sockets.IncrementRequestCounter()
 }
 
-func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64){
-	if ! config.GApiConfiguration.Logs.Active || string(ctx.Method()) == "OPTIONS" {
+func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
+	if !config.GApiConfiguration.Logs.Active || string(ctx.Method()) == "OPTIONS" {
 		return
 	}
 
