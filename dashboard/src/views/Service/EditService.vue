@@ -33,14 +33,14 @@
                              v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
                         <small id="serviceMatchingUriHelp" class="form-text text-muted">Base URI which links to the service on API Management Platform.</small>
                     </div>
-                    <div class="form-check">
+                    <div class="form-check" v-show="isLoggedIn()">
                         <input type="checkbox"
                             :disabled="!isLoggedIn()"
                              v-model="service.Protected" class="form-check-input" id="serviceProtected">
                         <label class="form-check-label" for="serviceProtected">Protected</label>
                         <small id="serviceProtectedHelp" class="form-text text-muted">Is Service Protected with OAuth?</small>
                     </div>
-                    <div class="form-check">
+                    <div class="form-check" v-show="isLoggedIn()">
                         <input type="checkbox" 
                             :disabled="!isLoggedIn()"
                             v-model="service.IsCachingActive" class="form-check-input" id="serviceProtected">
@@ -48,7 +48,7 @@
                         <small id="serviceProtectedHelp" class="form-text text-muted">Enable caching on this service? It will improve performance but be careful as it may affect results.</small>
                     </div>
                 </div>
-                <div class="col-sm">
+                <div class="col-sm" v-show="isLoggedIn()">
                     <h2>MicroService Info</h2>
                     <div class="form-group">
                         <label for="domainName">Domain</label>

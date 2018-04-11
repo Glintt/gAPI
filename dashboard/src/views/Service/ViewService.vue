@@ -1,12 +1,12 @@
 <template>
 <div>
-    <div class="row"  v-show="auth.isLoggedIn()">
+    <div class="row">
         <div class="col-sm">
             <EditService v-on:serviceUpdated="updateDocumentationEndpoint"></EditService>
         </div>   
     </div>
 
-    <hr v-show="auth.isLoggedIn()"/> 
+    <hr/> 
     
     <iframe v-if="ServiceDocumentationEndpoint != null" frameborder="0" style="min-height:600px;width:100%;top:0px;left:0px;right:0px;bottom:0px" height="100%" width="100%" :src="ServiceDocumentationEndpoint"></iframe>
     
