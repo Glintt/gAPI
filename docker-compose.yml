@@ -19,6 +19,7 @@ services:
       - SOCKET_PORT=${SOCKET_PORT:-5000}
     ports:
       - 8080:8080
+      - 5000:5000
     volumes:
       - ./api/configs:/go/src/gAPIManagement/api/configs/
 
