@@ -12,7 +12,7 @@ func SlackNotification(msg string){
 
 	webHookApi := config.GApiConfiguration.Notifications.Slack.WebhookUrl
 	
-    req, err := http.NewRequest("POST", webHookApi, bytes.NewBuffer(json))
+    req, _ := http.NewRequest("POST", webHookApi, bytes.NewBuffer(json))
 	req.Header.Set("Content-Type", "application/json")
 	
 	client := &http.Client{}
