@@ -14,6 +14,7 @@ type GApiConfig struct {
 	ServiceDiscovery GApiServiceDiscoveryConfig
 	Urls             UrlsConstants
 	Healthcheck      GApiHealthCheckConfig
+	Notifications GApiNotificationsConfig
 }
 
 type GApiAuthenticationConfig struct {
@@ -37,6 +38,16 @@ type GApiServiceDiscoveryConfig struct {
 type GApiHealthCheckConfig struct {
 	Active    bool
 	Frequency int
+	Notification bool
+}
+
+type GApiNotificationsConfig struct {
+	Type    string
+	Slack GApiSlackNotificationsConfig
+}
+
+type GApiSlackNotificationsConfig struct {
+	WebhookUrl string
 }
 
 var GApiConfiguration GApiConfig

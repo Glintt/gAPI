@@ -71,3 +71,4 @@ func StartListeningToRabbit() {
 func main(){
 	StartListeningToRabbit()
 }
+

@@ -20,6 +20,13 @@
     },
     "Healthcheck":{
         "Active":true,
-        "Frequency": 30
+        "Frequency": 30,
+        "Notification": true
+    },
+    "Notifications": {
+        "Type" : "Slack",
+        "Slack" : {
+            "WebhookUrl" : "https://hooks.slack.com/services/asld/lak/la"
+        }
     }
 }
