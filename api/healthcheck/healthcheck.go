@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"gAPIManagement/api/notifications"
 	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/servicediscovery"
@@ -45,19 +46,17 @@ func ServicesList() []servicediscovery.Service {
 func CheckServicesHealth() {
 	services := ServicesList()
 
-/* 	timeout := time.Duration(time.Duration(TimeoutDuration) * time.Second) */
 	var servicesFinal []servicediscovery.Service
 
 	fmt.Println("##### HEALTH CHECK ##### ")
 
 	for _, s := range services {
-
-
 		healthcheckURL := s.HealthcheckUrl
 
 		fmt.Println("-----> " + s.Domain + ":" + s.Port + healthcheckURL)
 		resp, err := http.Get("http://" + s.Domain+":"+s.Port + healthcheckURL)
 		if err != nil || resp.StatusCode != 200 {
+			NotifyHealthDown(s)
 			s.IsActive = false
 		} else {
 			s.IsActive = true
@@ -67,4 +66,15 @@ func CheckServicesHealth() {
 	}
 
 	sd.SetRegisteredServices(servicesFinal)
+}
+
+
+func NotifyHealthDown(service servicediscovery.Service){
+	if ! config.GApiConfiguration.Healthcheck.Notification ||  ! service.IsActive {
+		return
+	}
+
+	msg := service.Name + " located at " + service.Domain + ":" + service.Port + service.ToURI + " is down!"
+
+	notifications.SendNotification(msg)
 }

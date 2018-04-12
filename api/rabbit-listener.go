@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
 	"fmt"
 	"gAPIManagement/api/rabbit"
@@ -69,5 +70,8 @@ func StartListeningToRabbit() {
 }
 
 func main(){
+	config.LoadURLConstants()
+	
 	StartListeningToRabbit()
 }
+

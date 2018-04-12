@@ -21,7 +21,12 @@ Configuration files explanation:
     * **Healthcheck** - Healthcheck configuration
         * Active - boolean to activate or deactivate healthcheck monitoring
         * Frequency - Frequency in seconds at which monitor is done
-
+        * Notification - Enable or disable notifications when service goes down.
+    * **Notifications**
+        * Type - Notification type. Available options:
+            * Slack
+        * Slack - Slack notifications configuration.
+            * WebhookUrl - URL to POST notifications to
 
 ## Installation
 
