@@ -81,8 +81,9 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 
 	c.Request.Header.Set(authorization.Header, authorization.UserInfo)
 	headers := http.GetHeadersFromRequest(c.Request)
+	body := c.Request.Body()
 
-	response := service.Call(string(c.Method()), string(c.Request.RequestURI()), headers, "")
+	response := service.Call(string(c.Method()), string(c.Request.RequestURI()), headers, string(body))
 
 	return http.ResponseInfo{
 		StatusCode:  response.Header.StatusCode(),
