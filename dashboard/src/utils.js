@@ -7,3 +7,8 @@ export function currentTimeString() {
     return currentDate.getHours() + ":"
         + currentDate.getMinutes() + ":" + currentDate.getSeconds();
 }
+
+export function getCookieByName(name){
+    var pair = document.cookie.match(new RegExp(name + '=([^;]+)'));
+    return pair ? pair[1] : null;
+}
