@@ -77,6 +77,7 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	err := client.Do(request, resp)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		resp.SetStatusCode(400)
 	}
 
