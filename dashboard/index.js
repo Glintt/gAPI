@@ -19,17 +19,6 @@ router.get('/*', (req, res, next) => {
   res.sendFile(`${__dirname}/dist/index.html`);  
 })
 
-router.get("/hosts", (req, res, next) => {  
-  res.send(
-    {
-      "API_HOST" : process.env.API_HOST || "localhost",
-      "API_PORT" : process.env.API_PORT || "8080",
-      "SOCKET_HOST" : process.env.SOCKET_HOST || "localhost",
-      "SOCKET_PORT" : process.env.SOCKET_PORT || "5000"
-    })    
-});
-
-
 app.use('/', router)
 
 app.listen(port)
