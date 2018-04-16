@@ -3,7 +3,6 @@ package apianalytics
 import (
 	"strings"
 	"regexp"
-	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/authentication"
@@ -23,7 +22,6 @@ func StartAPIAnalytics(router *routing.Router) {
 }
 
 func Logs(c *routing.Context) error {
-	fmt.Println("LOGS="+logsURL)
 	apiEndpoint := string(c.QueryArgs().Peek("endpoint"))
 	if apiEndpoint != "" {
 		apiEndpoint = `
@@ -67,7 +65,6 @@ func Logs(c *routing.Context) error {
 }
 
 func APIAnalytics(c *routing.Context) error {
-	fmt.Println(logsURL)
 	apiEndpoint := string(c.QueryArgs().Peek("endpoint"))
 
 	if apiEndpoint != "" {

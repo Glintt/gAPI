@@ -107,8 +107,11 @@
     
                 // add query params
                 var queryParams = JSON.parse(data.QueryArgs);
+                var anyParamAdded = false
                 for (var arg in queryParams) {
-                    requestInfo += arg + "=" + queryParams[arg] + "&"
+                    if (anyParamAdded) requestInfo += "&";
+                    requestInfo += arg + "=" + queryParams[arg];
+                    anyParamAdded = true;
                 }
 
                 return requestInfo;

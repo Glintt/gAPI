@@ -12,6 +12,9 @@
             </div>
         </div>
         <ByAPI :selectedAPI="selectedAPI"/>
+
+        <br />
+        <h3 class="title text-success">Errors List:</h3>
         <Logs :selectedAPI="selectedAPI" />
     </div>
 </template>
