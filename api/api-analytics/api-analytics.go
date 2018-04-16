@@ -55,11 +55,11 @@ func Logs(c *routing.Context) error {
 		}`, nil)
 		
 		
-	var re = regexp.MustCompile(`\\"Authorization\\":\\"[\w\d\s.-]+\\"`)
+	var re = regexp.MustCompile(`\\"Authorization\\"( )*:( )*\\"[^"]+\\"`)
 	s := re.ReplaceAllString(string(response.Body()), "")
 	s = strings.Replace(s, ",,", ",", -1)
 		
-	http.Response(c, string(response.Body()), response.StatusCode(), config.ANALYTICS_GROUP+"/logs")
+	http.Response(c, s, response.StatusCode(), config.ANALYTICS_GROUP+"/logs")
 
 	return nil
 }
