@@ -1,6 +1,7 @@
 package healthcheck
 
 import (
+	"gAPIManagement/api/utils"
 	"gAPIManagement/api/notifications"
 	"fmt"
 	"gAPIManagement/api/config"
@@ -57,8 +58,12 @@ func CheckServicesHealth() {
 		resp, err := http.Get("http://" + s.Domain+":"+s.Port + healthcheckURL)
 		if err != nil || resp.StatusCode != 200 {
 			NotifyHealthDown(s)
+			if s.IsActive == true {
+				s.LastActiveTime = utils.CurrentTimeMilliseconds()
+			}
 			s.IsActive = false
 		} else {
+			s.LastActiveTime = 0
 			s.IsActive = true
 		}
 
