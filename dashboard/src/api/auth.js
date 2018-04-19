@@ -3,7 +3,7 @@ const ACCESS_TOKEN_KEY = "access_token_key";
 const ACCESS_TOKEN_EXPIRATION_TIME = "access_token_expiration_time";
 
 export function authenticate(user, password,cb) {
-    return HTTP.POST(HTTP.PathToCall("/oauth/token"), {"username":password, "password":password}, {}).then((response) => {
+    return HTTP.POST(HTTP.PathToCall("/oauth/token"), {"username":user, "password":password}, {}).then((response) => {
       
       storeToken(response.body.token, response.body.expiration_time);
 
