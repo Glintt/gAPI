@@ -10,3 +10,11 @@ export function byApi(api, cb){
       cb(response);
     });
 }
+
+export function logs(api, cb){
+  return HTTP.GET(HTTP.PathToCall(AnalyticsBaseURL + "/logs"), {params:api}).then(response => {
+      cb(response);
+    }, response => {
+      cb(response);
+    });
+}

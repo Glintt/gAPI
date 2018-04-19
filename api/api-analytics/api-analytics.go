@@ -1,29 +1,71 @@
 package apianalytics
 
 import (
-	"fmt"
+	"strings"
+	"regexp"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/authentication"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
+var logsURL string
+
 
 func StartAPIAnalytics(router *routing.Router) {
+	logsURL = config.ELASTICSEARCH_URL + "/request-logs-*/logs/_search"
 	var analyticsAPI *routing.RouteGroup
 	analyticsAPI = router.Group(config.ANALYTICS_GROUP)
 
 	analyticsAPI.Get("/api", authentication.AuthorizationMiddleware, APIAnalytics)
+	analyticsAPI.Get("/logs", authentication.AuthorizationMiddleware, Logs)
+}
+
+func Logs(c *routing.Context) error {
+	apiEndpoint := string(c.QueryArgs().Peek("endpoint"))
+	if apiEndpoint != "" {
+		apiEndpoint = `
+		"must":{
+			"match" : {
+				"ServiceName": "`+ apiEndpoint +`"
+			}
+		},`
+	}
+	
+	response := http.MakeRequest(config.POST, logsURL, `
+		{
+			"size": 10,
+			"from": 0,
+			"sort" : [
+				{ "DateTime.keyword" : {"order" : "desc"}}
+			],
+			"query":{
+				"bool": {
+					`+ apiEndpoint +`
+					"must_not" : {
+						"range" : {
+							"StatusCode" : {
+								"lt" : 300
+							}
+						}
+					}
+				}
+				
+			}
+		}`, nil)
+		
+		
+	var re = regexp.MustCompile(`\\"Authorization\\"( )*:( )*\\"[^"]+\\"`)
+	s := re.ReplaceAllString(string(response.Body()), "")
+	s = strings.Replace(s, ",,", ",", -1)
+		
+	http.Response(c, s, response.StatusCode(), config.ANALYTICS_GROUP+"/logs")
+
+	return nil
 }
 
 func APIAnalytics(c *routing.Context) error {
-	logsURL := config.ELASTICSEARCH_URL + "/request-logs-*/logs/_search"
-
-	fmt.Println(logsURL)
 	apiEndpoint := string(c.QueryArgs().Peek("endpoint"))
-
-	//skip := c.QueryArgs().Peek("skip")
-	//take := c.QueryArgs().Peek("take")
 
 	if apiEndpoint != "" {
 		apiEndpoint = `"query":{
@@ -33,11 +75,8 @@ func APIAnalytics(c *routing.Context) error {
 			},`
 	}
 	response := http.MakeRequest(config.POST, logsURL, `{
-		"size": 10,
+		"size": 0,
 		"from": 0,
-		"sort" : [
-        	{ "DateTime.keyword" : {"order" : "desc"}}
-    	],
 		`+apiEndpoint+`
 		"aggs": {
 			"api": {

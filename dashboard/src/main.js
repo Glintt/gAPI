@@ -14,18 +14,6 @@ Vue.prototype.$config = require("@/configs/urls").config;
 Vue.prototype.$chartColors = require("@/configs/chartColors");
 Vue.prototype.$random = require("@/configs/random");
 
-Vue.http.get("/hosts", (response) =>{
-  if (response.status != 200) {
-    return;
-  }
-
-  Vue.prototype.$config.API.HOST = response.body.API_HOST;
-  Vue.prototype.$config.API.PORT = response.body.API_PORT;
-  Vue.prototype.$config.API.SOCKET_HOST = response.body.SOCKET_HOST;
-  Vue.prototype.$config.API.SOCKET_PORT = response.body.SOCKET_PORT;
-});
-
-
 new Vue({
   router,
   store,
