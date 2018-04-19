@@ -10,8 +10,12 @@ import (
 	"strings"
 	"time"
 )
+
+var MinSizeSigningKey = 10
+var MinExpirationTime = 30
+
 var SIGNING_KEY = "AllYourBase"
-var EXPIRATION_TIME = 15000
+var EXPIRATION_TIME = MinExpirationTime
 
 type TokenRequestObj struct{
 	Username string
@@ -19,6 +23,13 @@ type TokenRequestObj struct{
 }
 
 func InitGAPIAuthenticationServer(router *routing.Router){
+	if config.GApiConfiguration.Authentication.TokenExpirationTime > MinExpirationTime {
+		EXPIRATION_TIME = config.GApiConfiguration.Authentication.TokenExpirationTime 
+	}
+	if len(config.GApiConfiguration.Authentication.TokenSigningKey) > MinSizeSigningKey {
+		SIGNING_KEY = config.GApiConfiguration.Authentication.TokenSigningKey
+	}
+
 	router.Post("/oauth/token", GetTokenHandler)
 	router.Get("/oauth/authorize", AuthorizeTokenHandler)
 }

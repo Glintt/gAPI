@@ -12,6 +12,8 @@ Configuration files explanation:
 2. ***services.json*** - All microservices registered on the api management. (this can be replaced with mongodb)
 3. ***gAPI.json*** 
     * **Authentication** - user and password configuration to access admin area;
+        * TokenExpirationTime - time for the token to expire. Min value = 30s
+        * TokenSigningKey - Signing key for the token. Min length = 10
     * **Logs** - activate/deactivate logs and type of logging (available: *Elastic* or *Rabbit*)
     * **CORS** - AllowedOrigins (array with all allowed origins) and AllowCredentials
     * **ServiceDiscovery** - configuration storage type (available: *file* and *mongo*) - note that when it is being used mongo, you MUST specify MONGO_HOST and MONGO_DB environment variables.
