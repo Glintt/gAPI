@@ -6,7 +6,7 @@ export function listServices(cb){
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + "/services"), {}).then(response => {
       cb(response);
     }, response => {
-      cb(response);
+      cb(response)
   });
 }
 
@@ -38,6 +38,6 @@ export function updateService(service, cb){
   HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + "/update"), service, {}).then(response => {
     cb(response);
   }, response => {
-    cb(response);
+    HTTP.handleError(response, cb)
   });
 }

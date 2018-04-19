@@ -13,6 +13,7 @@ Vue.prototype.$utils = require("@/utils");
 Vue.prototype.$config = require("@/configs/urls").config;
 Vue.prototype.$chartColors = require("@/configs/chartColors");
 Vue.prototype.$random = require("@/configs/random");
+Vue.prototype.$oauthUtils = require("@/auth")
 
 new Vue({
   router,

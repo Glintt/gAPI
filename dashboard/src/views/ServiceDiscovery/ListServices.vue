@@ -12,7 +12,7 @@
                     <th scope="col">gAPI Path</th>
                     <th scope="col">API Documentation</th>
                     <th scope="col">Health</th>
-                    <th scope="col" v-show="auth.isLoggedIn()">Secured?</th>
+                    <th scope="col" v-show="isLoggedIn">Secured?</th>
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
@@ -22,7 +22,7 @@
                     <td>{{ service.MatchingURI }}</td>
                     <td>{{ service.APIDocumentation }}</td>
                     <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
-                    <td v-show="auth.isLoggedIn()"><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
+                    <td v-show="isLoggedIn"><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
                     <td>
                         <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >
                             <i class="fas fa-info-circle"></i>
@@ -48,10 +48,14 @@
                 this.services = response.body;
             })
         },
+        computed:{
+            isLoggedIn(){
+                return this.$oauthUtils.vmA.isLoggedIn()
+            }
+        },
         data() {
             return {
-                services : [],
-                auth : require("@/auth")
+                services : []
             }
         }
     }

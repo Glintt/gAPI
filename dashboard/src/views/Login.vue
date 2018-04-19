@@ -61,8 +61,8 @@
             }
         },
         methods:{
-            authenticate : function(){
-                OAuthAPI.authenticate(this.user.username,this.user.password, (response) => {
+            authenticate : function() {
+                this.$oauthUtils.vmA.authenticate(this.user, (response) => {
                     this.loginMessage.showing = true;
 
                     if(response.status != 200) {
@@ -72,8 +72,6 @@
                     }
                     this.loginMessage.alertText = "Login successful";
                     this.loginMessage.alertClass = "alert alert-success";
-
-                    OAuthAPI.storeToken(response.body.token);
 
                     setTimeout(() => {
                         window.location = "/";

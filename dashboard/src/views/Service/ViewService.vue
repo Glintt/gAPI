@@ -23,8 +23,7 @@
         name: "view-service",
         data() {
             return {
-                ServiceDocumentationEndpoint : null,
-                auth : require("@/auth")
+                ServiceDocumentationEndpoint : null
             }
         },
         methods:{
