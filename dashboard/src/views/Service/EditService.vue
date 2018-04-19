@@ -10,6 +10,7 @@
                     <div class="form-group" v-if="serviceFetched">
                         <span>Health: </span>
                         <i class="fas fa-heartbeat fa-lg" :class="isActiveClass"></i>
+                        <small v-if="service.LastActiveTime != 0"> - Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }} </small>
                     </div>
                     <div class="form-group">
                         <label for="serviceName">Microservice Call Base Path</label>
