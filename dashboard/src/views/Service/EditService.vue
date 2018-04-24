@@ -23,52 +23,52 @@
                     <div class="form-group">
                         <label for="serviceName">Name</label>
                         <input type="text"
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                              v-model="service.Name" class="form-control" id="serviceName" aria-describedby="nameHelp" placeholder="Enter name">
                         <small id="nameHelp" class="form-text text-muted">Give the service/API a name.</small>
                     </div>
                     <div class="form-group">
                         <label for="serviceMatchingUri">MatchingURI</label>
                         <input type="text"
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                              v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
                         <small id="serviceMatchingUriHelp" class="form-text text-muted">Base URI which links to the service on API Management Platform.</small>
                     </div>
-                    <div class="form-check" v-show="isLoggedIn()">
+                    <div class="form-check" v-show="isLoggedIn">
                         <input type="checkbox"
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                              v-model="service.Protected" class="form-check-input" id="serviceProtected">
                         <label class="form-check-label" for="serviceProtected">Protected</label>
                         <small id="serviceProtectedHelp" class="form-text text-muted">Is Service Protected with OAuth?</small>
                     </div>
-                    <div class="form-check" v-show="isLoggedIn()">
+                    <div class="form-check" v-show="isLoggedIn">
                         <input type="checkbox" 
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                             v-model="service.IsCachingActive" class="form-check-input" id="serviceProtected">
                         <label class="form-check-label" for="serviceProtected">Enable Caching?</label>
                         <small id="serviceProtectedHelp" class="form-text text-muted">Enable caching on this service? It will improve performance but be careful as it may affect results.</small>
                     </div>
                 </div>
-                <div class="col-sm" v-show="isLoggedIn()">
+                <div class="col-sm" v-show="isLoggedIn">
                     <h2>MicroService Info</h2>
                     <div class="form-group">
                         <label for="domainName">Domain</label>
                         <input type="text"
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                              v-model="service.Domain" class="form-control" id="domainName" aria-describedby="domainHelp" placeholder="Enter domain">
                         <small id="domainHelp" class="form-text text-muted">Domain/IP where the service is hosted.</small>
                     </div>
                     <div class="form-group">
                         <label for="servicePort">Port</label>
                         <input type="text"
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                              v-model="service.Port" class="form-control" id="servicePort" aria-describedby="servicePortHelp" placeholder="Enter port">
                         <small id="servicePortHelp" class="form-text text-muted">Port where the service is exposed.</small>
                     </div>
                     <div class="form-group">
                         <label for="serviceToUri">URI</label>
                         <input type="text" 
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                             v-model="service.ToURI" class="form-control" id="serviceToUri" aria-describedby="serviceToUriHelp" placeholder="Enter domain">
                         <small id="serviceToUriHelp" class="form-text text-muted">Service/API Base URI.</small>
                     </div>
@@ -76,7 +76,7 @@
                     <div class="form-group">
                         <label for="serviceDocumentation">Documentation Location</label>
                         <input type="text" 
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                             v-model="service.APIDocumentation" class="form-control" id="serviceDocumentation" aria-describedby="serviceDocumentationHelp" placeholder="Enter domain">
                         <small id="serviceDocumentationHelp" class="form-text text-muted">API documentation URI.</small>
                     </div>
@@ -84,14 +84,14 @@
                     <div class="form-group">
                         <label for="serviceDocumentation">Healthcheck URL</label>
                         <input type="text" 
-                            :disabled="!isLoggedIn()"
+                            :disabled="!isLoggedIn"
                             v-model="service.HealthcheckUrl" class="form-control" id="serviceHealthcheckUrl" aria-describedby="serviceHealthcheckUrl" placeholder="Enter Healthcheck Url">
                         <small id="serviceHealthcheckUrl" class="form-text text-muted">Healthcheck URL</small>
                     </div>
 
-                    <button type="submit" v-if="isLoggedIn()" class="btn btn-primary" v-on:click="store">Save</button>
-                    <button type="submit" v-if="isLoggedIn()" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
-                    <button class="btn btn-danger" v-if="isLoggedIn()" @click="deleteService">Delete</button>
+                    <button type="submit" v-if="isLoggedIn" class="btn btn-primary" v-on:click="store">Save</button>
+                    <button type="submit" v-if="isLoggedIn" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
+                    <button class="btn btn-danger" v-if="isLoggedIn" @click="deleteService">Delete</button>
                 </div>
             </div>
             
@@ -102,10 +102,14 @@
 <script>
     var serviceDiscoveryAPI = require("@/api/service-discovery");
     import InformationPanel from "@/components/InformationPanel";
-    var OAuthApi = require("@/auth");
 
     export default {
         name: "view-service",
+        computed:{
+            isLoggedIn(){
+                return this.$oauthUtils.vmA.isLoggedIn();
+            }
+        },
         mounted() {
             serviceDiscoveryAPI.getServices(this.$route.query.uri, (response) => {
                 this.service = response.body;
@@ -137,9 +141,6 @@
             }
         },
         methods: {
-            isLoggedIn:function(){
-                return OAuthApi.isLoggedIn();
-            },
             store: function() {
                 serviceDiscoveryAPI.updateService(this.service, (response) => {
                     this.informationStatus.isActive = true;

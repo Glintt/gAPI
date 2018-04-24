@@ -34,3 +34,12 @@ export function POST(url, body, params){
 
     return Vue.http.post(url , body, params);
 }
+
+export function handleError(response, cb) {
+    if (response.status == 401) {
+        window.location.href = "/#/login"
+        OAuthAPI.clearAccessToken()
+    }
+
+    cb(response)
+}

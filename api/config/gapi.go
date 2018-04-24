@@ -20,6 +20,8 @@ type GApiConfig struct {
 type GApiAuthenticationConfig struct {
 	Username string
 	Password string
+	TokenExpirationTime int
+	TokenSigningKey string
 }
 type GApiLogsConfig struct {
 	Active bool

@@ -1,7 +1,9 @@
 {
     "Authentication":{
         "Username": "admin",
-        "Password": "admin"
+        "Password": "admin",
+        "TokenExpirationTime": 30,
+        "TokenSigningKey": "SIGNING_KEY"
     },
     "Logs":{
         "Active":true,

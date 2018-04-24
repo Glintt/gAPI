@@ -10,15 +10,28 @@ import (
 	"strings"
 	"time"
 )
+
+var MinSizeSigningKey = 10
+var MinExpirationTime = 30
+
 var SIGNING_KEY = "AllYourBase"
-var EXPIRATION_TIME = 15000
+var EXPIRATION_TIME = MinExpirationTime
 
 type TokenRequestObj struct{
-	Username string
-	Password string
+	Username string `json:username`
+	Password string `json:password`
 }
 
 func InitGAPIAuthenticationServer(router *routing.Router){
+	if config.GApiConfiguration.Authentication.TokenExpirationTime > MinExpirationTime {
+		EXPIRATION_TIME = config.GApiConfiguration.Authentication.TokenExpirationTime 
+	}
+	if len(config.GApiConfiguration.Authentication.TokenSigningKey) > MinSizeSigningKey {
+		SIGNING_KEY = config.GApiConfiguration.Authentication.TokenSigningKey
+	}
+
+	LoadUsers()
+
 	router.Post("/oauth/token", GetTokenHandler)
 	router.Get("/oauth/authorize", AuthorizeTokenHandler)
 }
@@ -90,7 +103,16 @@ func GenerateToken(username string, password string) (string, error){
 }
 
 func ValidateUserCredentials(username string, password string) error {
-	if username == config.GApiConfiguration.Authentication.Username && password == config.GApiConfiguration.Authentication.Username {
+	if username == config.GApiConfiguration.Authentication.Username && password == config.GApiConfiguration.Authentication.Password {
+		return nil
+	}
+
+	user, err := FindUserByUsername(username)
+	if err != nil{
+		return err
+	}
+
+	if username == user.Username && password == user.Password {
 		return nil
 	}
 
