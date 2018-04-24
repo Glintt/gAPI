@@ -29,6 +29,8 @@ Configuration files explanation:
             * Slack
         * Slack - Slack notifications configuration.
             * WebhookUrl - URL to POST notifications to
+4. ***users.json*** - Users registered on the system to access dashboard
+
 
 ## Installation
 
