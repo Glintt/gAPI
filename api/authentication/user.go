@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"fmt"
 	"errors"
 	"encoding/json"
 	"gAPIManagement/api/config"
