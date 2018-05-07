@@ -63,7 +63,11 @@ func ListServicesMongo(page int) []Service {
 	skips := PAGE_LENGTH * (page - 1)
 
 	var services []Service
-	db.C(COLLECTION).Find(bson.M{}).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
+	if page == -1 {
+		db.C(COLLECTION).Find(bson.M{}).Sort("matchinguri").All(&services)
+	}else {
+		db.C(COLLECTION).Find(bson.M{}).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
+	}
 	return services
 }
 
