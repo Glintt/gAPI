@@ -57,12 +57,13 @@ func CreateServiceMongo(s Service) (string, int) {
 	return `{"error" : false, "msg": "Service created successfuly."}`, 201
 }
 
-func ListServicesMongo() []Service {
+func ListServicesMongo(page int) []Service {
 	ConnectToMongo()
 
-	var services []Service
-	db.C(COLLECTION).Find(bson.M{}).All(&services)
+	skips := PAGE_LENGTH * (page - 1)
 
+	var services []Service
+	db.C(COLLECTION).Find(bson.M{}).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
 	return services
 }
 

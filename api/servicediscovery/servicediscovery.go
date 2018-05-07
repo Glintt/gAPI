@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"strconv"
 	"encoding/json"
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/config"
@@ -18,7 +19,7 @@ type ServiceDiscovery struct {
 var sd ServiceDiscovery
 
 var SERVICE_NAME = "/service-discovery"
-
+var PAGE_LENGTH = 10
 var SD_TYPE = "file"
 
 var funcMap = map[string]map[string]interface{}{
@@ -107,7 +108,18 @@ func RegisterHandler(c *routing.Context) error {
 }
 
 func ListServicesHandler(c *routing.Context) error {
-	services := funcMap[SD_TYPE]["list"].(func() []Service)()
+	page := 1
+	if c.QueryArgs().Has("page") {
+		var err error
+		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
+
+		if err != nil {
+			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, SERVICE_NAME)
+			return nil
+		}
+	}
+
+	services := funcMap[SD_TYPE]["list"].(func(int) []Service)(page)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, SERVICE_NAME)
@@ -115,9 +127,9 @@ func ListServicesHandler(c *routing.Context) error {
 		return nil
 	}
 
-	list, err := json.Marshal(services)
+	list, jsonErr := json.Marshal(services)
 
-	if err != nil {
+	if jsonErr != nil {
 		http.Response(c, `{"error" : true, "msg": "Error parsing body."}`, 404, SERVICE_NAME)
 		return nil
 	}

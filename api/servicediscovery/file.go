@@ -34,8 +34,14 @@ func CreateServiceFile(s Service) (string, int) {
 	return `{"error" : false, "msg": "Registered service successfuly."}`, 201
 }
 
-func ListServicesFile() []Service {
-	return sd.registeredServices
+func ListServicesFile(page int) []Service {
+	if page == -1 {
+		return sd.registeredServices
+	}
+	
+	from, to := pageFromTo(page, len(sd.registeredServices))
+
+	return sd.registeredServices[from:to]
 }
 
 func DeleteServiceFile(matchingURI string) (string, int) {
