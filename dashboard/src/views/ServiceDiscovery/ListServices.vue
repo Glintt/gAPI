@@ -5,6 +5,16 @@
             {{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}</br>
             <small>Use this URL + gAPIPath to call microservices</small>
         </div>
+        <div class="col-sm-3 offset-sm-9 form-inline ">
+            
+            <button class="btn btn-sm btn-info" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">
+               <i class="fas fa-arrow-left"></i>
+            </button>
+            <input class="form-control sm-1 mr-sm-1" v-model="currentPage" />
+            <button class="btn btn-sm btn-info" @click="currentPage += 1">
+               <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
         <table class="table">
             <thead>
                 <tr class="text-success">
@@ -39,14 +49,13 @@
 
     export default {
         name: "home",
-        mounted(){
-            serviceDiscoveryAPI.listServices((response) => {
-                if (response.status!=200) {
-                    this.services = [];
-                    return;
-                }
-                this.services = response.body;
-            })
+        mounted(){            
+            this.updateData()
+        },
+        watch:{
+            currentPage : function() {
+                this.updateData()
+            }
         },
         computed:{
             isLoggedIn(){
@@ -55,7 +64,19 @@
         },
         data() {
             return {
-                services : []
+                services : [],
+                currentPage : 1
+            }
+        },
+        methods:{
+            updateData : function(){
+                serviceDiscoveryAPI.listServices(this.currentPage, (response) => {
+                    if (response.status!=200) {
+                        this.services = [];
+                        return;
+                    }
+                    this.services = response.body;
+                })
             }
         }
     }
