@@ -19,7 +19,7 @@ type ServiceDiscovery struct {
 var sd ServiceDiscovery
 
 var SERVICE_NAME = "/service-discovery"
-var PAGE_LENGTH = 2
+var PAGE_LENGTH = 10
 var SD_TYPE = "file"
 
 var funcMap = map[string]map[string]interface{}{

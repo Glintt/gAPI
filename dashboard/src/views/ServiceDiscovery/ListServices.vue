@@ -2,18 +2,25 @@
     <div class="home">
         <div class="alert alert-dark col-sm-3" role="alert">
             <strong>gAPI Base Url:</strong> 
-            {{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}</br>
+            {{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}<br />
             <small>Use this URL + gAPIPath to call microservices</small>
         </div>
-        <div class="col-sm-3 offset-sm-9 form-inline ">
-            
-            <button class="btn btn-sm btn-info" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">
-               <i class="fas fa-arrow-left"></i>
-            </button>
-            <input class="form-control sm-1 mr-sm-1" v-model="currentPage" />
-            <button class="btn btn-sm btn-info" @click="currentPage += 1">
-               <i class="fas fa-arrow-right"></i>
-            </button>
+        <div class="row">
+          <div class="col-sm-5 form-inline ">
+              <input class="form-control" v-model="searchText"/>
+              <button class="btn btn-sm btn-info" @click="updateData">
+                <i class="fas fa-search"></i>
+              </button>
+          </div>
+          <div class="col-sm-3 offset-sm-4 form-inline">
+              <button class="btn btn-sm btn-info" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">
+                <i class="fas fa-arrow-left"></i>
+              </button>
+              <input class="form-control sm-1 mr-sm-1" v-model="currentPage" />
+              <button class="btn btn-sm btn-info" @click="currentPage += 1">
+                <i class="fas fa-arrow-right"></i>
+              </button>
+          </div>
         </div>
         <table class="table">
             <thead>
@@ -45,40 +52,47 @@
 </template>
 
 <script>
-    var serviceDiscoveryAPI = require("@/api/service-discovery");
+import DataTable from "@/components/DataTable";
+var serviceDiscoveryAPI = require("@/api/service-discovery");
 
-    export default {
-        name: "home",
-        mounted(){            
-            this.updateData()
-        },
-        watch:{
-            currentPage : function() {
-                this.updateData()
-            }
-        },
-        computed:{
-            isLoggedIn(){
-                return this.$oauthUtils.vmA.isLoggedIn()
-            }
-        },
-        data() {
-            return {
-                services : [],
-                currentPage : 1
-            }
-        },
-        methods:{
-            updateData : function(){
-                serviceDiscoveryAPI.listServices(this.currentPage, (response) => {
-                    if (response.status!=200) {
-                        this.services = [];
-                        return;
-                    }
-                    this.services = response.body;
-                })
-            }
-        }
+export default {
+  name: "home",
+  mounted() {
+    this.updateData();
+  },
+  watch: {
+    currentPage: function() {
+      this.updateData();
     }
-
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$oauthUtils.vmA.isLoggedIn();
+    }
+  },
+  data() {
+    return {
+      services: [],
+      currentPage: 1,
+      searchText: ""
+    };
+  },
+  methods: {
+    updateData: function() {
+      serviceDiscoveryAPI.listServices(
+        this.currentPage, 
+        this.searchText, 
+        response => {
+          if (response.status != 200) {
+            this.services = [];
+            return;
+          }
+          this.services = response.body;
+        });
+    }
+  },
+  components: {
+    DataTable
+  }
+};
 </script>
