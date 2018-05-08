@@ -24,7 +24,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		return services, nil
 
 	} else {
-		services := funcMap[SD_TYPE]["list"].(func(int) []Service)(-1)
+		services := funcMap[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
 		return services, nil
 	}
 

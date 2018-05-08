@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"strings"
 	"gAPIManagement/api/config"
 	"encoding/json"
 	"errors"
@@ -34,14 +35,23 @@ func CreateServiceFile(s Service) (string, int) {
 	return `{"error" : false, "msg": "Registered service successfuly."}`, 201
 }
 
-func ListServicesFile(page int) []Service {
-	if page == -1 {
-		return sd.registeredServices
+func ListServicesFile(page int, filterQuery string) []Service {
+	var servicesList []Service
+	if filterQuery != "" {
+		for _, v := range sd.registeredServices {
+			if strings.Contains(v.Name, filterQuery) || strings.Contains(v.MatchingURI, filterQuery) {
+				servicesList = append(servicesList, v)
+			}		
+		}	
+	}else {
+		servicesList = sd.registeredServices
 	}
+	if page == -1 {
+		return servicesList
+	}
+	from, to := pageFromTo(page, len(servicesList))
 	
-	from, to := pageFromTo(page, len(sd.registeredServices))
-
-	return sd.registeredServices[from:to]
+	return servicesList[from:to]
 }
 
 func DeleteServiceFile(matchingURI string) (string, int) {

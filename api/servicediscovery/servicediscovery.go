@@ -19,7 +19,7 @@ type ServiceDiscovery struct {
 var sd ServiceDiscovery
 
 var SERVICE_NAME = "/service-discovery"
-var PAGE_LENGTH = 10
+var PAGE_LENGTH = 2
 var SD_TYPE = "file"
 
 var funcMap = map[string]map[string]interface{}{
@@ -109,6 +109,7 @@ func RegisterHandler(c *routing.Context) error {
 
 func ListServicesHandler(c *routing.Context) error {
 	page := 1
+	searchQuery := ""
 	if c.QueryArgs().Has("page") {
 		var err error
 		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
@@ -118,8 +119,11 @@ func ListServicesHandler(c *routing.Context) error {
 			return nil
 		}
 	}
+	if c.QueryArgs().Has("q") {
+		searchQuery = string(c.QueryArgs().Peek("q"))
+	}
 
-	services := funcMap[SD_TYPE]["list"].(func(int) []Service)(page)
+	services := funcMap[SD_TYPE]["list"].(func(int, string) []Service)(page, searchQuery)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, SERVICE_NAME)
