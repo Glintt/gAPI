@@ -17,7 +17,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="service in services" v-bind:key="service.Name">
+                <tr v-for="service in services">
                     <td>{{ service.Name }}</td>
                     <td>{{ service.MatchingURI }}</td>
                     <td>{{ service.APIDocumentation }}</td>
@@ -27,15 +27,20 @@
                         <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >
                             <i class="fas fa-info-circle"></i>
                         </router-link>
+                        <button @click="refreshService(service.MatchingURI)" class="btn btn-sm btn-info"  v-show="isLoggedIn">
+                            <i class="fas fa-sync"></i>
+                        </button>                       
                     </td>
                 </tr>
             </tbody>
         </table>
+        <ErrorMessage @modalClosed="errorClosed" :showing="error.showing" :id="'requestError'" :error="error.msg" :title="'Error Occurred'"/>
     </div>
 </template>
 
 <script>
     var serviceDiscoveryAPI = require("@/api/service-discovery");
+    import ErrorMessage from "@/components/ErrorMessage";
 
     export default {
         name: "home",
@@ -55,8 +60,29 @@
         },
         data() {
             return {
-                services : []
+                services : [],
+                error:{
+                    msg: "",
+                    showing: false
+                }
             }
+        },
+        methods:{
+            refreshService: function(service){
+                serviceDiscoveryAPI.refreshService(service, (response) => {
+                    if (response.status != 200) {
+                        this.error.msg = response.body.msg;
+                        this.error.showing = true;
+                    }
+                })
+            },
+            errorClosed: function(){
+                this.error.showing = false;
+                this.error.msg = "";
+            }
+        },
+        components:{
+            ErrorMessage
         }
     }
 
