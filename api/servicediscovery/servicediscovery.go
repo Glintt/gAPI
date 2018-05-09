@@ -5,7 +5,6 @@ import (
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
-
 	"github.com/qiangxue/fasthttp-routing"
 )
 
@@ -60,6 +59,7 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Get("/services", ListServicesHandler)
 	sd.sdAPI.Get("/endpoint", GetEndpointHandler)
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
+	sd.sdAPI.Post("/service/restart", RestartServiceHandler)
 	sd.isService = true
 }
 
@@ -130,12 +130,6 @@ func ListServicesHandler(c *routing.Context) error {
 func GetEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
-	/*
-		fmt.Println("\n=============================================================")
-		fmt.Println("SERVICE DISCOVERY =====> uri param = " + string(matchingURI))
-		fmt.Println("=============================================================\n")
-	*/
-
 	service, err := sd.GetEndpointForUri(string(matchingURI))
 	serviceJSON, err1 := json.Marshal(service)
 
@@ -145,7 +139,23 @@ func GetEndpointHandler(c *routing.Context) error {
 	}
 	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, SERVICE_NAME)
 	return nil
+}
 
+func RestartServiceHandler(c *routing.Context) error {
+	matchingURI := c.QueryArgs().Peek("service")
+
+	service, err := sd.GetEndpointForUri(string(matchingURI))
+
+	if err == nil {
+		if service.Restart() {
+			http.Response(c, `{"error": false, "msg": "Service restarted successfuly."}` , 200, SERVICE_NAME)
+			return nil
+		}
+		http.Response(c, `{"error": true, "msg": "Service could not be restarted."}`, 400, SERVICE_NAME)
+		return nil
+	}
+	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, SERVICE_NAME)
+	return nil
 }
 
 func DeleteEndpointHandler(c *routing.Context) error {

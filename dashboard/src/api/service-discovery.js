@@ -41,3 +41,11 @@ export function updateService(service, cb){
     HTTP.handleError(response, cb)
   });
 }
+
+export function refreshService(service, cb){
+  HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + "/service/restart?service=" + service), {}, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}

@@ -89,6 +89,22 @@
                         <small id="serviceHealthcheckUrl" class="form-text text-muted">Healthcheck URL</small>
                     </div>
 
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Restart Service Host</label>
+                            <input type="text" v-model="service.RestartHost" class="form-control" id="RestartServiceHost" aria-describedby="RestartServiceHostHelp" placeholder="Enter Restart service Host">
+                            <small id="RestartServiceHostHelp" class="form-text text-muted">Host where restart endpoint is located at.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Restart Service Port</label>
+                            <input type="text" v-model="service.RestartPort" class="form-control" id="RestartServicePort" aria-describedby="RestartServicePortHelp" placeholder="Enter Restart service port">
+                            <small id="RestartServicePortHelp" class="form-text text-muted">Port where restart endpoint is located at.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Restart Service Endpoint</label>
+                            <input type="text" v-model="service.RestartEndpoint" class="form-control" id="RestartServiceEndpoint" aria-describedby="RestartServiceEndpointHelp" placeholder="Enter Restart service endpoint">
+                            <small id="RestartServiceEndpointHelp" class="form-text text-muted">Endpoint to call to restart service.</small>
+                        </div>
+
                     <button type="submit" v-if="isLoggedIn" class="btn btn-primary" v-on:click="store">Save</button>
                     <button type="submit" v-if="isLoggedIn" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
                     <button class="btn btn-danger" v-if="isLoggedIn" @click="deleteService">Delete</button>

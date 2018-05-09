@@ -26,12 +26,17 @@
                             <input type="text" v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
                             <small id="serviceMatchingUriHelp" class="form-text text-muted">Base URI which links to the service on API Management Platform.</small>
                         </div>
-                    </div>
-                    <div class="col-sm">
                         <div class="form-group">
                             <label for="serviceToUri">To URI</label>
                             <input type="text" v-model="service.ToURI" class="form-control" id="serviceToUri" aria-describedby="serviceToUriHelp" placeholder="Enter domain">
                             <small id="serviceToUriHelp" class="form-text text-muted">Service/API Base URI.</small>
+                        </div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Healthcheck URL</label>
+                            <input type="text" v-model="service.HealthcheckUrl" class="form-control" id="serviceHealthcheckUrl" aria-describedby="serviceHealthcheckUrl" placeholder="Enter Healthcheck Url">
+                            <small id="serviceHealthcheckUrl" class="form-text text-muted">Healthcheck URL</small>
                         </div>
                         <div class="form-check">
                             <input type="checkbox" v-model="service.Protected" class="form-check-input" id="serviceProtected">
@@ -49,6 +54,22 @@
                             <label for="serviceDocumentation">Documentation Location</label>
                             <input type="text" v-model="service.APIDocumentation" class="form-control" id="serviceDocumentation" aria-describedby="serviceDocumentationHelp" placeholder="Enter domain">
                             <small id="serviceDocumentationHelp" class="form-text text-muted">API documentation URI.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Restart Service Host</label>
+                            <input type="text" v-model="service.RestartHost" class="form-control" id="RestartServiceHost" aria-describedby="RestartServiceHostHelp" placeholder="Enter Restart service Host">
+                            <small id="RestartServiceHostHelp" class="form-text text-muted">Host where restart endpoint is located at.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Restart Service Port</label>
+                            <input type="text" v-model="service.RestartPort" class="form-control" id="RestartServicePort" aria-describedby="RestartServicePortHelp" placeholder="Enter Restart service port">
+                            <small id="RestartServicePortHelp" class="form-text text-muted">Port where restart endpoint is located at.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Restart Service Endpoint</label>
+                            <input type="text" v-model="service.RestartEndpoint" class="form-control" id="RestartServiceEndpoint" aria-describedby="RestartServiceEndpointHelp" placeholder="Enter Restart service endpoint">
+                            <small id="RestartServiceEndpointHelp" class="form-text text-muted">Endpoint to call to restart service.</small>
                         </div>
                     </div>
                 </div>
@@ -79,7 +100,11 @@
                     ToURI: "",
                     Protected: false,
                     APIDocumentation: "",
-                    IsCachingActive : false
+                    IsCachingActive : false,
+                    HealthcheckUrl:"",
+                    RestartHost : "",
+                    RestartPort : "",
+                    RestartEndpoint: ""
                 },
                 informationStatus:{
                     isActive : false,
