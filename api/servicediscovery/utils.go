@@ -11,7 +11,7 @@ import (
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 
 	if serviceDisc.isService == false {
-		resp := http.MakeRequest(config.GET, config.SERVICE_DISCOVERY_URL+config.SERVICE_DISCOVERY_GROUP+"/services", "", nil)
+		resp := http.MakeRequest(config.GET, config.SERVICE_DISCOVERY_URL+config.SERVICE_DISCOVERY_GROUP+"/services?page=-1", "", nil)
 
 		if resp.StatusCode() != 200 {
 			return []Service{}, errors.New("Not found.")
@@ -24,7 +24,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		return services, nil
 
 	} else {
-		services := funcMap[SD_TYPE]["list"].(func() []Service)()
+		services := funcMap[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
 		return services, nil
 	}
 

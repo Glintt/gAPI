@@ -1,9 +1,26 @@
 <template>
     <div class="home">
         <div class="alert alert-dark col-sm-3" role="alert">
-            <strong>gAPI Base Url:</strong> 
-            {{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}</br>
+            <strong>gAPI Base Url:</strong>
+            {{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}<br />
             <small>Use this URL + gAPIPath to call microservices</small>
+        </div>
+        <div class="row">
+          <div class="col-sm-5 form-inline ">
+              <input class="form-control" v-model="searchText"/>
+              <button class="btn btn-sm btn-info" @click="updateData">
+                <i class="fas fa-search"></i>
+              </button>
+          </div>
+          <div class="col-sm-3 offset-sm-4 form-inline">
+              <button class="btn btn-sm btn-info" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">
+                <i class="fas fa-arrow-left"></i>
+              </button>
+              <input class="form-control sm-1 mr-sm-1" v-model="currentPage" />
+              <button class="btn btn-sm btn-info" @click="currentPage += 1">
+                <i class="fas fa-arrow-right"></i>
+              </button>
+          </div>
         </div>
         <table class="table">
             <thead>
@@ -29,7 +46,7 @@
                         </router-link>
                         <button @click="refreshService(service)" class="btn btn-sm btn-info"  v-show="isLoggedIn">
                             <i class="fas fa-sync"></i>
-                        </button>                       
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -41,19 +58,19 @@
 
 <script>
     var serviceDiscoveryAPI = require("@/api/service-discovery");
+    import DataTable from "@/components/DataTable";
     import ErrorMessage from "@/components/ErrorMessage";
     import ConfirmationModal from "@/components/ConfirmationModal";
 
     export default {
         name: "home",
         mounted(){
-            serviceDiscoveryAPI.listServices((response) => {
-                if (response.status!=200) {
-                    this.services = [];
-                    return;
-                }
-                this.services = response.body;
-            })
+            this.updateData();
+        },
+        watch: {
+            currentPage: function() {
+                this.updateData();
+            }
         },
         computed:{
             isLoggedIn(){
@@ -73,7 +90,9 @@
                 confirmation: {
                     showing:false,
                     msg: ""
-                }
+                },
+                currentPage: 1,
+                searchText: ""
             }
         },
         methods:{
@@ -100,12 +119,25 @@
             errorClosed: function(){
                 this.error.showing = false;
                 this.error.msg = "";
+            },
+
+            updateData: function() {
+                serviceDiscoveryAPI.listServices(
+                    this.currentPage,
+                    this.searchText,
+                    response => {
+                    if (response.status != 200) {
+                        this.services = [];
+                        return;
+                    }
+                    this.services = response.body;
+                });
             }
         },
         components:{
             ErrorMessage,
-            ConfirmationModal
+            ConfirmationModal,
+            DataTable
         }
-    }
-
+    };
 </script>
