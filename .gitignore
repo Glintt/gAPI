@@ -3,3 +3,4 @@ api/configs/
 
 dashboard/node_modules
 **/.env.*
+**/package-lock.json
