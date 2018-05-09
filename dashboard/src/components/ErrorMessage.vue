@@ -19,7 +19,7 @@
     </div>
   </div>
 
-  <button :id="'openModal'+id" type="button" data-toggle="modal" data-backdrop="static" :data-target="'#'+id">Launch modal</button>
+  <button :id="'openModal'+id" type="button" data-toggle="modal" data-backdrop="static" :data-target="'#'+id" style="display:none;">Launch modal</button>
 </div>
 </template>
 <script>
