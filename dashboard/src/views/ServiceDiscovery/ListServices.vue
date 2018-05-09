@@ -27,7 +27,7 @@
                         <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >
                             <i class="fas fa-info-circle"></i>
                         </router-link>
-                        <button @click="refreshService(service.MatchingURI)" class="btn btn-sm btn-info"  v-show="isLoggedIn">
+                        <button @click="refreshService(service)" class="btn btn-sm btn-info"  v-show="isLoggedIn">
                             <i class="fas fa-sync"></i>
                         </button>                       
                     </td>
@@ -35,12 +35,14 @@
             </tbody>
         </table>
         <ErrorMessage @modalClosed="errorClosed" :showing="error.showing" :id="'requestError'" :error="error.msg" :title="'Error Occurred'"/>
+        <ConfirmationModal @answerReceived="restartConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'refreshConfirm'" :msg="confirmation.msg" :title="'Refresh service'"/>
     </div>
 </template>
 
 <script>
     var serviceDiscoveryAPI = require("@/api/service-discovery");
     import ErrorMessage from "@/components/ErrorMessage";
+    import ConfirmationModal from "@/components/ConfirmationModal";
 
     export default {
         name: "home",
@@ -64,17 +66,36 @@
                 error:{
                     msg: "",
                     showing: false
+                },
+                restart: {
+                    service: null
+                },
+                confirmation: {
+                    showing:false,
+                    msg: ""
                 }
             }
         },
         methods:{
             refreshService: function(service){
-                serviceDiscoveryAPI.refreshService(service, (response) => {
+                this.confirmation.showing = true;
+                this.confirmation.msg = "Are you sure you want to restart service " + service.Name + "?";
+                this.restart.service = service;
+            },
+            restartConfirmationReceived: function(answer) {
+                if (answer == false) return;
+
+                serviceDiscoveryAPI.refreshService(this.restart.service.MatchingURI , (response) => {
                     if (response.status != 200) {
                         this.error.msg = response.body.msg;
                         this.error.showing = true;
                     }
                 })
+                this.restart.service = null;
+            },
+            confirmationClosed: function(){
+                this.confirmation.showing = false;
+                this.confirmation.msg = "";
             },
             errorClosed: function(){
                 this.error.showing = false;
@@ -82,7 +103,8 @@
             }
         },
         components:{
-            ErrorMessage
+            ErrorMessage,
+            ConfirmationModal
         }
     }
 
