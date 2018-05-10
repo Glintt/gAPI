@@ -1,7 +1,8 @@
 package servicediscovery
 
 import (
-	"fmt"
+	"gAPIManagement/api/utils"
+	
 	"gAPIManagement/api/http"
 	"strings"
 	"regexp"
@@ -18,14 +19,17 @@ type Service struct {
 	ToURI                 string
 	Protected             bool
 	APIDocumentation      string
-	CachingExpirationTime int
-	IsCachingActive       bool
-	IsActive              bool
-	HealthcheckUrl	string
-	LastActiveTime int64
-	RestartHost       string
-	RestartPort       string
-	RestartEndpoint       string
+	CachingExpirationTime int 
+	IsCachingActive       bool 
+	IsActive              bool 
+	HealthcheckUrl	string 
+	LastActiveTime int64 
+	ServiceManagementHost       string 
+	ServiceManagementPort       string 
+	RestartEndpoint       string  
+	RedeployEndpoint       string 
+	UndeployEndpoint       string 
+	BackupEndpoint       string 
 }
 
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
@@ -39,19 +43,36 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 	return http.MakeRequest(method, callURL, body, headers)
 }
 
-func (service *Service) Restart() bool {
+func (service *Service) ServiceManagementCall(managementType string) bool {
 	method := "POST"
-	callURL := "http://" + service.RestartHost + ":" + service.RestartPort + service.RestartEndpoint
+	callURL := "http://" + service.ServiceManagementHost + ":" + service.ServiceManagementPort + service.GetManagementEndpoint(managementType)
 
-	var validURL = regexp.MustCompile(`^(((http|https):\/{2})+(([0-9a-z_-]+\.?)+(:[0-9]+)?((\/([~0-9a-zA-Z#\+%@\.\/_-]+))?(\?[0-9a-zA-Z\+%@\/&\[\];=_-]+)?)?))\b$`)
-
-	if validURL.MatchString(callURL) {
+	if ValidateURL(callURL) {
 		resp := http.MakeRequest(method, callURL, "", nil)
-		fmt.Println(string(resp.Body()))
+		utils.LogMessage(string(resp.Body()))
 		if resp.StatusCode() != 200 {
 			return false
 		}
 		return true
 	}
 	return false
+}
+
+func (service *Service) GetManagementEndpoint(managementType string) string {
+	switch managementType {
+	case "restart":
+		return service.RestartEndpoint
+	case "undeploy":
+		return service.UndeployEndpoint
+	case "redeploy":
+		return service.RedeployEndpoint
+	case "backup":
+		return service.BackupEndpoint
+	}
+	return ":"
+}
+
+func ValidateURL(url string) bool {
+	var validURL = regexp.MustCompile(`^(((http|https):\/{2})+(([0-9a-z_-]+\.?)+(:[0-9]+)?((\/([~0-9a-zA-Z#\+%@\.\/_-]+))?(\?[0-9a-zA-Z\+%@\/&\[\];=_-]+)?)?))\b$`)
+	return validURL.MatchString(url)
 }

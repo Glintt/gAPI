@@ -1,7 +1,9 @@
 package logs
 
 import (
-	"fmt"
+	"strconv"
+	"gAPIManagement/api/utils"
+	
 )
 
 // NewWorker creates, and returns a new Worker object. Its only argument
@@ -40,7 +42,7 @@ func (w *Worker) Start() {
 
 			case <-w.QuitChan:
 				// We have been asked to stop.
-				fmt.Printf("worker%d stopping\n", w.ID)
+				utils.LogMessage("worker " + strconv.Itoa(w.ID) +" stopping\n")
 				return
 			}
 		}

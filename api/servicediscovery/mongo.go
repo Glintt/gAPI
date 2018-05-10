@@ -1,8 +1,9 @@
 package servicediscovery
 
 import (
+	"gAPIManagement/api/utils"
 	"errors"
-	"fmt"
+	
 	"os"
 
 	mgo "gopkg.in/mgo.v2"
@@ -27,7 +28,7 @@ func ConnectToMongo() {
 	session, err := mgo.Dial(MONGO_HOST)
 
 	if err != nil {
-		fmt.Println("error connecting to mongo")
+		utils.LogMessage("error connecting to mongo")
 	}
 
 	db = session.DB(MONGO_DB)

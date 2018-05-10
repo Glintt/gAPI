@@ -1,6 +1,8 @@
 package http
 
 import (
+	"gAPIManagement/api/utils"
+	
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
@@ -11,6 +13,8 @@ type ResponseInfo struct {
 }
 
 func Response(c *routing.Context, response string, statuscode int, service string) {
+
+	utils.LogMessage("RESPONSE ==> " + response)
 
 	c.Response.SetBody([]byte(response))
 	c.Response.Header.SetContentType("application/json")

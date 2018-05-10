@@ -1,7 +1,8 @@
 package http
 
 import (
-	"fmt"
+	"gAPIManagement/api/utils"
+	
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
@@ -58,9 +59,9 @@ func addQueryParamsToRequest(request *fasthttp.Request, queryParams map[string]s
 }
 
 func MakeRequest(method string, url string, body string, headers map[string]string) *fasthttp.Response {
-	fmt.Println("=============================================================")
-	fmt.Println("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body)
-	fmt.Println("=============================================================")
+	utils.LogMessage("=============================================================")
+	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body)
+	utils.LogMessage("=============================================================")
 
 	request := fasthttp.AcquireRequest()
 	request.SetRequestURI(url)
@@ -77,7 +78,7 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	err := client.Do(request, resp)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		utils.LogMessage(err.Error())
 		resp.SetStatusCode(400)
 	}
 
