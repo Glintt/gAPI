@@ -41,18 +41,31 @@
                     <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
                     <td v-show="isLoggedIn"><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
                     <td>
-                        <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >
+                        <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="btn btn-sm btn-info" 
+                            data-toggle="tooltip" data-placement="top" title="More info">
                             <i class="fas fa-info-circle"></i>
                         </router-link>
-                        <button @click="refreshService(service)" class="btn btn-sm btn-info"  v-show="isLoggedIn">
+                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.restart)" class="btn btn-sm btn-primary"  v-show="isLoggedIn">
                             <i class="fas fa-sync"></i>
+                        </button>
+                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.redeploy)" class="btn btn-sm btn-success"  v-show="isLoggedIn"
+                            data-toggle="tooltip" data-placement="top" title="Redeploy service">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </button>
+                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.undeploy)" class="btn btn-sm btn-danger"  v-show="isLoggedIn"
+                            data-toggle="tooltip" data-placement="top" title="Undeploy service">
+                            <i class="far fa-stop-circle"></i>
+                        </button>
+                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.backup)" class="btn btn-sm btn-success"  v-show="isLoggedIn"
+                            data-toggle="tooltip" data-placement="top" title="Backup service">
+                            <i class="fas fa-hdd"></i>
                         </button>
                     </td>
                 </tr>
             </tbody>
         </table>
         <ErrorMessage @modalClosed="errorClosed" :showing="error.showing" :id="'requestError'" :error="error.msg" :title="'Error Occurred'"/>
-        <ConfirmationModal @answerReceived="restartConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'refreshConfirm'" :msg="confirmation.msg" :title="'Refresh service'"/>
+        <ConfirmationModal @answerReceived="managementConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'managementConfirm'" :msg="confirmation.msg" :title="confirmation.title"/>
     </div>
 </template>
 
@@ -84,11 +97,13 @@
                     msg: "",
                     showing: false
                 },
-                restart: {
+                management: {
+                    action: "",
                     service: null
                 },
                 confirmation: {
                     showing:false,
+                    title: "",
                     msg: ""
                 },
                 currentPage: 1,
@@ -96,20 +111,23 @@
             }
         },
         methods:{
-            refreshService: function(service){
+            manageService: function(service, action){
                 this.confirmation.showing = true;
-                this.confirmation.msg = "Are you sure you want to restart service " + service.Name + "?";
-                this.restart.service = service;
+                this.confirmation.title = "Confirm - " + action;
+                this.confirmation.msg = "Are you sure you want to " + action + " service " + service.Name + "?";
+                this.management.service = service;
+                this.management.action = action;
             },
-            restartConfirmationReceived: function(answer) {
+            managementConfirmationReceived: function(answer) {
                 if (answer == false) return;
-
-                serviceDiscoveryAPI.refreshService(this.restart.service.MatchingURI , (response) => {
+                
+                serviceDiscoveryAPI.manageService(this.management.service.MatchingURI, this.management.action, (response) => {
                     if (response.status != 200) {
                         this.error.msg = response.body.msg;
                         this.error.showing = true;
                     }
-                })
+                });
+
                 this.restart.service = null;
             },
             confirmationClosed: function(){

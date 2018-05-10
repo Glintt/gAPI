@@ -55,24 +55,44 @@
                             <input type="text" v-model="service.APIDocumentation" class="form-control" id="serviceDocumentation" aria-describedby="serviceDocumentationHelp" placeholder="Enter domain">
                             <small id="serviceDocumentationHelp" class="form-text text-muted">API documentation URI.</small>
                         </div>
-
-                        <div class="form-group">
-                            <label for="serviceDocumentation">Restart Service Host</label>
-                            <input type="text" v-model="service.RestartHost" class="form-control" id="RestartServiceHost" aria-describedby="RestartServiceHostHelp" placeholder="Enter Restart service Host">
-                            <small id="RestartServiceHostHelp" class="form-text text-muted">Host where restart endpoint is located at.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="serviceDocumentation">Restart Service Port</label>
-                            <input type="text" v-model="service.RestartPort" class="form-control" id="RestartServicePort" aria-describedby="RestartServicePortHelp" placeholder="Enter Restart service port">
-                            <small id="RestartServicePortHelp" class="form-text text-muted">Port where restart endpoint is located at.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="serviceDocumentation">Restart Service Endpoint</label>
-                            <input type="text" v-model="service.RestartEndpoint" class="form-control" id="RestartServiceEndpoint" aria-describedby="RestartServiceEndpointHelp" placeholder="Enter Restart service endpoint">
-                            <small id="RestartServiceEndpointHelp" class="form-text text-muted">Endpoint to call to restart service.</small>
-                        </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Service Management Service Host</label>
+                        <input type="text" v-model="service.ServiceManagementHost" class="form-control" id="ServiceManagementHost" aria-describedby="ServiceManagementHostHelp" placeholder="Enter service management webservices host">
+                        <small id="ServiceManagementeHostHelp" class="form-text text-muted">Host where service management webservices (restart, undeploy, ...) are located at.</small>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Service Management Port</label>
+                        <input type="text" v-model="service.ServiceManagementPort" class="form-control" id="ServiceManagementPort" aria-describedby="ServiceManagementPortHelp" placeholder="Enter service management webservices port">
+                        <small id="ServiceManagementPortHelp" class="form-text text-muted">Port where service management webservices (restart, undeploy, ...) are located at.</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Restart Service Endpoint</label>
+                        <input type="text" v-model="service.RestartEndpoint" class="form-control" id="RestartServiceEndpoint" aria-describedby="RestartServiceEndpointHelp" placeholder="Enter Restart service endpoint">
+                        <small id="RestartServiceEndpointHelp" class="form-text text-muted">Endpoint to call to restart service.</small>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Undeploy Service Endpoint</label>
+                        <input type="text" v-model="service.UndeployEndpoint" class="form-control" id="UndeployServiceEndpoint" aria-describedby="UndeployServiceEndpointHelp" placeholder="Enter Undeploy service endpoint">
+                        <small id="UndeployServiceEndpointHelp" class="form-text text-muted">Endpoint to call to undeploy service.</small>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Redeploy Service Endpoint</label>
+                        <input type="text" v-model="service.RedeployEndpoint" class="form-control" id="RedeployServiceEndpoint" aria-describedby="RedeployServiceEndpointHelp" placeholder="Enter Redeploy service endpoint">
+                        <small id="RedeployServiceEndpointHelp" class="form-text text-muted">Endpoint to call to redeploy service.</small>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Backup Service Endpoint</label>
+                        <input type="text" v-model="service.BackupEndpoint" class="form-control" 
+                            id="BackupServiceEndpoint" aria-describedby="BackupServiceEndpointHelp"
+                            placeholder="Enter Backup service endpoint">
+                        <small id="BackupServiceEndpointHelp" class="form-text text-muted">Endpoint to call to backup service.</small>
+                    </div>
+                </div>              
             </form>
     
             <div class="row">
@@ -102,9 +122,12 @@
                     APIDocumentation: "",
                     IsCachingActive : false,
                     HealthcheckUrl:"",
-                    RestartHost : "",
-                    RestartPort : "",
-                    RestartEndpoint: ""
+                    ServiceManagementHost : "",
+                    ServiceManagementPort : "",
+                    RestartEndpoint: "",
+                    UndeployEndpoint: "",
+                    RedeployEndpoint: "",
+                    BackupEndpoint: ""
                 },
                 informationStatus:{
                     isActive : false,
