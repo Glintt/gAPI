@@ -164,9 +164,10 @@ func ManageServiceHandler(c *routing.Context) error {
 	service, err := sd.GetEndpointForUri(string(matchingURI))
 
 	if err == nil {
-		success, callResponse := service.ServiceManagementCall(managementType) 
+		success, callResponse := service.ServiceManagementCall(managementType)
+
 		if success {
-			http.Response(c, `{"error": false, "msg": "Service ` + managementType + ` successfuly.", "service_response": "` + callResponse + `"}` , 200, SERVICE_NAME)
+			http.Response(c, `{"error": false, "msg": "Service ` + managementType + ` successfuly.", "service_response": ` + strconv.Quote(callResponse) + `}` , 200, SERVICE_NAME)
 			return nil
 		}
 		http.Response(c, `{"error": true, "msg": "Service could not be ` + managementType + `."}`, 400, SERVICE_NAME)

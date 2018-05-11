@@ -33,6 +33,23 @@ type Service struct {
 	LogsEndpoint string
 }
 
+var ManagementTypes = map[string]map[string]string{
+	"restart" : {
+		"action": "restart",
+		"method": "POST"},
+	"undeploy" : {
+		"action": "undeploy",
+		"method": "POST"},
+	"redeploy" : {
+		"action": "redeploy",
+		"method": "POST"},
+	"backup" : {
+		"action": "backup",
+		"method": "POST"},
+	"logs" : {
+		"action": "logs",
+		"method": "GET"}}
+
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
 	uri = strings.Replace(uri, service.MatchingURI, service.ToURI, 1)
 
@@ -45,7 +62,7 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 }
 
 func (service *Service) ServiceManagementCall(managementType string) (bool, string) {
-	method := "POST"
+	method := service.GetManagementEndpointMethod(managementType)
 	callURL := "http://" + service.ServiceManagementHost + ":" + service.ServiceManagementPort + service.GetManagementEndpoint(managementType)
 
 	if ValidateURL(callURL) {
@@ -61,18 +78,22 @@ func (service *Service) ServiceManagementCall(managementType string) (bool, stri
 
 func (service *Service) GetManagementEndpoint(managementType string) string {
 	switch managementType {
-	case "restart":
-		return service.RestartEndpoint
-	case "undeploy":
-		return service.UndeployEndpoint
-	case "redeploy":
-		return service.RedeployEndpoint
-	case "backup":
-		return service.BackupEndpoint
-	case "logs":
-		return service.LogsEndpoint
+		case ManagementTypes["restart"]["action"]:
+			return service.RestartEndpoint
+		case ManagementTypes["undeploy"]["action"]:
+			return service.UndeployEndpoint
+		case ManagementTypes["redeploy"]["action"]:
+			return service.RedeployEndpoint
+		case ManagementTypes["backup"]["action"]:
+			return service.BackupEndpoint
+		case ManagementTypes["logs"]["action"]:
+			return service.LogsEndpoint
 	}
 	return ":"
+}
+
+func (service *Service) GetManagementEndpointMethod(managementType string) string {
+	return ManagementTypes[managementType]["method"]
 }
 
 func ValidateURL(url string) bool {
