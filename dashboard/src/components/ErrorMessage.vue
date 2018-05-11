@@ -1,6 +1,6 @@
 <template>
 <div>
-  <div class="modal" tabindex="-1" role="dialog" :id="id">
+  <div class="modal fade" tabindex="-1" role="dialog" :id="id">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -10,7 +10,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <p>{{ error }}</p>
+          <div  v-html="error"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-dismiss="modal" @click="closeModal">Close</button>

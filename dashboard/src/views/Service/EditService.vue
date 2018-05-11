@@ -124,6 +124,13 @@
                         placeholder="Enter Backup service endpoint">
                     <small id="BackupServiceEndpointHelp" class="form-text text-muted">Endpoint to call to backup service.</small>
                 </div>
+                <div class="form-group col-sm-3">
+                    <label for="serviceDocumentation">Logs Service Endpoint</label>
+                    <input type="text" v-model="service.LogsEndpoint" class="form-control" 
+                        id="LogsServiceEndpoint" aria-describedby="LogsServiceEndpointHelp"
+                        placeholder="Enter Logs service endpoint">
+                    <small id="LogsServiceEndpointHelp" class="form-text text-muted">Endpoint to call logs service.</small>
+                </div>
             </div>
             <div class="row" v-show="isLoggedIn">
                 <button type="submit" v-if="isLoggedIn" class="btn btn-primary" v-on:click="store">Save</button>
@@ -171,7 +178,8 @@
                     RestartEndpoint: "",
                     UndeployEndpoint: "",
                     RedeployEndpoint: "",
-                    BackupEndpoint: ""
+                    BackupEndpoint: "",
+                    LogsEndpoint: ""
                 },
                 isActiveClass : 'text-success',
                 informationStatus:{

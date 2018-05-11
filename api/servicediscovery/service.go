@@ -29,7 +29,8 @@ type Service struct {
 	RestartEndpoint       string  
 	RedeployEndpoint       string 
 	UndeployEndpoint       string 
-	BackupEndpoint       string 
+	BackupEndpoint       string
+	LogsEndpoint string
 }
 
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
@@ -43,7 +44,7 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 	return http.MakeRequest(method, callURL, body, headers)
 }
 
-func (service *Service) ServiceManagementCall(managementType string) bool {
+func (service *Service) ServiceManagementCall(managementType string) (bool, string) {
 	method := "POST"
 	callURL := "http://" + service.ServiceManagementHost + ":" + service.ServiceManagementPort + service.GetManagementEndpoint(managementType)
 
@@ -51,11 +52,11 @@ func (service *Service) ServiceManagementCall(managementType string) bool {
 		resp := http.MakeRequest(method, callURL, "", nil)
 		utils.LogMessage(string(resp.Body()))
 		if resp.StatusCode() != 200 {
-			return false
+			return false, string(resp.Body())
 		}
-		return true
+		return true, string(resp.Body())
 	}
-	return false
+	return false, ""
 }
 
 func (service *Service) GetManagementEndpoint(managementType string) string {
@@ -68,6 +69,8 @@ func (service *Service) GetManagementEndpoint(managementType string) string {
 		return service.RedeployEndpoint
 	case "backup":
 		return service.BackupEndpoint
+	case "logs":
+		return service.LogsEndpoint
 	}
 	return ":"
 }

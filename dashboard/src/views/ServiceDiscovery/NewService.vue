@@ -92,6 +92,15 @@
                             placeholder="Enter Backup service endpoint">
                         <small id="BackupServiceEndpointHelp" class="form-text text-muted">Endpoint to call to backup service.</small>
                     </div>
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Logs Service Endpoint</label>
+                        <input type="text" v-model="service.LogsEndpoint" class="form-control" 
+                            id="LogsServiceEndpoint" aria-describedby="LogsServiceEndpointHelp"
+                            placeholder="Enter Logs service endpoint">
+                        <small id="LogsServiceEndpointHelp" class="form-text text-muted">Endpoint to call logs service.</small>
+                    </div>
+
+                    
                 </div>              
             </form>
     
@@ -127,7 +136,8 @@
                     RestartEndpoint: "",
                     UndeployEndpoint: "",
                     RedeployEndpoint: "",
-                    BackupEndpoint: ""
+                    BackupEndpoint: "",
+                    LogsEndpoint: ""
                 },
                 informationStatus:{
                     isActive : false,

@@ -15,7 +15,8 @@ export const ManagementActions = {
   "restart" : "restart",
   "undeploy" : "undeploy",
   "redeploy" : "redeploy",
-  "backup" : "backup"
+  "backup" : "backup",
+  "logs" : "logs"
 }
 
 export function listServices(page, searchQuery, cb){

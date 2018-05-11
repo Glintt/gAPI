@@ -60,6 +60,10 @@
                             data-toggle="tooltip" data-placement="top" title="Backup service">
                             <i class="fas fa-hdd"></i>
                         </button>
+                        <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" class="btn btn-sm btn-info" v-show="isLoggedIn"
+                            data-toggle="tooltip" data-placement="top" title="View service logs">
+                            <i class="fas fa-file"></i>
+                        </router-link>
                     </td>
                 </tr>
             </tbody>
@@ -122,8 +126,12 @@
                 if (answer == false) return;
                 
                 serviceDiscoveryAPI.manageService(this.management.service.MatchingURI, this.management.action, (response) => {
+                    console.log(response)
                     if (response.status != 200) {
                         this.error.msg = response.body.msg;
+                        if (response.body.service_response != undefined) {
+                            this.error.msg = response.body.service_response;    
+                        }
                         this.error.showing = true;
                     }
                 });
