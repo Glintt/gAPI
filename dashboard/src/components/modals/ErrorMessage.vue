@@ -25,7 +25,7 @@
 <script>
 
     export default {
-        name: "home",
+        name: "error-message-modal",
         props: ["id","title", "error", "showing"],
         watch:{
           showing: function(){

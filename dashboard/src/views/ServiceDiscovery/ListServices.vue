@@ -68,7 +68,8 @@
                 </tr>
             </tbody>
         </table>
-        <ErrorMessage @modalClosed="errorClosed" :showing="error.showing" :id="'requestError'" :error="error.msg" :title="'Error Occurred'"/>
+        <ErrorMessage @modalClosed="statusModalClosed" :showing="statusMessage.showing && statusMessage.isError" :id="'requestError'" :error="statusMessage.msg" :title="'Error Occurred'"/>
+        <SuccessModal @modalClosed="statusModalClosed" :showing="statusMessage.showing && !statusMessage.isError" :id="'requestSuccess'" :msg="statusMessage.msg" :title="'Success'"/>
         <ConfirmationModal @answerReceived="managementConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'managementConfirm'" :msg="confirmation.msg" :title="confirmation.title"/>
     </div>
 </template>
@@ -76,8 +77,9 @@
 <script>
     var serviceDiscoveryAPI = require("@/api/service-discovery");
     import DataTable from "@/components/DataTable";
-    import ErrorMessage from "@/components/ErrorMessage";
-    import ConfirmationModal from "@/components/ConfirmationModal";
+    import ErrorMessage from "@/components/modals/ErrorMessage";
+    import ConfirmationModal from "@/components/modals/ConfirmationModal";
+    import SuccessModal from "@/components/modals/SuccessModal";
 
     export default {
         name: "home",
@@ -97,9 +99,10 @@
         data() {
             return {
                 services : [],
-                error:{
+                statusMessage:{
                     msg: "",
-                    showing: false
+                    showing: false,
+                    isError: false
                 },
                 management: {
                     action: "",
@@ -126,25 +129,24 @@
                 if (answer == false) return;
                 
                 serviceDiscoveryAPI.manageService(this.management.service.MatchingURI, this.management.action, (response) => {
-                    console.log(response)
+                    this.statusMessage.msg = response.body.msg;
+                    this.statusMessage.isError = false;
                     if (response.status != 200) {
-                        this.error.msg = response.body.msg;
+                        this.statusMessage.isError = true;
                         if (response.body.service_response != undefined) {
-                            this.error.msg = response.body.service_response;    
+                            this.statusMessage.msg = response.body.service_response;    
                         }
-                        this.error.showing = true;
                     }
+                    this.statusMessage.showing = true;
                 });
-
-                this.restart.service = null;
             },
             confirmationClosed: function(){
                 this.confirmation.showing = false;
                 this.confirmation.msg = "";
             },
-            errorClosed: function(){
-                this.error.showing = false;
-                this.error.msg = "";
+            statusModalClosed: function(){
+                this.statusMessage.showing = false;
+                this.statusMessage.msg = "";
             },
 
             updateData: function() {
@@ -162,6 +164,7 @@
         },
         components:{
             ErrorMessage,
+            SuccessModal,
             ConfirmationModal,
             DataTable
         }
