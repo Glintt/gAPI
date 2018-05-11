@@ -32,14 +32,19 @@ All the features share the same host and port and, as consequence, for a single 
 
 #### Adding more managing features
 
-In order to add new features, you need to follow these steps:
+In order to add new features, you just need to add a new entry to management types map (*ManagementTypes*). This map is located inside */api/servicediscovery/service.go*
 
-1. API
-    1. Add a new management type to the management types map (*ManagementTypes*). This map is located inside */api/servicediscovery/service.go*
-    2. Add a new field to Service struct to save the new endpoint
-    3. Add new rule to *GetManagementEndpoint()*. This method will return the endpoint to call for the new action.
-2. Dashboard
-    1. Add a new input to the NewService form (located at: */dashboard/src/views/ServiceDiscovery/NewService.vue*)
-    2. Add a new input to the EditService form (located at: */dashboard/src/views/Service/EditService.vue*)
-    3. Add a new button to call the new action on Services list view (located at: */dashboard/src/views/ServiceDiscovery/ListServices.vue*)
-    
+Example:
+
+```
+"feature_name" : {
+		"action": "feature_name",
+		"method": "POST",
+		"icon": "fas fa-sync",
+		"background": "info",
+		"description": "feature_name service"}
+```
+
+
+If you need to handle the new feature in a custom way inside the dashboard, you need to add an to *CustomManagementActions* list with the new feature name.  This list is located at: */dashboard/src/api/service-discovery.js*
+

@@ -8,16 +8,11 @@ const Endpoints = {
   "store" : "/register",
   "delete":"/delete",
   "manage":"/services/manage",
+  "manage_types":"/services/manage/types",
   "update" :"/update"
 };
 
-export const ManagementActions = {
-  "restart" : "restart",
-  "undeploy" : "undeploy",
-  "redeploy" : "redeploy",
-  "backup" : "backup",
-  "logs" : "logs"
-}
+export const CustomManagementActions = ["logs"]
 
 export function listServices(page, searchQuery, cb){
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.list + "?page=" + page + "&q=" + searchQuery), {}).then(response => {
@@ -61,6 +56,13 @@ export function updateService(service, cb){
 
 export function manageService(service, action, cb){
   HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.manage +"?service=" + service + "&action="+action), {}, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+export function manageServiceTypes(cb){
+  HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.manage_types), {}, {}).then(response => {
     cb(response);
   }, response => {
     HTTP.handleError(response, cb)

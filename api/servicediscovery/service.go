@@ -26,29 +26,41 @@ type Service struct {
 	LastActiveTime int64 
 	ServiceManagementHost       string 
 	ServiceManagementPort       string 
-	RestartEndpoint       string  
-	RedeployEndpoint       string 
-	UndeployEndpoint       string 
-	BackupEndpoint       string
-	LogsEndpoint string
+	ServiceManagementEndpoints  map[string]string
 }
 
 var ManagementTypes = map[string]map[string]string{
 	"restart" : {
 		"action": "restart",
-		"method": "POST"},
+		"method": "POST",
+		"icon": "fas fa-sync",
+		"background": "info",
+		"description": "Restart service"},
 	"undeploy" : {
 		"action": "undeploy",
-		"method": "POST"},
+		"method": "POST",
+		"icon": "far fa-stop-circle",
+		"background": "danger",
+		"description": "Undeploy service"},
 	"redeploy" : {
 		"action": "redeploy",
-		"method": "POST"},
+		"method": "POST",
+		"icon": "fas fa-cloud-upload-alt",
+		"background": "success",
+		"description": "Redeploy service"},
 	"backup" : {
 		"action": "backup",
-		"method": "POST"},
+		"method": "POST",
+		"icon": "fas fa-hdd",
+		"background": "primary",
+		"description": "Backup service"},
 	"logs" : {
 		"action": "logs",
-		"method": "GET"}}
+		"method": "GET",
+		"icon": "fas fa-file",
+		"background": "",
+		"description": "View service logs"}}
+
 
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
 	uri = strings.Replace(uri, service.MatchingURI, service.ToURI, 1)
@@ -77,19 +89,7 @@ func (service *Service) ServiceManagementCall(managementType string) (bool, stri
 }
 
 func (service *Service) GetManagementEndpoint(managementType string) string {
-	switch managementType {
-		case ManagementTypes["restart"]["action"]:
-			return service.RestartEndpoint
-		case ManagementTypes["undeploy"]["action"]:
-			return service.UndeployEndpoint
-		case ManagementTypes["redeploy"]["action"]:
-			return service.RedeployEndpoint
-		case ManagementTypes["backup"]["action"]:
-			return service.BackupEndpoint
-		case ManagementTypes["logs"]["action"]:
-			return service.LogsEndpoint
-	}
-	return ":"
+	return service.ServiceManagementEndpoints[managementType]
 }
 
 func (service *Service) GetManagementEndpointMethod(managementType string) string {

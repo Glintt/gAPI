@@ -61,6 +61,7 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Get("/endpoint", GetEndpointHandler)
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
 	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
+	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
 	sd.isService = true
 }
 
@@ -165,7 +166,7 @@ func ManageServiceHandler(c *routing.Context) error {
 
 	if err == nil {
 		success, callResponse := service.ServiceManagementCall(managementType)
-
+		
 		if success {
 			http.Response(c, `{"error": false, "msg": "Service ` + managementType + ` successfuly.", "service_response": ` + strconv.Quote(callResponse) + `}` , 200, SERVICE_NAME)
 			return nil
@@ -174,6 +175,20 @@ func ManageServiceHandler(c *routing.Context) error {
 		return nil
 	}
 	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, SERVICE_NAME)
+	return nil
+}
+
+func ManageServiceTypesHandler(c *routing.Context) error {
+	managementTypesJson, err := json.Marshal(ManagementTypes)
+	
+	response := string(managementTypesJson)
+	statusCode := 200
+	if err != nil {	
+		response = `{"error": true, "msg": "Not found"}`
+		statusCode = 404
+	}
+	
+	http.Response(c, response, statusCode, SERVICE_NAME)
 	return nil
 }
 

@@ -45,20 +45,11 @@
                             data-toggle="tooltip" data-placement="top" title="More info">
                             <i class="fas fa-info-circle"></i>
                         </router-link>
-                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.restart)" class="btn btn-sm btn-primary"  v-show="isLoggedIn">
-                            <i class="fas fa-sync"></i>
-                        </button>
-                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.redeploy)" class="btn btn-sm btn-success"  v-show="isLoggedIn"
-                            data-toggle="tooltip" data-placement="top" title="Redeploy service">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </button>
-                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.undeploy)" class="btn btn-sm btn-danger"  v-show="isLoggedIn"
-                            data-toggle="tooltip" data-placement="top" title="Undeploy service">
-                            <i class="far fa-stop-circle"></i>
-                        </button>
-                        <button @click="manageService(service, $api.serviceDiscovery.ManagementActions.backup)" class="btn btn-sm btn-success"  v-show="isLoggedIn"
-                            data-toggle="tooltip" data-placement="top" title="Backup service">
-                            <i class="fas fa-hdd"></i>
+                        <button v-for="(type, index) in managementTypes" @click="manageService(service, type.action)" 
+                            :class="'btn btn-sm btn-'+ type.background"
+                            v-show="isLoggedIn && ! $api.serviceDiscovery.CustomManagementActions.includes(type.action)"
+                            data-toggle="tooltip" data-placement="top" :title="type.description">
+                            <i :class="type.icon"></i>
                         </button>
                         <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" class="btn btn-sm btn-info" v-show="isLoggedIn"
                             data-toggle="tooltip" data-placement="top" title="View service logs">
@@ -83,8 +74,11 @@
 
     export default {
         name: "home",
-        mounted(){
+        mounted() {
             this.updateData();
+            this.$api.serviceDiscovery.manageServiceTypes(response => {
+                this.managementTypes = response.body;
+            })
         },
         watch: {
             currentPage: function() {
@@ -98,6 +92,7 @@
         },
         data() {
             return {
+                managementTypes:{},
                 services : [],
                 statusMessage:{
                     msg: "",

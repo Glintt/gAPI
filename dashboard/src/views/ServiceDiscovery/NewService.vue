@@ -70,37 +70,11 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Restart Service Endpoint</label>
-                        <input type="text" v-model="service.RestartEndpoint" class="form-control" id="RestartServiceEndpoint" aria-describedby="RestartServiceEndpointHelp" placeholder="Enter Restart service endpoint">
-                        <small id="RestartServiceEndpointHelp" class="form-text text-muted">Endpoint to call to restart service.</small>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Undeploy Service Endpoint</label>
-                        <input type="text" v-model="service.UndeployEndpoint" class="form-control" id="UndeployServiceEndpoint" aria-describedby="UndeployServiceEndpointHelp" placeholder="Enter Undeploy service endpoint">
-                        <small id="UndeployServiceEndpointHelp" class="form-text text-muted">Endpoint to call to undeploy service.</small>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Redeploy Service Endpoint</label>
-                        <input type="text" v-model="service.RedeployEndpoint" class="form-control" id="RedeployServiceEndpoint" aria-describedby="RedeployServiceEndpointHelp" placeholder="Enter Redeploy service endpoint">
-                        <small id="RedeployServiceEndpointHelp" class="form-text text-muted">Endpoint to call to redeploy service.</small>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Backup Service Endpoint</label>
-                        <input type="text" v-model="service.BackupEndpoint" class="form-control" 
-                            id="BackupServiceEndpoint" aria-describedby="BackupServiceEndpointHelp"
-                            placeholder="Enter Backup service endpoint">
-                        <small id="BackupServiceEndpointHelp" class="form-text text-muted">Endpoint to call to backup service.</small>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Logs Service Endpoint</label>
-                        <input type="text" v-model="service.LogsEndpoint" class="form-control" 
-                            id="LogsServiceEndpoint" aria-describedby="LogsServiceEndpointHelp"
-                            placeholder="Enter Logs service endpoint">
-                        <small id="LogsServiceEndpointHelp" class="form-text text-muted">Endpoint to call logs service.</small>
-                    </div>
-
-                    
+                    <div class="form-group col-sm-3" v-for="(type, c) in managementTypes" v-bind:key="type.action">
+                        <label for="serviceDocumentation">Service {{ type.action }} endpoint</label>
+                        <input type="text" v-model="service.ServiceManagementEndpoints[type.action]" class="form-control" :id="type.action + 'ServiceEndpoint'" :aria-describedby="type.action + 'ServiceEndpointHelp'"  v-bind:placeholder="'Enter ' + type.action + ' service endpoint'">
+                        <small :id="type.action + 'ServiceEndpointHelp'" class="form-text text-muted">Endpoint to call to {{ type.action }} service.</small>
+                    </div>                    
                 </div>              
             </form>
     
@@ -114,11 +88,15 @@
 </template>
 
 <script>
-    var serviceDiscoveryAPI = require("@/api/service-discovery");
     import InformationPanel from "@/components/InformationPanel";
 
     export default {
         name: "home",
+        mounted() {
+            this.$api.serviceDiscovery.manageServiceTypes(response => {
+                this.managementTypes = response.body;
+            })
+        },
         data() {
             return {
                 service: {
@@ -133,22 +111,19 @@
                     HealthcheckUrl:"",
                     ServiceManagementHost : "",
                     ServiceManagementPort : "",
-                    RestartEndpoint: "",
-                    UndeployEndpoint: "",
-                    RedeployEndpoint: "",
-                    BackupEndpoint: "",
-                    LogsEndpoint: ""
+                    ServiceManagementEndpoints:{}
                 },
                 informationStatus:{
                     isActive : false,
                     className: 'alert-success',
                     msg : ""
-                }
+                },
+                managementTypes:{}
             }
         },
         methods: {
             store : function(){
-                serviceDiscoveryAPI.storeService(this.service, (response) => {
+                this.$api.serviceDiscovery.storeService(this.service, (response) => {
                     if(response.status != 201)
                     {
                         this.informationStatus.msg = response.body.msg;
@@ -159,8 +134,6 @@
                         this.informationStatus.isActive = true;
                         this.informationStatus.className = 'alert-success';
                     }
-                    
-
                 })
             }
         },
