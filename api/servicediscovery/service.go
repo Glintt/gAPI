@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
 	
 	"gAPIManagement/api/http"
@@ -28,39 +29,6 @@ type Service struct {
 	ServiceManagementPort       string 
 	ServiceManagementEndpoints  map[string]string
 }
-
-var ManagementTypes = map[string]map[string]string{
-	"restart" : {
-		"action": "restart",
-		"method": "POST",
-		"icon": "fas fa-sync",
-		"background": "info",
-		"description": "Restart service"},
-	"undeploy" : {
-		"action": "undeploy",
-		"method": "POST",
-		"icon": "far fa-stop-circle",
-		"background": "danger",
-		"description": "Undeploy service"},
-	"redeploy" : {
-		"action": "redeploy",
-		"method": "POST",
-		"icon": "fas fa-cloud-upload-alt",
-		"background": "success",
-		"description": "Redeploy service"},
-	"backup" : {
-		"action": "backup",
-		"method": "POST",
-		"icon": "fas fa-hdd",
-		"background": "primary",
-		"description": "Backup service"},
-	"logs" : {
-		"action": "logs",
-		"method": "GET",
-		"icon": "fas fa-file",
-		"background": "",
-		"description": "View service logs"}}
-
 
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
 	uri = strings.Replace(uri, service.MatchingURI, service.ToURI, 1)
@@ -93,7 +61,7 @@ func (service *Service) GetManagementEndpoint(managementType string) string {
 }
 
 func (service *Service) GetManagementEndpointMethod(managementType string) string {
-	return ManagementTypes[managementType]["method"]
+	return config.GApiConfiguration.ManagementTypes[managementType]["method"]
 }
 
 func ValidateURL(url string) bool {

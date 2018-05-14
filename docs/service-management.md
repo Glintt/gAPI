@@ -1,7 +1,10 @@
 
 ## Service Management Module
 
-gAPI has features that allow to manage each service:
+gAPI has a module that allows to integrate external service management services. 
+This module is highly scalable and flexible allowing to easily add new management feature in an easy way.
+
+Currently, gAPI configuration example contains the following features to manage each service:
 
 1.  Stop a service
 2.  Restart a service
@@ -32,7 +35,7 @@ All the features share the same host and port and, as consequence, for a single 
 
 #### Adding more managing features
 
-In order to add new features, you just need to add a new entry to management types map (*ManagementTypes*). This map is located inside */api/servicediscovery/service.go*
+In order to add new features, you just need to add a new entry to management types map (*ManagementTypes*). This map is located inside the configuration file (*/api/configs/gAPI.json*)
 
 Example:
 

@@ -179,7 +179,7 @@ func ManageServiceHandler(c *routing.Context) error {
 }
 
 func ManageServiceTypesHandler(c *routing.Context) error {
-	managementTypesJson, err := json.Marshal(ManagementTypes)
+	managementTypesJson, err := json.Marshal(config.GApiConfiguration.ManagementTypes)
 	
 	response := string(managementTypesJson)
 	statusCode := 200

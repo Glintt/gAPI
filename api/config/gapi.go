@@ -14,7 +14,8 @@ type GApiConfig struct {
 	ServiceDiscovery GApiServiceDiscoveryConfig
 	Urls             UrlsConstants
 	Healthcheck      GApiHealthCheckConfig
-	Notifications GApiNotificationsConfig
+	Notifications 	 GApiNotificationsConfig
+	ManagementTypes  map[string]map[string]string
 }
 
 type GApiAuthenticationConfig struct {

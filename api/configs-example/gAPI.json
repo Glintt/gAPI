@@ -30,5 +30,14 @@
         "Slack" : {
             "WebhookUrl" : "https://hooks.slack.com/services/asld/lak/la"
         }
+    },
+    "ManagementTypes": {
+        "restart" : {
+            "action": "restart",
+            "method": "POST",
+            "icon": "fas fa-sync",
+            "background": "info",
+            "description": "Restart service"
+        }
     }
 }
