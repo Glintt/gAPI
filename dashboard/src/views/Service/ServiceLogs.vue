@@ -29,7 +29,7 @@ export default {
     },
     methods: {
         logs: function() {
-            this.$api.serviceDiscovery.manageService(this.$route.query.uri, this.$api.serviceDiscovery.ManagementActions.logs, (response) => {
+            this.$api.serviceDiscovery.manageService(this.$route.query.uri, "logs", (response) => {
                 if (response.status != 200) {
                     return;
                 }
