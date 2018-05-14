@@ -3,7 +3,7 @@ package main
 import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
-	"fmt"
+	
 	"gAPIManagement/api/rabbit"
 	"gAPIManagement/api/logs"
 	"os"
@@ -12,7 +12,7 @@ import (
 
 func failOnError(err error, msg string) {
   if err != nil {
-    fmt.Println("%s: %s", msg, err)
+    utils.LogMessage("%s: %s", msg, err)
   }
 }
 

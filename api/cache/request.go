@@ -4,8 +4,9 @@ import (
 	"gAPIManagement/api/thirdpartyauthentication"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/utils"
 	"encoding/json"
-	"fmt"
+	
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
@@ -65,7 +66,7 @@ func GetCacheForRequest(c *routing.Context) CachedRequest {
 
 func StoreRequestInfoToCache(c *routing.Context, requestInfo CachedRequest) {
 	if requestInfo.UpdateServiceCache {
-		fmt.Println("SET SD CACHE")
+		utils.LogMessage("SET SD CACHE")
 		serviceDiscoveryJson, _ := json.Marshal(requestInfo.Service)
 		ServiceDiscoveryCacheStore(sdCacheKey(c), serviceDiscoveryJson)
 	}
@@ -75,14 +76,14 @@ func StoreRequestInfoToCache(c *routing.Context, requestInfo CachedRequest) {
 	}
 
 	if requestInfo.UpdateProtectionCache {
-		fmt.Println("SET OAUTH CACHE")
+		utils.LogMessage("SET OAUTH CACHE")
 		requestInfo.Protection.Cached = true
 		protectionJson, _ := json.Marshal(requestInfo.Protection)
 		OAuthCacheStore(oauthCacheKey(c), protectionJson)
 	}
 
 	if requestInfo.UpdateResponseCache && string(c.Method()) == "GET" {
-		fmt.Println("SET RESPONSE CACHE")
+		utils.LogMessage("SET RESPONSE CACHE")
 		apiResponseJson, _ := json.Marshal(requestInfo.Response)
 		ApisCacheStore(apiResponseCacheKey(c), apiResponseJson)
 	}

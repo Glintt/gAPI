@@ -41,31 +41,44 @@
                     <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
                     <td v-show="isLoggedIn"><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
                     <td>
-                        <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="navbar-brand" >
+                        <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="btn btn-sm btn-info" 
+                            data-toggle="tooltip" data-placement="top" title="More info">
                             <i class="fas fa-info-circle"></i>
                         </router-link>
-                        <button @click="refreshService(service)" class="btn btn-sm btn-info"  v-show="isLoggedIn">
-                            <i class="fas fa-sync"></i>
+                        <button v-for="(type, index) in managementTypes" @click="manageService(service, type.action)" 
+                            :class="'btn btn-sm btn-'+ type.background"
+                            v-show="isLoggedIn && ! $api.serviceDiscovery.CustomManagementActions.includes(type.action)"
+                            data-toggle="tooltip" data-placement="top" :title="type.description">
+                            <i :class="type.icon"></i>
                         </button>
+                        <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" class="btn btn-sm btn-info" v-show="isLoggedIn"
+                            data-toggle="tooltip" data-placement="top" title="View service logs">
+                            <i class="fas fa-file"></i>
+                        </router-link>
                     </td>
                 </tr>
             </tbody>
         </table>
-        <ErrorMessage @modalClosed="errorClosed" :showing="error.showing" :id="'requestError'" :error="error.msg" :title="'Error Occurred'"/>
-        <ConfirmationModal @answerReceived="restartConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'refreshConfirm'" :msg="confirmation.msg" :title="'Refresh service'"/>
+        <ErrorMessage @modalClosed="statusModalClosed" :showing="statusMessage.showing && statusMessage.isError" :id="'requestError'" :error="statusMessage.msg" :title="'Error Occurred'"/>
+        <SuccessModal @modalClosed="statusModalClosed" :showing="statusMessage.showing && !statusMessage.isError" :id="'requestSuccess'" :msg="statusMessage.msg" :title="'Success'"/>
+        <ConfirmationModal @answerReceived="managementConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'managementConfirm'" :msg="confirmation.msg" :title="confirmation.title"/>
     </div>
 </template>
 
 <script>
     var serviceDiscoveryAPI = require("@/api/service-discovery");
     import DataTable from "@/components/DataTable";
-    import ErrorMessage from "@/components/ErrorMessage";
-    import ConfirmationModal from "@/components/ConfirmationModal";
+    import ErrorMessage from "@/components/modals/ErrorMessage";
+    import ConfirmationModal from "@/components/modals/ConfirmationModal";
+    import SuccessModal from "@/components/modals/SuccessModal";
 
     export default {
         name: "home",
-        mounted(){
+        mounted() {
             this.updateData();
+            this.$api.serviceDiscovery.manageServiceTypes(response => {
+                this.managementTypes = response.body;
+            })
         },
         watch: {
             currentPage: function() {
@@ -79,16 +92,20 @@
         },
         data() {
             return {
+                managementTypes:{},
                 services : [],
-                error:{
+                statusMessage:{
                     msg: "",
-                    showing: false
+                    showing: false,
+                    isError: false
                 },
-                restart: {
+                management: {
+                    action: "",
                     service: null
                 },
                 confirmation: {
                     showing:false,
+                    title: "",
                     msg: ""
                 },
                 currentPage: 1,
@@ -96,29 +113,35 @@
             }
         },
         methods:{
-            refreshService: function(service){
+            manageService: function(service, action){
                 this.confirmation.showing = true;
-                this.confirmation.msg = "Are you sure you want to restart service " + service.Name + "?";
-                this.restart.service = service;
+                this.confirmation.title = "Confirm - " + action;
+                this.confirmation.msg = "Are you sure you want to " + action + " service " + service.Name + "?";
+                this.management.service = service;
+                this.management.action = action;
             },
-            restartConfirmationReceived: function(answer) {
+            managementConfirmationReceived: function(answer) {
                 if (answer == false) return;
-
-                serviceDiscoveryAPI.refreshService(this.restart.service.MatchingURI , (response) => {
+                
+                serviceDiscoveryAPI.manageService(this.management.service.MatchingURI, this.management.action, (response) => {
+                    this.statusMessage.msg = response.body.msg;
+                    this.statusMessage.isError = false;
                     if (response.status != 200) {
-                        this.error.msg = response.body.msg;
-                        this.error.showing = true;
+                        this.statusMessage.isError = true;
+                        if (response.body.service_response != undefined) {
+                            this.statusMessage.msg = response.body.service_response;    
+                        }
                     }
-                })
-                this.restart.service = null;
+                    this.statusMessage.showing = true;
+                });
             },
             confirmationClosed: function(){
                 this.confirmation.showing = false;
                 this.confirmation.msg = "";
             },
-            errorClosed: function(){
-                this.error.showing = false;
-                this.error.msg = "";
+            statusModalClosed: function(){
+                this.statusMessage.showing = false;
+                this.statusMessage.msg = "";
             },
 
             updateData: function() {
@@ -136,6 +159,7 @@
         },
         components:{
             ErrorMessage,
+            SuccessModal,
             ConfirmationModal,
             DataTable
         }

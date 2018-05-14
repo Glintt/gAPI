@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	
 	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/cache"
@@ -74,7 +74,7 @@ func listenAPI(router *routing.Router) {
 		listeningPort = "8080"
 	}
 
-	fmt.Println("Listening on port: " + listeningPort)
+	utils.LogMessage("Listening on port: " + listeningPort)
 	panic(fasthttp.ListenAndServe(":"+listeningPort, CORSHandle))
 }
 

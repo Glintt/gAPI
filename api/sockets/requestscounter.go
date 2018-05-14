@@ -2,7 +2,8 @@ package sockets
 
 
 import (
-	"fmt"
+	"gAPIManagement/api/utils"
+	
 	//"encoding/json"
 	"time"
 	"strconv"
@@ -45,6 +46,6 @@ func StartRequestsCounterSender(){
 
 func PreventCrash(){
 	if r := recover(); r != nil {
-		fmt.Println("recover")
+		utils.LogMessage("recover")
 	}
 }

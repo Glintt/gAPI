@@ -24,7 +24,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		return services, nil
 
 	} else {
-		services := funcMap[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
+		services := Methods[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
 		return services, nil
 	}
 
@@ -53,6 +53,15 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, err
 	return Service{}, errors.New("Not found.")
 }
 
+func (serviceDisc *ServiceDiscovery) UpdateService(service Service) (Service, error) {
+	_, status := Methods[SD_TYPE]["update"].(func(Service, Service) (string, int))(service, service)
+	if status == 201 {
+		return service, nil
+	}
+	
+	return Service{}, errors.New("Not found.")
+}
+
 func GetMatchURI(uri string) string {
 	uriParts := strings.Split(uri, "/")
 	toMatchUri := "/"
@@ -67,5 +76,5 @@ func GetMatchURI(uri string) string {
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (Service, error) {
 	toMatchUri := GetMatchURI(uri)
-	return funcMap[SD_TYPE]["get"].(func(string) (Service, error))(toMatchUri)
+	return Methods[SD_TYPE]["get"].(func(string) (Service, error))(toMatchUri)
 }

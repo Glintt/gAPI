@@ -21,7 +21,7 @@ var SERVICE_NAME = "/service-discovery"
 var PAGE_LENGTH = 10
 var SD_TYPE = "file"
 
-var funcMap = map[string]map[string]interface{}{
+var Methods = map[string]map[string]interface{}{
 	"mongo": {
 		"delete": DeleteServiceMongo,
 		"update": UpdateMongo,
@@ -60,7 +60,8 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Get("/services", ListServicesHandler)
 	sd.sdAPI.Get("/endpoint", GetEndpointHandler)
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
-	sd.sdAPI.Post("/service/restart", RestartServiceHandler)
+	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
+	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
 	sd.isService = true
 }
 
@@ -79,7 +80,7 @@ func UpdateHandler(c *routing.Context) error {
 		return nil
 	}
 
-	resp, status := funcMap[SD_TYPE]["update"].(func(Service, Service) (string, int))(service, serviceExists)
+	resp, status := Methods[SD_TYPE]["update"].(func(Service, Service) (string, int))(service, serviceExists)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil
@@ -101,7 +102,7 @@ func RegisterHandler(c *routing.Context) error {
 		return nil
 	}
 
-	resp, status := funcMap[SD_TYPE]["create"].(func(Service) (string, int))(service)
+	resp, status := Methods[SD_TYPE]["create"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil
@@ -122,8 +123,8 @@ func ListServicesHandler(c *routing.Context) error {
 	if c.QueryArgs().Has("q") {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
-
-	services := funcMap[SD_TYPE]["list"].(func(int, string) []Service)(page, searchQuery)
+	
+	services := Methods[SD_TYPE]["list"].(func(int, string) []Service)(page, searchQuery)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, SERVICE_NAME)
@@ -157,27 +158,44 @@ func GetEndpointHandler(c *routing.Context) error {
 	return nil
 }
 
-func RestartServiceHandler(c *routing.Context) error {
+func ManageServiceHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("service")
+	managementType := string(c.QueryArgs().Peek("action"))
 
 	service, err := sd.GetEndpointForUri(string(matchingURI))
 
 	if err == nil {
-		if service.Restart() {
-			http.Response(c, `{"error": false, "msg": "Service restarted successfuly."}` , 200, SERVICE_NAME)
+		success, callResponse := service.ServiceManagementCall(managementType)
+		
+		if success {
+			http.Response(c, `{"error": false, "msg": "Service ` + managementType + ` successfuly.", "service_response": ` + strconv.Quote(callResponse) + `}` , 200, SERVICE_NAME)
 			return nil
 		}
-		http.Response(c, `{"error": true, "msg": "Service could not be restarted."}`, 400, SERVICE_NAME)
+		http.Response(c, `{"error": true, "msg": "Service could not be ` + managementType + `."}`, 400, SERVICE_NAME)
 		return nil
 	}
 	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, SERVICE_NAME)
 	return nil
 }
 
+func ManageServiceTypesHandler(c *routing.Context) error {
+	managementTypesJson, err := json.Marshal(config.GApiConfiguration.ManagementTypes)
+	
+	response := string(managementTypesJson)
+	statusCode := 200
+	if err != nil {	
+		response = `{"error": true, "msg": "Not found"}`
+		statusCode = 404
+	}
+	
+	http.Response(c, response, statusCode, SERVICE_NAME)
+	return nil
+}
+
 func DeleteEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
-	resp, status := funcMap[SD_TYPE]["delete"].(func(string) (string, int))(string(matchingURI))
+	resp, status := Methods[SD_TYPE]["delete"].(func(string) (string, int))(string(matchingURI))
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil

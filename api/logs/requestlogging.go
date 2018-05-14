@@ -5,7 +5,7 @@ import (
 	"gAPIManagement/api/rabbit"
 	"gAPIManagement/api/utils"
 	"encoding/json"
-"fmt"
+
 	"github.com/streadway/amqp"
 
 	"github.com/valyala/fasthttp"
@@ -66,7 +66,7 @@ func PublishLog(reqLogging *RequestLogging) {
 }
 
 func PublishElastic(reqLogging *RequestLogging) {
-	fmt.Println("ELASTIC PUBLISH")
+	utils.LogMessage("ELASTIC PUBLISH")
 	currentDate := utils.CurrentDate()
 	logsURL := config.ELASTICSEARCH_URL + "/request-logs-" + currentDate + "/logs"
 

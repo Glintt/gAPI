@@ -13,7 +13,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 
 	for _, element := range sd.registeredServices {
 		if element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI && element.Domain == serviceExists.Domain {
-
+			
 		} else {
 			newServices = append(newServices, element)
 		}

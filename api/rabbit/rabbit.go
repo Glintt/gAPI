@@ -1,9 +1,10 @@
 package rabbit
 
 import (
+	"gAPIManagement/api/utils"
 	"time"
 	"github.com/streadway/amqp"
-	"fmt"
+	
 	"os"
 )
 
@@ -29,7 +30,7 @@ func Queue() string{
 
 
 func ConnectToRabbit() *amqp.Connection {
-	fmt.Println("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
+	utils.LogMessage("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
 	
 	for {
 		connection, err := amqp.Dial("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
@@ -50,6 +51,6 @@ func CreateChannel(connection *amqp.Connection) *amqp.Channel {
 
 func FailOnError(err error, msg string) {
 	if err != nil {
-	  fmt.Println("%s: %s", msg, err)
+	  utils.LogMessage( msg + ":" + err.Error())
 	}
 }
