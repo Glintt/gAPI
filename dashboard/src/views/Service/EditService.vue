@@ -136,6 +136,7 @@
             })
             serviceDiscoveryAPI.getServices(this.$route.query.uri, (response) => {
                 this.service = response.body;
+                if(this.service.ServiceManagementEndpoints == null) this.service.ServiceManagementEndpoints = {};
                 this.serviceUpdated();
                 this.isActiveClass = this.service.IsActive ? 'text-success' : 'text-danger';
                 this.serviceFetched = true;
@@ -143,6 +144,7 @@
         },
         data() {
             return {
+                managementTypes:{},
                 serviceFetched:false,
                 service: {
                     "Name": "",
@@ -156,11 +158,7 @@
                     "HealthcheckUrl" : "",
                     ServiceManagementHost : "",
                     ServiceManagementPort : "",
-                    RestartEndpoint: "",
-                    UndeployEndpoint: "",
-                    RedeployEndpoint: "",
-                    BackupEndpoint: "",
-                    LogsEndpoint: ""
+                    ServiceManagementEndpoints:{}
                 },
                 isActiveClass : 'text-success',
                 informationStatus:{
