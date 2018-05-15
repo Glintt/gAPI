@@ -11,7 +11,7 @@ func ValidateServiceBody(c *routing.Context) (Service, error) {
 	var s Service
 	err := json.Unmarshal(c.Request.Body(), &s)
 
-	if s.Name == "" || s.Domain == "" || s.Port == "" || s.MatchingURI == "" || s.ToURI == "" || s.APIDocumentation == "" {
+	if s.Name == "" || len(s.Hosts) == 0 || s.MatchingURI == "" || s.ToURI == "" || s.APIDocumentation == "" {
 		return Service{}, errors.New(`{"error" : true, "msg": "Missing body parameters."}`)
 	}
 	if err != nil {

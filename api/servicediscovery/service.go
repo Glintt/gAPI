@@ -1,6 +1,9 @@
 package servicediscovery
 
 import (
+	"net"
+	"math/rand"
+	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
 	
@@ -14,28 +17,60 @@ import (
 type Service struct {
 	ID                    bson.ObjectId `bson:"_id" json:"id"`
 	Name                  string
-	Domain                string
-	Port                  string
+	Hosts 				  []string
+	Domain				  string
+	Port				  string
 	MatchingURI           string
 	ToURI                 string
 	Protected             bool
 	APIDocumentation      string
-	CachingExpirationTime int 
 	IsCachingActive       bool 
 	IsActive              bool 
-	HealthcheckUrl	string 
-	LastActiveTime int64 
+	HealthcheckUrl		  string 
+	LastActiveTime 		  int64 
 	ServiceManagementHost       string 
 	ServiceManagementPort       string 
 	ServiceManagementEndpoints  map[string]string
 }
 
+func Contains(array []int, value int) bool {
+	for _, v := range array{
+		if v == value{
+			return true
+		}
+	}
+	return false
+}
+
+
+func (service *Service) BalanceUrl() string {
+	numHosts := len(service.Hosts)
+	indexesToTry := rand.Perm(numHosts)
+
+	for _, index := range indexesToTry {
+		host := service.Hosts[index]
+		_, err := net.Dial("tcp", host)
+		if err == nil {
+			return host
+		}
+	}
+
+	return service.Domain + ":" + service.Port
+}
+func (service *Service) GetHost() string {
+	if service.Hosts == nil || len(service.Hosts) == 0{
+		return service.Domain + ":" + service.Port
+	}
+
+	return service.BalanceUrl()
+}
+
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
 	uri = strings.Replace(uri, service.MatchingURI, service.ToURI, 1)
 
-	callURLWithoutProtocol := service.Domain + ":" + service.Port + uri
+	callURLWithoutProtocol := service.GetHost() + uri
 	callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
-
+	fmt.Println(callURLWithoutProtocol)
 	callURL := "http://" + callURLWithoutProtocol
 
 	return http.MakeRequest(method, callURL, body, headers)

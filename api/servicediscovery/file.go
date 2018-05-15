@@ -12,7 +12,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 	var newServices []Service
 
 	for _, element := range sd.registeredServices {
-		if element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI && element.Domain == serviceExists.Domain {
+		if element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI {
 			
 		} else {
 			newServices = append(newServices, element)
@@ -64,7 +64,8 @@ func DeleteServiceFile(matchingURI string) (string, int) {
 	var newServices []Service
 
 	for _, element := range sd.registeredServices {
-		if element.Name == service.Name && element.MatchingURI == service.MatchingURI && element.ToURI == service.ToURI && element.Domain == service.Domain {
+		if element.Name == service.Name && element.MatchingURI == service.MatchingURI && element.ToURI == service.ToURI {
+			
 		} else {
 			newServices = append(newServices, element)
 		}

@@ -12,15 +12,17 @@
                             <small id="nameHelp" class="form-text text-muted">Give the service/API a name.</small>
                         </div>
                         <div class="form-group">
-                            <label for="domainName">Domain</label>
-                            <input type="text" v-model="service.Domain" class="form-control" id="domainName" aria-describedby="domainHelp" placeholder="Enter domain">
-                            <small id="domainHelp" class="form-text text-muted">Domain/IP where the service is hosted.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="servicePort">Port</label>
-                            <input type="text" v-model="service.Port" class="form-control" id="servicePort" aria-describedby="servicePortHelp" placeholder="Enter port">
-                            <small id="servicePortHelp" class="form-text text-muted">Port where the service is exposed.</small>
-                        </div>
+                            <label for="hostsName">Hosts</label>
+                            <input type="text" v-model="hostToAdd" class="form-control" id="hostsName" aria-describedby="hostsHelp" placeholder="Enter hosts">
+                            <small id="hostsHelp" class="form-text text-muted">Hosts where the service is hosted.</small>
+                            <button type="button" @click="addHost" class="btn btn-sm btn-success">Add</button>
+                        </div>         
+                        <ul class="list-group">
+                            <li class="list-group-item" v-for="h in service.Hosts" v-bind:key="h">
+                                {{ h }}
+                                <button type="button" @click="removeHost(h)" class="btn btn-sm btn-danger">Delete</button>
+                            </li>
+                        </ul>
                         <div class="form-group">
                             <label for="serviceMatchingUri">MatchingURI</label>
                             <input type="text" v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
@@ -99,10 +101,10 @@
         },
         data() {
             return {
+                hostToAdd: "",
                 service: {
                     Name: "",
-                    Domain: "",
-                    Port: "",
+                    Hosts: [],
                     MatchingURI: "",
                     ToURI: "",
                     Protected: false,
@@ -122,6 +124,14 @@
             }
         },
         methods: {
+            addHost : function() {
+                this.service.Hosts.push(this.hostToAdd);
+                this.hostToAdd = "";
+            },
+            removeHost: function(hostToRemove) {
+                var index = this.service.Hosts.indexOf(hostToRemove);
+                this.service.Hosts.splice(index, 1);
+            },
             store : function(){
                 this.$api.serviceDiscovery.storeService(this.service, (response) => {
                     if(response.status != 201)
