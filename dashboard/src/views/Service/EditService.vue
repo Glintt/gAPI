@@ -42,19 +42,17 @@
             </div>
             <div class="row" v-show="isLoggedIn">
                 <div class="form-group col-sm-3">
-                    <label for="domainName">Domain</label>
-                    <input type="text"
-                        :disabled="!isLoggedIn"
-                            v-model="service.Domain" class="form-control" id="domainName" aria-describedby="domainHelp" placeholder="Enter domain">
-                    <small id="domainHelp" class="form-text text-muted">Domain/IP where the service is hosted.</small>
-                </div>
-                <div class="form-group col-sm-3">
-                    <label for="servicePort">Port</label>
-                    <input type="text"
-                        :disabled="!isLoggedIn"
-                            v-model="service.Port" class="form-control" id="servicePort" aria-describedby="servicePortHelp" placeholder="Enter port">
-                    <small id="servicePortHelp" class="form-text text-muted">Port where the service is exposed.</small>
-                </div>
+                    <label for="hostsName">Hosts</label>
+                    <input type="text" v-model="hostToAdd" class="form-control" id="hostsName" aria-describedby="hostsHelp" placeholder="Enter hosts">
+                    <small id="hostsHelp" class="form-text text-muted">Hosts where the service is hosted.</small>
+                    <button type="button" @click="addHost" class="btn btn-sm btn-success">Add</button>
+                </div> 
+                <ul class="list-group">
+                    <li class="list-group-item" v-for="h in service.Hosts" v-bind:key="h">
+                        {{ h }}
+                        <button type="button" @click="removeHost(h)" class="btn btn-sm btn-danger">Delete</button>
+                    </li>
+                </ul>
                 <div class="form-group col-sm-3">
                     <label for="serviceToUri">URI</label>
                     <input type="text" 
@@ -107,7 +105,7 @@
                         <label for="serviceDocumentation">Service {{ type.action }} endpoint</label>
                         <input type="text" v-model="service.ServiceManagementEndpoints[type.action]" class="form-control" :id="type.action + 'ServiceEndpoint'" :aria-describedby="type.action + 'ServiceEndpointHelp'"  v-bind:placeholder="'Enter ' + type.action + ' service endpoint'">
                         <small :id="type.action + 'ServiceEndpointHelp'" class="form-text text-muted">Endpoint to call to {{ type.action }} service.</small>
-                    </div>                    
+                    </div>
                 </div>
             </div>
             <div class="row" v-show="isLoggedIn">
@@ -137,6 +135,7 @@
             serviceDiscoveryAPI.getServices(this.$route.query.uri, (response) => {
                 this.service = response.body;
                 if(this.service.ServiceManagementEndpoints == null) this.service.ServiceManagementEndpoints = {};
+                if(this.service.Hosts == null) this.service.Hosts = [];
                 this.serviceUpdated();
                 this.isActiveClass = this.service.IsActive ? 'text-success' : 'text-danger';
                 this.serviceFetched = true;
@@ -144,12 +143,12 @@
         },
         data() {
             return {
+                hostToAdd: "",
                 managementTypes:{},
                 serviceFetched:false,
                 service: {
                     "Name": "",
-                    "Domain": "",
-                    "Port": "",
+                    Hosts:[],
                     "MatchingURI": "",
                     "ToURI": "",
                     "Protected": false,
@@ -169,6 +168,14 @@
             }
         },
         methods: {
+            addHost : function() {
+                this.service.Hosts.push(this.hostToAdd);
+                this.hostToAdd = "";
+            },
+            removeHost: function(hostToRemove) {
+                var index = this.service.Hosts.indexOf(hostToRemove);
+                this.service.Hosts.splice(index, 1);
+            },
             store: function() {
                 serviceDiscoveryAPI.updateService(this.service, (response) => {
                     this.informationStatus.isActive = true;

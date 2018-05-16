@@ -5,15 +5,30 @@
 
     <div class="card">
         <div class="card-body">
-            <div v-if="logsText == ''" class="alert alert-danger" role="alert">
+            <div v-if="logsText == '' && !loading" class="alert alert-danger" role="alert">
                 No logs found.
             </div>
+            <div v-if="loading" class="alert alert-warning" role="alert">
+                Loading logs... Wait a moment
+            </div>
             
-            <textarea v-if="logsText != ''" class="form-control" id="exampleFormControlTextarea1" :rows="rows" v-model="logsText" disabled></textarea>
+            <pre v-if="logsText != ''" class="form-control prelog" id="exampleFormControlTextarea1" :rows="rows"  disabled>{{logsText}}</pre>
         </div>
     </div>
 </div>
 </template>
+
+<style scoped>
+.prelog{
+    height: auto;
+    max-height: 600px;
+    overflow: auto;
+    background-color: #eeeeee;
+    word-break: normal !important;
+    word-wrap: normal !important;
+    white-space: pre !important;
+}
+</style>
 
 <script>
 
@@ -21,7 +36,8 @@ export default {
     data() {
         return {
             logsText: "",
-            rows: 6
+            rows: 6,
+            loading: true
         }
     },
     mounted(){
@@ -29,7 +45,9 @@ export default {
     },
     methods: {
         logs: function() {
+            this.loading = true;
             this.$api.serviceDiscovery.manageService(this.$route.query.uri, "logs", (response) => {
+                this.loading = false;
                 if (response.status != 200) {
                     return;
                 }
