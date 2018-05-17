@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"sort"
 	"strings"
 	"gAPIManagement/api/config"
 	"encoding/json"
@@ -39,13 +40,16 @@ func ListServicesFile(page int, filterQuery string) []Service {
 	var servicesList []Service
 	if filterQuery != "" {
 		for _, v := range sd.registeredServices {
-			if strings.Contains(v.Name, filterQuery) || strings.Contains(v.MatchingURI, filterQuery) {
+			if strings.Contains(strings.ToLower(v.Name), strings.ToLower(filterQuery)) || strings.Contains(strings.ToLower(v.MatchingURI), strings.ToLower(filterQuery)) {
 				servicesList = append(servicesList, v)
 			}		
-		}	
+		}
 	}else {
 		servicesList = sd.registeredServices
 	}
+	
+	sort.Slice(servicesList, func(i, j int) bool { return servicesList[i].MatchingURI < servicesList[j].MatchingURI })
+
 	if page == -1 {
 		return servicesList
 	}
