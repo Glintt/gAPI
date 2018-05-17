@@ -62,6 +62,7 @@ func CheckServicesHealth() {
 				}
 				s.IsActive = false
 			} else {
+				NotifyHealthUp(s)
 				s.LastActiveTime = 0
 				s.IsActive = true
 			}
@@ -78,7 +79,17 @@ func NotifyHealthDown(service servicediscovery.Service){
 		return
 	}
 
-	msg := service.Name + " located at " + service.Domain + ":" + service.Port + service.ToURI + " is down!"
+	msg := "*" + service.Name + "* located at *" + service.Domain + ":" + service.Port + service.ToURI + "* is down :thinking_face: :thinking_face:"
+
+	notifications.SendNotification(msg)
+}
+
+func NotifyHealthUp(service servicediscovery.Service){
+	if ! config.GApiConfiguration.Healthcheck.Notification || service.IsActive {
+		return
+	}
+
+	msg := "*" + service.Name + "* located at *" + service.Domain + ":" + service.Port + service.ToURI + "* went up again! :smiley: :smiley:"
 
 	notifications.SendNotification(msg)
 }
