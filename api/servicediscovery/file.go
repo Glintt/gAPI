@@ -12,7 +12,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 	var newServices []Service
 
 	for _, element := range sd.registeredServices {
-		if element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI && element.Domain == serviceExists.Domain {
+		if element.Id == serviceExists.Id || (element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI && element.Domain == serviceExists.Domain) {
 
 		} else {
 			newServices = append(newServices, element)
@@ -28,6 +28,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 }
 
 func CreateServiceFile(s Service) (string, int) {
+	s.Id = s.GenerateId()
 	sd.registeredServices = append(sd.registeredServices, s)
 
 	go sd.SaveServicesToFile()
@@ -39,9 +40,9 @@ func ListServicesFile() []Service {
 	return sd.registeredServices
 }
 
-func DeleteServiceFile(matchingURI string) (string, int) {
+func DeleteServiceFile(service Service) (string, int) {
 	//service, err := FindFile(GetMatchURI(matchingURI))
-	service, err := FindFile(matchingURI)
+	service, err := FindFile(service)
 
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
@@ -63,7 +64,7 @@ func DeleteServiceFile(matchingURI string) (string, int) {
 	return `{"error": false, "msg": "Removed successfully."}`, 200
 }
 
-func FindFile(toMatchUri string) (Service, error) {
+func FindFile(service Service) (Service, error) {
 	for _, rs := range sd.registeredServices {
 		//if toMatchUri == rs.MatchingURI {
 		//fmt.Println("1=>" + toMatchUri)
@@ -76,7 +77,10 @@ func FindFile(toMatchUri string) (Service, error) {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
-		if re.MatchString(toMatchUri) {
+		if re.MatchString(service.MatchingURI) {
+			return rs, nil
+		}
+		if rs.Id == service.Id {
 			return rs, nil
 		}
 	}

@@ -47,7 +47,8 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, err
 		return service, nil
 
 	} else {
-		return serviceDisc.FindServiceWithMatchingPrefix(uri)
+		service := Service{MatchingURI: uri}
+		return serviceDisc.FindService(service)
 	}
 
 	//return Service{}, errors.New("Not found.")
@@ -73,8 +74,8 @@ func GetMatchingURIRegex(uri string) string {
 	return s
 }
 
-func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (Service, error) {
+func (serviceDisc *ServiceDiscovery) FindService(service Service) (Service, error) {
 	//toMatchUri := uri
 	//toMatchUri := GetMatchURI(uri)
-	return funcMap[SD_TYPE]["get"].(func(string) (Service, error))(uri)
+	return funcMap[SD_TYPE]["get"].(func(Service) (Service, error))(service)
 }

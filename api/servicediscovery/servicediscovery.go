@@ -165,7 +165,8 @@ func GetEndpointHandler(c *routing.Context) error {
 func DeleteEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
-	resp, status := funcMap[SD_TYPE]["delete"].(func(string) (string, int))(string(matchingURI))
+	service := Service{MatchingURI: string(matchingURI)}
+	resp, status := funcMap[SD_TYPE]["delete"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil

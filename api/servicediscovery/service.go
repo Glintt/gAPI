@@ -1,15 +1,16 @@
 package servicediscovery
 
 import (
+	"gopkg.in/mgo.v2/bson"
 	"gAPIManagement/api/http"
 	"strings"
 
 	"github.com/valyala/fasthttp"
-	"gopkg.in/mgo.v2/bson"
+	//"gopkg.in/mgo.v2/bson"
 )
 
 type Service struct {
-	ID                    bson.ObjectId `bson:"_id" json:"id"`
+	Id                    bson.ObjectId `bson:"_id" json:"Id"`
 	Name                  string
 	Domain                string
 	Port                  string
@@ -36,6 +37,13 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 	return http.MakeRequest(method, callURL, body, headers)
 }
 
+func (service *Service) GenerateId() bson.ObjectId {
+	return bson.NewObjectId()
+}
+
 func (service *Service) NormalizeService() {
 	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
+	if service.Id == "" {
+		service.Id = service.GenerateId()
+	}
 }
