@@ -18,8 +18,8 @@ func ValidateServiceBody(c *routing.Context) (Service, error) {
 		return Service{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
 	}
 
-	s.MatchingURIRegex = GetMatchingURIRegex(s.MatchingURI)
-
+	s.NormalizeService()
+	
 	return s, nil
 }
 
