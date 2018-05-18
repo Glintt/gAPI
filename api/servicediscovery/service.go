@@ -35,3 +35,7 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 
 	return http.MakeRequest(method, callURL, body, headers)
 }
+
+func (service *Service) NormalizeService() {
+	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
+}

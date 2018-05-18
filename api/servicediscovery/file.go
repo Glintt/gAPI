@@ -72,6 +72,9 @@ func FindFile(toMatchUri string) (Service, error) {
 			return rs, nil
 		}*/
 		//fmt.Println("3=>" + GetMatchingURIRegex(rs.MatchingURI))
+		if (rs.MatchingURIRegex == "") {
+			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
+		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
 		if re.MatchString(toMatchUri) {
 			return rs, nil
@@ -92,4 +95,19 @@ func (service *ServiceDiscovery) SaveServicesToFile() {
 	}
 
 	err = ioutil.WriteFile(config.CONFIGS_LOCATION+config.SERVICE_DISCOVERY_CONFIG_FILE, registeredServicesJson, 0777)
+}
+
+func NormalizeServicesFile() error{
+	var normalizedServices []Service
+
+	for _, rs := range sd.registeredServices {
+		rs.NormalizeService()
+
+		normalizedServices = append(normalizedServices, rs)
+	}
+
+	sd.registeredServices = normalizedServices
+	sd.SaveServicesToFile()
+	 
+	return nil
 }

@@ -27,13 +27,15 @@ var funcMap = map[string]map[string]interface{}{
 		"update": UpdateMongo,
 		"create": CreateServiceMongo,
 		"list":   ListServicesMongo,
-		"get":    FindMongo},
+		"get":    FindMongo,
+		"normalize": NormalizeServicesMongo},
 	"file": {
 		"delete": DeleteServiceFile,
 		"update": UpdateFile,
 		"create": CreateServiceFile,
 		"list":   ListServicesFile,
-		"get":    FindFile}}
+		"get":    FindFile,
+		"normalize": NormalizeServicesFile}}
 
 func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []Service) {
 	serviceDisc.registeredServices = rs
@@ -56,11 +58,22 @@ func StartServiceDiscovery(router *routing.Router) {
 
 	sd.isService = true
 	sd.sdAPI.Post("/register", authentication.AuthorizationMiddleware, RegisterHandler)
+	sd.sdAPI.Post("/admin/normalize", authentication.AuthorizationMiddleware, NormalizeServices)
 	sd.sdAPI.Post("/update", authentication.AuthorizationMiddleware, UpdateHandler)
 	sd.sdAPI.Get("/services", ListServicesHandler)
 	sd.sdAPI.Get("/endpoint", GetEndpointHandler)
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
 	sd.isService = true
+}
+
+func NormalizeServices(c *routing.Context) error {
+	err := funcMap[SD_TYPE]["normalize"].(func() (error))()
+	if err != nil {
+		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, SERVICE_NAME)
+		return err
+	}
+	http.Response(c, `{"error":false, "msg": "Normalization done."}`, 200, SERVICE_NAME)
+	return nil
 }
 
 func UpdateHandler(c *routing.Context) error {

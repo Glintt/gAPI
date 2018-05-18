@@ -97,9 +97,12 @@ func FindMongo(toMatchUri string) (Service, error) {
 	db.C(COLLECTION).Find(bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}}).All(&services)
 	//{ $substrBytes: [ "toMatchUri", 0, 2 ] }
 
-	//db.users.findOne({"username" : {$regex : ".*son.*"}});
+	//db.users.findOne({"username" : {$regexs : ".*son.*"}});
 
 	for _, rs := range services {
+		if (rs.MatchingURIRegex == "") {
+			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
+		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
 		if re.MatchString(toMatchUri) {
 			return rs, nil
@@ -107,4 +110,18 @@ func FindMongo(toMatchUri string) (Service, error) {
 	}
 
 	return Service{}, errors.New("Not found.")
+}
+
+func NormalizeServicesMongo() error {
+	ConnectToMongo()
+
+	var services []Service
+	db.C(COLLECTION).Find(bson.M{}).All(&services)
+
+	for _, rs := range services {
+		rs.NormalizeService()
+
+		db.C(COLLECTION).UpdateId(rs.ID, &rs)
+	}	
+	return nil
 }
