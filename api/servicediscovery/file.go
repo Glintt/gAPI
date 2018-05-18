@@ -1,10 +1,11 @@
 package servicediscovery
 
 import (
-	"gAPIManagement/api/config"
 	"encoding/json"
 	"errors"
+	"gAPIManagement/api/config"
 	"io/ioutil"
+	"regexp"
 )
 
 func UpdateFile(service Service, serviceExists Service) (string, int) {
@@ -39,7 +40,8 @@ func ListServicesFile() []Service {
 }
 
 func DeleteServiceFile(matchingURI string) (string, int) {
-	service, err := FindFile(GetMatchURI(matchingURI))
+	//service, err := FindFile(GetMatchURI(matchingURI))
+	service, err := FindFile(matchingURI)
 
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
@@ -63,7 +65,15 @@ func DeleteServiceFile(matchingURI string) (string, int) {
 
 func FindFile(toMatchUri string) (Service, error) {
 	for _, rs := range sd.registeredServices {
-		if toMatchUri == rs.MatchingURI {
+		//if toMatchUri == rs.MatchingURI {
+		//fmt.Println("1=>" + toMatchUri)
+		//fmt.Println("2=>" + rs.MatchingURI)
+		/*if strings.HasPrefix(toMatchUri, rs.MatchingURI) {
+			return rs, nil
+		}*/
+		//fmt.Println("3=>" + GetMatchingURIRegex(rs.MatchingURI))
+		re := regexp.MustCompile(rs.MatchingURIRegex)
+		if re.MatchString(toMatchUri) {
 			return rs, nil
 		}
 	}

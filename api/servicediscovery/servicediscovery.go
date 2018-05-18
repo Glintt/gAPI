@@ -100,6 +100,7 @@ func RegisterHandler(c *routing.Context) error {
 		return nil
 	}
 
+	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
 	resp, status := funcMap[SD_TYPE]["create"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)

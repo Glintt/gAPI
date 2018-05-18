@@ -5,7 +5,7 @@ import (
 	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
-	"strings"
+	"regexp"
 )
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
@@ -28,7 +28,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		return services, nil
 	}
 
-	return []Service{}, errors.New("Not found.")
+	//return []Service{}, errors.New("Not found.")
 }
 
 func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, error) {
@@ -50,22 +50,31 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, err
 		return serviceDisc.FindServiceWithMatchingPrefix(uri)
 	}
 
-	return Service{}, errors.New("Not found.")
+	//return Service{}, errors.New("Not found.")
 }
 
-func GetMatchURI(uri string) string {
-	uriParts := strings.Split(uri, "/")
-	toMatchUri := "/"
-
-	if len(uriParts) > 1 {
-		toMatchUri = toMatchUri + uriParts[1]
-	} else {
-		toMatchUri = uri
+/*func GetMatchURI(uri string) string {
+	f := func(c rune) bool {
+		return c == '/'
 	}
+	uriParts := strings.FieldsFunc(uri, f)
+
+	toMatchUri := "/" + strings.Join(uriParts, "/") + "/"
+
 	return toMatchUri
+}*/
+
+func GetMatchingURIRegex(uri string) string {
+	s := uri
+	re := regexp.MustCompile("^(\\^/)?/?")
+	s = re.ReplaceAllString(s, "^/")
+	re = regexp.MustCompile("(/(\\.\\*)?)?$")
+	s = re.ReplaceAllString(s, "((/.*)|$)")
+	return s
 }
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (Service, error) {
-	toMatchUri := GetMatchURI(uri)
-	return funcMap[SD_TYPE]["get"].(func(string) (Service, error))(toMatchUri)
+	//toMatchUri := uri
+	//toMatchUri := GetMatchURI(uri)
+	return funcMap[SD_TYPE]["get"].(func(string) (Service, error))(uri)
 }

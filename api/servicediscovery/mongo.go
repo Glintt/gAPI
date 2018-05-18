@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -67,7 +69,7 @@ func ListServicesMongo() []Service {
 }
 
 func DeleteServiceMongo(matchingURI string) (string, int) {
-	service, err := FindMongo(GetMatchURI(matchingURI))
+	service, err := FindMongo(matchingURI)
 
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
@@ -85,10 +87,24 @@ func FindMongo(toMatchUri string) (Service, error) {
 	ConnectToMongo()
 
 	var services []Service
-	db.C(COLLECTION).Find(bson.M{"matchinguri": toMatchUri}).All(&services)
+	//db.C(COLLECTION).Find(bson.M{"matchinguri": toMatchUri}).All(&services)
 
-	if len(services) > 0 {
-		return services[0], nil
+	f := func(c rune) bool {
+		return c == '/'
 	}
+	uriParts := strings.FieldsFunc(toMatchUri, f)
+
+	db.C(COLLECTION).Find(bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}}).All(&services)
+	//{ $substrBytes: [ "toMatchUri", 0, 2 ] }
+
+	//db.users.findOne({"username" : {$regex : ".*son.*"}});
+
+	for _, rs := range services {
+		re := regexp.MustCompile(rs.MatchingURIRegex)
+		if re.MatchString(toMatchUri) {
+			return rs, nil
+		}
+	}
+
 	return Service{}, errors.New("Not found.")
 }

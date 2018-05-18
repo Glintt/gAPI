@@ -14,14 +14,15 @@ type Service struct {
 	Domain                string
 	Port                  string
 	MatchingURI           string
+	MatchingURIRegex      string
 	ToURI                 string
 	Protected             bool
 	APIDocumentation      string
 	CachingExpirationTime int
 	IsCachingActive       bool
 	IsActive              bool
-	HealthcheckUrl	string
-	LastActiveTime int64
+	HealthcheckUrl        string
+	LastActiveTime        int64
 }
 
 func (service *Service) Call(method string, uri string, headers map[string]string, body string) *fasthttp.Response {
