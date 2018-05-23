@@ -34,7 +34,8 @@
     "RateLimiting":{
         "Active": true,
         "Limit": 20,
-        "Period": 1
+        "Period": 1,
+        "Metrics": ["RemoteAddr", "MatchingUri"]
     },
     "ManagementTypes": {
         "restart" : {
