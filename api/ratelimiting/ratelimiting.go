@@ -19,7 +19,6 @@ type RateStatus struct {
 	ExpirationTime int64
 }
 
-
 var limiter config.GApiRateLimitingConfig 
 var limits map[string]RateStatus
 
@@ -36,28 +35,49 @@ func RateLimiting(c *routing.Context) error {
 	if ! limiter.Active {
 		return nil
 	}
-	
-	if _, ok := limits[c.RemoteAddr().String()]; ok == false {
-		expirationTime := RateLimitingExpirationTime()
-		limits[c.RemoteAddr().String()] = RateStatus{NumberRequests:1, ExpirationTime: expirationTime}
+
+	currentRequestMetricName := GetRateLimitingMetricName(c)
+
+	CreateRateLimitingIfNotExists(currentRequestMetricName)
+
+	rateStatus := RateLimitingStatusForRequest(currentRequestMetricName)
+
+	if IsRateLimitExceeded(rateStatus) {
+		http.Response(c, `{"error":true, "msg": "Rate limiting exceeded."}`, 429, c.Request.URI().String())
+		c.Abort()
 		return nil
 	}
+	
+	limits[currentRequestMetricName] = RateStatus{NumberRequests: (rateStatus.NumberRequests + 1), ExpirationTime: rateStatus.ExpirationTime}
+	return nil
+}
 
-	currentNumberRequests := limits[c.RemoteAddr().String()].NumberRequests
-	currentExpirationTime := limits[c.RemoteAddr().String()].ExpirationTime
+func CreateRateLimitingIfNotExists(currentRequestMetricName string) {
+	if _, ok := limits[currentRequestMetricName]; ok == false {
+		expirationTime := RateLimitingExpirationTime()
+		limits[currentRequestMetricName] = RateStatus{NumberRequests:1, ExpirationTime: expirationTime}
+	}
+}
+
+func RateLimitingStatusForRequest(currentRequestMetricName string) RateStatus {
+	currentNumberRequests := limits[currentRequestMetricName].NumberRequests
+	currentExpirationTime := limits[currentRequestMetricName].ExpirationTime
 
 	if currentExpirationTime < utils.CurrentTimeMilliseconds() {
 		currentExpirationTime = RateLimitingExpirationTime()
 		currentNumberRequests = 0
 	}
 
-	if currentExpirationTime > utils.CurrentTimeMilliseconds() && currentNumberRequests < limiter.Limit {
-		currentNumberRequests = currentNumberRequests + 1
-		limits[c.RemoteAddr().String()] = RateStatus{NumberRequests: currentNumberRequests, ExpirationTime: currentExpirationTime}
-		return nil
-	}
+	return RateStatus{NumberRequests: currentNumberRequests, ExpirationTime: currentExpirationTime}
+}
 
-	http.Response(c, `{"error":true, "msg": "Rate limiting exceeded."}`, 429, c.Request.URI().String())
-	c.Abort()
-	return nil
+func IsRateLimitExceeded(rateStatus RateStatus) bool {
+	if rateStatus.ExpirationTime > utils.CurrentTimeMilliseconds() && rateStatus.NumberRequests < limiter.Limit {
+		return false
+	}
+	return true
+}
+
+func GetRateLimitingMetricName(c *routing.Context) string {
+	return c.RemoteAddr().String()
 }
