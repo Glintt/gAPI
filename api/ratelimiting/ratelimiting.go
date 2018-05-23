@@ -1,11 +1,12 @@
 package ratelimiting
 
 import (
+	"fmt"
+	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/utils"
 	"time"
-	
 	"github.com/qiangxue/fasthttp-routing"
 )
 
@@ -27,34 +28,36 @@ func InitRateLimiting() {
 	limits = make(map[string]RateStatus)
 }
 
-func RateLimitingExpirationTime() int64 {
-	return utils.CurrentTimeMilliseconds() + (limiter.Period * 60 * 1000)
-}
 
 func RateLimiting(c *routing.Context) error {
 	if ! limiter.Active {
 		return nil
 	}
 
-	currentRequestMetricName := GetRateLimitingMetricName(c)
+	currentRequestMetricName := GetRateLimitingMetricName(c, limiter)
 
-	CreateRateLimitingIfNotExists(currentRequestMetricName)
+	service := serviceForUri(c)
+
+	CreateRateLimitingIfNotExists(currentRequestMetricName, service)
 
 	rateStatus := RateLimitingStatusForRequest(currentRequestMetricName)
 
-	if IsRateLimitExceeded(rateStatus) {
+	if IsRateLimitExceeded(rateStatus, service) {
 		http.Response(c, `{"error":true, "msg": "Rate limiting exceeded."}`, 429, c.Request.URI().String())
 		c.Abort()
 		return nil
 	}
 	
 	limits[currentRequestMetricName] = RateStatus{NumberRequests: (rateStatus.NumberRequests + 1), ExpirationTime: rateStatus.ExpirationTime}
+
+	fmt.Println(limits[currentRequestMetricName])
+	fmt.Println((limits[currentRequestMetricName].ExpirationTime - utils.CurrentTimeMilliseconds()))
 	return nil
 }
 
-func CreateRateLimitingIfNotExists(currentRequestMetricName string) {
+func CreateRateLimitingIfNotExists(currentRequestMetricName string, service servicediscovery.Service) {
 	if _, ok := limits[currentRequestMetricName]; ok == false {
-		expirationTime := RateLimitingExpirationTime()
+		expirationTime := RateLimitingExpirationTime(service)		
 		limits[currentRequestMetricName] = RateStatus{NumberRequests:1, ExpirationTime: expirationTime}
 	}
 }
@@ -64,20 +67,34 @@ func RateLimitingStatusForRequest(currentRequestMetricName string) RateStatus {
 	currentExpirationTime := limits[currentRequestMetricName].ExpirationTime
 
 	if currentExpirationTime < utils.CurrentTimeMilliseconds() {
-		currentExpirationTime = RateLimitingExpirationTime()
+		currentExpirationTime = RateLimitingExpirationTime(servicediscovery.Service{})
 		currentNumberRequests = 0
 	}
 
 	return RateStatus{NumberRequests: currentNumberRequests, ExpirationTime: currentExpirationTime}
 }
 
-func IsRateLimitExceeded(rateStatus RateStatus) bool {
-	if rateStatus.ExpirationTime > utils.CurrentTimeMilliseconds() && rateStatus.NumberRequests < limiter.Limit {
-		return false
+func IsRateLimitExceeded(rateStatus RateStatus, service servicediscovery.Service) bool {
+	// If rate limit time expired
+	if rateStatus.ExpirationTime < utils.CurrentTimeMilliseconds() {
+		return true
 	}
-	return true
+
+	// Check rate limit for custom service rate
+	if service.RateLimit > 0 && rateStatus.NumberRequests > service.RateLimit {
+		return true
+	}
+
+	// Check for general rate limit
+	if rateStatus.NumberRequests > limiter.Limit {
+		return true
+	}
+	return false
 }
 
-func GetRateLimitingMetricName(c *routing.Context) string {
-	return c.RemoteAddr().String()
+func RateLimitingExpirationTime(service servicediscovery.Service) int64 {
+	if service.RateLimitExpirationTime > 0 {
+		return utils.CurrentTimeMilliseconds() + (service.RateLimitExpirationTime * 60 * 1000) 
+	}
+	return utils.CurrentTimeMilliseconds() + (limiter.Period * 60 * 1000)
 }
