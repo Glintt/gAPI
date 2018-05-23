@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/utils"
 	
 	"gAPIManagement/api/cache"
@@ -16,8 +17,9 @@ var oauthserver authentication.OAuthServer
 
 func StartProxy(router *routing.Router) {
 	oauthserver = authentication.LoadFromConfig()
-
-	router.To("GET,POST,PUT,PATCH,DELETE", "/*", HandleRequest)
+	
+	ratelimiting.InitRateLimiting()
+	router.To("GET,POST,PUT,PATCH,DELETE", "/*", ratelimiting.RateLimiting, HandleRequest)
 
 	sd = *servicediscovery.GetServiceDiscoveryObject()
 }
