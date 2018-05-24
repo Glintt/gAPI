@@ -31,6 +31,8 @@ type Service struct {
 	ServiceManagementHost       string 
 	ServiceManagementPort       string 
 	ServiceManagementEndpoints  map[string]string
+	RateLimit	int
+	RateLimitExpirationTime	int64
 }
 
 func Contains(array []int, value int) bool {

@@ -31,6 +31,12 @@
             "WebhookUrl" : "https://hooks.slack.com/services/asld/lak/la"
         }
     },
+    "RateLimiting":{
+        "Active": true,
+        "Limit": 20,
+        "Period": 1,
+        "Metrics": ["RemoteAddr", "MatchingUri"]
+    },
     "ManagementTypes": {
         "restart" : {
             "action": "restart",

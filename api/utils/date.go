@@ -13,3 +13,6 @@ func CurrentDateWithFormat(format string) string {
 func CurrentTimeMilliseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
+func NanosecondsToMilliseconds(nano int64) int64 {
+	return nano / int64(time.Millisecond)
+}

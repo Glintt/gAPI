@@ -16,6 +16,7 @@ type GApiConfig struct {
 	Healthcheck      GApiHealthCheckConfig
 	Notifications 	 GApiNotificationsConfig
 	ManagementTypes  map[string]map[string]string
+	RateLimiting 	GApiRateLimitingConfig
 }
 
 type GApiAuthenticationConfig struct {
@@ -51,6 +52,13 @@ type GApiNotificationsConfig struct {
 
 type GApiSlackNotificationsConfig struct {
 	WebhookUrl string
+}
+
+type GApiRateLimitingConfig struct {
+	Active bool
+	Limit int
+	Period int64
+	Metrics []string
 }
 
 var GApiConfiguration GApiConfig
