@@ -65,7 +65,13 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
 	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
 	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
+	sd.sdAPI.To("GET,POST,PUT,PATCH,DELETE", "/*", ServiceNotFound)
 	sd.isService = true
+}
+
+func ServiceNotFound(c *routing.Context) error {
+	http.Response(c, `{"error":true, "msg": "Not found."}`, 404, SERVICE_NAME)
+	return nil
 }
 
 func NormalizeServices(c *routing.Context) error {

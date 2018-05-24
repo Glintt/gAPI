@@ -93,6 +93,6 @@ func (serviceDisc *ServiceDiscovery) FindService(service Service) (Service, erro
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (Service, error) {
 	toMatchUri := GetMatchURI(uri)
-	service , _ := serviceDisc.FindService(Service{MatchingURI: toMatchUri})
-	return Methods[SD_TYPE]["get"].(func(Service) (Service, error))(service)
+	return serviceDisc.FindService(Service{MatchingURI: toMatchUri})
+	/* return Methods[SD_TYPE]["get"].(func(Service) (Service, error))(service) */
 }
