@@ -1,11 +1,12 @@
 package servicediscovery
 
 import (
+	"strings"
 	"encoding/json"
 	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
-	"strings"
+	"regexp"
 )
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
@@ -28,7 +29,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		return services, nil
 	}
 
-	return []Service{}, errors.New("Not found.")
+	//return []Service{}, errors.New("Not found.")
 }
 
 func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, error) {
@@ -47,10 +48,23 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, err
 		return service, nil
 
 	} else {
-		return serviceDisc.FindServiceWithMatchingPrefix(uri)
+		service := Service{MatchingURI: uri}
+		return serviceDisc.FindService(service)
 	}
 
-	return Service{}, errors.New("Not found.")
+	//return Service{}, errors.New("Not found.")
+}
+
+func GetMatchURI(uri string) string {
+	f := func(c rune) bool {
+		return c == '/'	
+	}
+
+	uriParts := strings.FieldsFunc(uri, f)
+
+	toMatchUri := "/" + strings.Join(uriParts, "/") + "/"
+
+	return toMatchUri
 }
 
 func (serviceDisc *ServiceDiscovery) UpdateService(service Service) (Service, error) {
@@ -62,19 +76,23 @@ func (serviceDisc *ServiceDiscovery) UpdateService(service Service) (Service, er
 	return Service{}, errors.New("Not found.")
 }
 
-func GetMatchURI(uri string) string {
-	uriParts := strings.Split(uri, "/")
-	toMatchUri := "/"
+func GetMatchingURIRegex(uri string) string {
+	s := uri
+	re := regexp.MustCompile("^(\\^/)?/?")
+	s = re.ReplaceAllString(s, "^/")
+	re = regexp.MustCompile("(/(\\.\\*)?)?$")
+	s = re.ReplaceAllString(s, "((/.*)|$)")
+	return s
+}
 
-	if len(uriParts) > 1 {
-		toMatchUri = toMatchUri + uriParts[1]
-	} else {
-		toMatchUri = uri
-	}
-	return toMatchUri
+func (serviceDisc *ServiceDiscovery) FindService(service Service) (Service, error) {
+	//toMatchUri := uri
+	//toMatchUri := GetMatchURI(uri)
+	return Methods[SD_TYPE]["get"].(func(Service) (Service, error))(service)
 }
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (Service, error) {
 	toMatchUri := GetMatchURI(uri)
-	return Methods[SD_TYPE]["get"].(func(string) (Service, error))(toMatchUri)
+	service , _ := serviceDisc.FindService(Service{MatchingURI: toMatchUri})
+	return Methods[SD_TYPE]["get"].(func(Service) (Service, error))(service)
 }

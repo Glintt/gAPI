@@ -3,18 +3,19 @@ package servicediscovery
 import (
 	"sort"
 	"strings"
-	"gAPIManagement/api/config"
 	"encoding/json"
 	"errors"
+	"gAPIManagement/api/config"
 	"io/ioutil"
+	"regexp"
 )
 
 func UpdateFile(service Service, serviceExists Service) (string, int) {
 	var newServices []Service
 
 	for _, element := range sd.registeredServices {
-		if element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI {
-			
+		if element.Id == serviceExists.Id || (element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI && element.Domain == serviceExists.Domain) {
+
 		} else {
 			newServices = append(newServices, element)
 		}
@@ -29,6 +30,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 }
 
 func CreateServiceFile(s Service) (string, int) {
+	s.Id = s.GenerateId()
 	sd.registeredServices = append(sd.registeredServices, s)
 
 	go sd.SaveServicesToFile()
@@ -58,8 +60,9 @@ func ListServicesFile(page int, filterQuery string) []Service {
 	return servicesList[from:to]
 }
 
-func DeleteServiceFile(matchingURI string) (string, int) {
-	service, err := FindFile(GetMatchURI(matchingURI))
+func DeleteServiceFile(service Service) (string, int) {
+	//service, err := FindFile(GetMatchURI(matchingURI))
+	service, err := FindFile(service)
 
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
@@ -82,9 +85,23 @@ func DeleteServiceFile(matchingURI string) (string, int) {
 	return `{"error": false, "msg": "Removed successfully."}`, 200
 }
 
-func FindFile(toMatchUri string) (Service, error) {
+func FindFile(service Service) (Service, error) {
 	for _, rs := range sd.registeredServices {
-		if toMatchUri == rs.MatchingURI {
+		//if toMatchUri == rs.MatchingURI {
+		//fmt.Println("1=>" + toMatchUri)
+		//fmt.Println("2=>" + rs.MatchingURI)
+		/*if strings.HasPrefix(toMatchUri, rs.MatchingURI) {
+			return rs, nil
+		}*/
+		//fmt.Println("3=>" + GetMatchingURIRegex(rs.MatchingURI))
+		if (rs.MatchingURIRegex == "") {
+			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
+		}
+		re := regexp.MustCompile(rs.MatchingURIRegex)
+		if re.MatchString(service.MatchingURI) {
+			return rs, nil
+		}
+		if rs.Id == service.Id {
 			return rs, nil
 		}
 	}
@@ -103,4 +120,19 @@ func (service *ServiceDiscovery) SaveServicesToFile() {
 	}
 
 	err = ioutil.WriteFile(config.CONFIGS_LOCATION+config.SERVICE_DISCOVERY_CONFIG_FILE, registeredServicesJson, 0777)
+}
+
+func NormalizeServicesFile() error{
+	var normalizedServices []Service
+
+	for _, rs := range sd.registeredServices {
+		rs.NormalizeService()
+
+		normalizedServices = append(normalizedServices, rs)
+	}
+
+	sd.registeredServices = normalizedServices
+	sd.SaveServicesToFile()
+	 
+	return nil
 }

@@ -27,13 +27,15 @@ var Methods = map[string]map[string]interface{}{
 		"update": UpdateMongo,
 		"create": CreateServiceMongo,
 		"list":   ListServicesMongo,
-		"get":    FindMongo},
+		"get":    FindMongo,
+		"normalize": NormalizeServicesMongo},
 	"file": {
 		"delete": DeleteServiceFile,
 		"update": UpdateFile,
 		"create": CreateServiceFile,
 		"list":   ListServicesFile,
-		"get":    FindFile}}
+		"get":    FindFile,
+		"normalize": NormalizeServicesFile}}
 
 func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []Service) {
 	serviceDisc.registeredServices = rs
@@ -56,6 +58,7 @@ func StartServiceDiscovery(router *routing.Router) {
 
 	sd.isService = true
 	sd.sdAPI.Post("/register", authentication.AuthorizationMiddleware, RegisterHandler)
+	sd.sdAPI.Post("/admin/normalize", authentication.AuthorizationMiddleware, NormalizeServices)
 	sd.sdAPI.Post("/update", authentication.AuthorizationMiddleware, UpdateHandler)
 	sd.sdAPI.Get("/services", ListServicesHandler)
 	sd.sdAPI.Get("/endpoint", GetEndpointHandler)
@@ -63,6 +66,16 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
 	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
 	sd.isService = true
+}
+
+func NormalizeServices(c *routing.Context) error {
+	err := Methods[SD_TYPE]["normalize"].(func() (error))()
+	if err != nil {
+		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, SERVICE_NAME)
+		return err
+	}
+	http.Response(c, `{"error":false, "msg": "Normalization done."}`, 200, SERVICE_NAME)
+	return nil
 }
 
 func UpdateHandler(c *routing.Context) error {
@@ -102,6 +115,7 @@ func RegisterHandler(c *routing.Context) error {
 		return nil
 	}
 
+	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
 	resp, status := Methods[SD_TYPE]["create"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)
@@ -195,7 +209,8 @@ func ManageServiceTypesHandler(c *routing.Context) error {
 func DeleteEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
-	resp, status := Methods[SD_TYPE]["delete"].(func(string) (string, int))(string(matchingURI))
+	service := Service{MatchingURI: string(matchingURI)}
+	resp, status := Methods[SD_TYPE]["delete"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil

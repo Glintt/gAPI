@@ -18,12 +18,14 @@ func ValidateServiceBody(c *routing.Context) (Service, error) {
 		return Service{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
 	}
 
+	s.NormalizeService()
+	
 	return s, nil
 }
 
 func ValidateServiceExists(s Service) (Service, error) {
-	service, err := sd.FindServiceWithMatchingPrefix(s.MatchingURI)
-
+	service, err := sd.FindService(s)
+	
 	if err != nil {
 		return Service{}, errors.New(`{"error":true, "msg":"Resource not found"}`)
 	}

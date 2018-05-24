@@ -5,6 +5,8 @@ import (
 	"errors"
 	
 	"os"
+	"regexp"
+	"strings"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -37,7 +39,7 @@ func ConnectToMongo() {
 func UpdateMongo(service Service, serviceExists Service) (string, int) {
 	ConnectToMongo()
 
-	err := db.C(COLLECTION).UpdateId(service.ID, &service)
+	err := db.C(COLLECTION).UpdateId(service.Id, &service)
 
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
@@ -48,7 +50,7 @@ func UpdateMongo(service Service, serviceExists Service) (string, int) {
 func CreateServiceMongo(s Service) (string, int) {
 	ConnectToMongo()
 
-	s.ID = bson.NewObjectId()
+	s.Id = bson.NewObjectId()
 
 	err := db.C(COLLECTION).Insert(&s)
 
@@ -78,8 +80,8 @@ func ListServicesMongo(page int, filterQuery string) []Service {
 	return services
 }
 
-func DeleteServiceMongo(matchingURI string) (string, int) {
-	service, err := FindMongo(GetMatchURI(matchingURI))
+func DeleteServiceMongo(s Service) (string, int) {
+	service, err := FindMongo(s)
 
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
@@ -93,14 +95,45 @@ func DeleteServiceMongo(matchingURI string) (string, int) {
 	return `{"error": true, "msg": "Not found"}`, 404
 }
 
-func FindMongo(toMatchUri string) (Service, error) {
+func FindMongo(s Service) (Service, error) {
 	ConnectToMongo()
 
 	var services []Service
-	db.C(COLLECTION).Find(bson.M{"matchinguri": toMatchUri}).All(&services)
 
-	if len(services) > 0 {
-		return services[0], nil
+	f := func(c rune) bool {
+		return c == '/'
 	}
+	uriParts := strings.FieldsFunc(s.MatchingURI, f)
+
+	if s.Id == "" {
+		s.Id = bson.NewObjectId()
+	}
+	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}},bson.M{"_id": s.Id}}}
+	db.C(COLLECTION).Find(query).All(&services)
+	
+	for _, rs := range services {
+		if (rs.MatchingURIRegex == "") {
+			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
+		}
+		re := regexp.MustCompile(rs.MatchingURIRegex)
+		if re.MatchString(s.MatchingURI) || rs.Id == s.Id {
+			return rs, nil
+		}
+	}
+
 	return Service{}, errors.New("Not found.")
+}
+
+func NormalizeServicesMongo() error {
+	ConnectToMongo()
+
+	var services []Service
+	db.C(COLLECTION).Find(bson.M{}).All(&services)
+
+	for _, rs := range services {
+		rs.NormalizeService()
+
+		db.C(COLLECTION).UpdateId(rs.Id, &rs)
+	}	
+	return nil
 }
