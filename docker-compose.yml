@@ -1,6 +1,7 @@
 version: "3"
 services:
   backend:
+    restart: always
     build:
       context: ./api
     environment: 
@@ -31,6 +32,7 @@ services:
       - 8081:80
 
   rabbitlistener:
+    restart: always
     build:
       context: ./api
       dockerfile: Dockerfile-rabbitlistener
@@ -46,6 +48,7 @@ services:
       - ./api/configs:/go/src/gAPIManagement/api/configs/
 
   rabbit:
+    restart: always
     image: "rabbitmq:3-management"
     hostname: "rabbit"
     environment:
@@ -60,6 +63,7 @@ services:
       NAME: "rabbitmq"
   
   elastic:
+    restart: always
     image: elasticsearch:latest
     ports:
       - "9200:9200"

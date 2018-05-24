@@ -12,15 +12,23 @@ import (
 
 func failOnError(err error, msg string) {
   if err != nil {
-    fmt.Println("%s: %s", msg, err)
+    utils.LogMessage(msg + ":" + err.Error())
   }
 }
 
 var ELASTICURL string
 var ELASTICPORT string
 
+
+func PreventCrash(){
+	if r := recover(); r != nil {
+		utils.LogMessage("Publish Log Panic recover")
+		StartListeningToRabbit()
+	}
+}
+
 func StartListeningToRabbit() {
-	utils.PreventCrash()
+	defer PreventCrash()
 
 	ELASTICURL = os.Getenv("ELASTICSEARCH_HOST")
 	ELASTICPORT = os.Getenv("ELASTICSEARCH_PORT")

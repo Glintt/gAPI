@@ -5,6 +5,7 @@ import Login from "./views/Login.vue";
 import ListServices from "./views/ServiceDiscovery/ListServices.vue";
 import NewService from "./views/ServiceDiscovery/NewService.vue";
 import ViewService from "./views/Service/ViewService.vue";
+import ServiceLogs from "./views/Service/ServiceLogs.vue";
 import ByApi from "./views/Analytics/ByApi.vue";
 import Realtime from "./views/Analytics/Realtime.vue";
 
@@ -38,6 +39,12 @@ export default new Router({
       path: "/service-discovery/service",
       name: "service-view",
       component: ViewService
+    },
+    {
+      path: "/service-discovery/service/logs",
+      name: "service-logs-view",
+      component: ServiceLogs,
+      beforeEnter: OAuthValidator.requireAuth
     },
     {
       path: "/analytics/by-api",

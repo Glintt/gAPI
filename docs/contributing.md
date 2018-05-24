@@ -11,7 +11,7 @@ I'm glad you're reading this as we need volunteer developers to help improve thi
 
 #### Did you implement new features or changed already existing one?
 
-* Send a [GitHub Pull Request to gAPIManagement](https://github.com/Glintt/gAPIManagement/compare) with a clear list of all features you've done.
+* Send a [GitHub Pull Request to gAPI](https://github.com/Glintt/gAPI/compare) with a clear list of all features you've done.
 * Make sure all your commits are atomic (one feature per commit).
 * Always write a clear log message for your commits. One-line message is fine for small changes. For bigger changes, you should add a more detailed message.
 

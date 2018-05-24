@@ -3,7 +3,7 @@ package healthcheck
 import (
 	"gAPIManagement/api/utils"
 	"gAPIManagement/api/notifications"
-	"fmt"
+	
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/servicediscovery"
 	"net/http"
@@ -45,32 +45,32 @@ func ServicesList() []servicediscovery.Service {
 }
 
 func CheckServicesHealth() {
-	services := ServicesList()
+	utils.LogMessage("##### HEALTH CHECK #####")
 
-	var servicesFinal []servicediscovery.Service
-
-	fmt.Println("##### HEALTH CHECK ##### ")
-
-	for _, s := range services {
+	for _, s := range ServicesList() {
 		healthcheckURL := s.HealthcheckUrl
+		healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
 
-		fmt.Println("-----> " + s.Domain + ":" + s.Port + healthcheckURL)
-		resp, err := http.Get("http://" + s.Domain+":"+s.Port + healthcheckURL)
-		if err != nil || resp.StatusCode != 200 {
-			NotifyHealthDown(s)
-			if s.IsActive == true {
-				s.LastActiveTime = utils.CurrentTimeMilliseconds()
+		utils.LogMessage("-----> " + healthcheckURL)
+		
+		go func(healthcheckURL string, s servicediscovery.Service){
+			resp, err := http.Get(healthcheckURL)
+			if err != nil || resp.StatusCode != 200 {
+				NotifyHealthDown(s)
+				if s.IsActive == true {
+					s.LastActiveTime = utils.CurrentTimeMilliseconds()
+				}
+				s.IsActive = false
+			} else {
+				NotifyHealthUp(s)
+				s.LastActiveTime = 0
+				s.IsActive = true
 			}
-			s.IsActive = false
-		} else {
-			s.LastActiveTime = 0
-			s.IsActive = true
-		}
 
-		servicesFinal = append(servicesFinal, s)
+			sd.UpdateService(s)
+		}(healthcheckURL, s)
 	}
-
-	sd.SetRegisteredServices(servicesFinal)
+	utils.LogMessage("### HEALTH CHECK ENDED ###")
 }
 
 
@@ -79,7 +79,17 @@ func NotifyHealthDown(service servicediscovery.Service){
 		return
 	}
 
-	msg := service.Name + " located at " + service.Domain + ":" + service.Port + service.ToURI + " is down!"
+	msg := "*" + service.Name + "* located at *" + service.Domain + ":" + service.Port + service.ToURI + "* is down :thinking_face: :thinking_face:"
+
+	notifications.SendNotification(msg)
+}
+
+func NotifyHealthUp(service servicediscovery.Service){
+	if ! config.GApiConfiguration.Healthcheck.Notification || service.IsActive {
+		return
+	}
+
+	msg := "*" + service.Name + "* located at *" + service.Domain + ":" + service.Port + service.ToURI + "* went up again! :smiley: :smiley:"
 
 	notifications.SendNotification(msg)
 }

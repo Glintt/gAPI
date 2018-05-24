@@ -12,26 +12,33 @@
                             <small id="nameHelp" class="form-text text-muted">Give the service/API a name.</small>
                         </div>
                         <div class="form-group">
-                            <label for="domainName">Domain</label>
-                            <input type="text" v-model="service.Domain" class="form-control" id="domainName" aria-describedby="domainHelp" placeholder="Enter domain">
-                            <small id="domainHelp" class="form-text text-muted">Domain/IP where the service is hosted.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="servicePort">Port</label>
-                            <input type="text" v-model="service.Port" class="form-control" id="servicePort" aria-describedby="servicePortHelp" placeholder="Enter port">
-                            <small id="servicePortHelp" class="form-text text-muted">Port where the service is exposed.</small>
-                        </div>
+                            <label for="hostsName">Hosts</label>
+                            <input type="text" v-model="hostToAdd" class="form-control" id="hostsName" aria-describedby="hostsHelp" placeholder="Enter hosts">
+                            <small id="hostsHelp" class="form-text text-muted">Hosts where the service is hosted.</small>
+                            <button type="button" @click="addHost" class="btn btn-sm btn-success">Add</button>
+                        </div>         
+                        <ul class="list-group">
+                            <li class="list-group-item" v-for="h in service.Hosts" v-bind:key="h">
+                                {{ h }}
+                                <button type="button" @click="removeHost(h)" class="btn btn-sm btn-danger">Delete</button>
+                            </li>
+                        </ul>
                         <div class="form-group">
                             <label for="serviceMatchingUri">MatchingURI</label>
                             <input type="text" v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
                             <small id="serviceMatchingUriHelp" class="form-text text-muted">Base URI which links to the service on API Management Platform.</small>
                         </div>
-                    </div>
-                    <div class="col-sm">
                         <div class="form-group">
                             <label for="serviceToUri">To URI</label>
                             <input type="text" v-model="service.ToURI" class="form-control" id="serviceToUri" aria-describedby="serviceToUriHelp" placeholder="Enter domain">
                             <small id="serviceToUriHelp" class="form-text text-muted">Service/API Base URI.</small>
+                        </div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <label for="serviceDocumentation">Healthcheck URL</label>
+                            <input type="text" v-model="service.HealthcheckUrl" class="form-control" id="serviceHealthcheckUrl" aria-describedby="serviceHealthcheckUrl" placeholder="Enter Healthcheck Url">
+                            <small id="serviceHealthcheckUrl" class="form-text text-muted">Healthcheck URL</small>
                         </div>
                         <div class="form-check">
                             <input type="checkbox" v-model="service.Protected" class="form-check-input" id="serviceProtected">
@@ -52,6 +59,25 @@
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Service Management Service Host</label>
+                        <input type="text" v-model="service.ServiceManagementHost" class="form-control" id="ServiceManagementHost" aria-describedby="ServiceManagementHostHelp" placeholder="Enter service management webservices host">
+                        <small id="ServiceManagementeHostHelp" class="form-text text-muted">Host where service management webservices (restart, undeploy, ...) are located at.</small>
+                    </div>
+                    <div class="form-group col-sm-3">
+                        <label for="serviceDocumentation">Service Management Port</label>
+                        <input type="text" v-model="service.ServiceManagementPort" class="form-control" id="ServiceManagementPort" aria-describedby="ServiceManagementPortHelp" placeholder="Enter service management webservices port">
+                        <small id="ServiceManagementPortHelp" class="form-text text-muted">Port where service management webservices (restart, undeploy, ...) are located at.</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-sm-3" v-for="(type, c) in managementTypes" v-bind:key="type.action">
+                        <label for="serviceDocumentation">Service {{ type.action }} endpoint</label>
+                        <input type="text" v-model="service.ServiceManagementEndpoints[type.action]" class="form-control" :id="type.action + 'ServiceEndpoint'" :aria-describedby="type.action + 'ServiceEndpointHelp'"  v-bind:placeholder="'Enter ' + type.action + ' service endpoint'">
+                        <small :id="type.action + 'ServiceEndpointHelp'" class="form-text text-muted">Endpoint to call to {{ type.action }} service.</small>
+                    </div>                    
+                </div>              
             </form>
     
             <div class="row">
@@ -64,33 +90,50 @@
 </template>
 
 <script>
-    var serviceDiscoveryAPI = require("@/api/service-discovery");
     import InformationPanel from "@/components/InformationPanel";
 
     export default {
         name: "home",
+        mounted() {
+            this.$api.serviceDiscovery.manageServiceTypes(response => {
+                this.managementTypes = response.body;
+            })
+        },
         data() {
             return {
+                hostToAdd: "",
                 service: {
                     Name: "",
-                    Domain: "",
-                    Port: "",
+                    Hosts: [],
                     MatchingURI: "",
                     ToURI: "",
                     Protected: false,
                     APIDocumentation: "",
-                    IsCachingActive : false
+                    IsCachingActive : false,
+                    HealthcheckUrl:"",
+                    ServiceManagementHost : "",
+                    ServiceManagementPort : "",
+                    ServiceManagementEndpoints:{}
                 },
                 informationStatus:{
                     isActive : false,
                     className: 'alert-success',
                     msg : ""
-                }
+                },
+                managementTypes:{}
             }
         },
         methods: {
+            addHost : function() {
+                this.service.Hosts.push(this.hostToAdd);
+                this.hostToAdd = "";
+            },
+            removeHost: function(hostToRemove) {
+                var index = this.service.Hosts.indexOf(hostToRemove);
+                this.service.Hosts.splice(index, 1);
+            },
             store : function(){
-                serviceDiscoveryAPI.storeService(this.service, (response) => {
+                this.$api.serviceDiscovery.storeService(this.service, (response) => {
                     if(response.status != 201)
                     {
                         this.informationStatus.msg = response.body.msg;
@@ -101,8 +144,6 @@
                         this.informationStatus.isActive = true;
                         this.informationStatus.className = 'alert-success';
                     }
-                    
-
                 })
             }
         },

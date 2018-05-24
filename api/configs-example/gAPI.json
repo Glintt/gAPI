@@ -1,7 +1,9 @@
 {
     "Authentication":{
         "Username": "admin",
-        "Password": "admin"
+        "Password": "admin",
+        "TokenExpirationTime": 30,
+        "TokenSigningKey": "SIGNING_KEY"
     },
     "Logs":{
         "Active":true,
@@ -27,6 +29,21 @@
         "Type" : "Slack",
         "Slack" : {
             "WebhookUrl" : "https://hooks.slack.com/services/asld/lak/la"
+        }
+    },
+    "RateLimiting":{
+        "Active": true,
+        "Limit": 20,
+        "Period": 1,
+        "Metrics": ["RemoteAddr", "MatchingUri"]
+    },
+    "ManagementTypes": {
+        "restart" : {
+            "action": "restart",
+            "method": "POST",
+            "icon": "fas fa-sync",
+            "background": "info",
+            "description": "Restart service"
         }
     }
 }

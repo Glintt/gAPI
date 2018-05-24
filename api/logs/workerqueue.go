@@ -1,6 +1,9 @@
 package logs
 
-import "fmt"
+import (
+	"strconv"
+	"gAPIManagement/api/utils"
+)
 
 var WorkQueue = make(chan LogWorkRequest, 1000)
 var LogWorkQueue chan chan LogWorkRequest
@@ -11,7 +14,7 @@ func StartDispatcher(nworkers int) {
 
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		fmt.Println("Starting worker", i+1)
+		utils.LogMessage("Starting worker - " + strconv.Itoa(i+1))
 		worker := NewWorker(i+1, LogWorkQueue)
 		worker.Start()
 	}
@@ -23,7 +26,7 @@ func StartDispatcher(nworkers int) {
 				go func() {
 					worker := <-LogWorkQueue
 
-					// fmt.Println("Dispatching work request")
+					// utils.LogMessage("Dispatching work request")
 					worker <- work
 				}()
 			}

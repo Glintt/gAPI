@@ -1,6 +1,8 @@
 package servicediscovery
 
 import (
+	"sort"
+	"strings"
 	"encoding/json"
 	"errors"
 	"gAPIManagement/api/config"
@@ -36,8 +38,26 @@ func CreateServiceFile(s Service) (string, int) {
 	return `{"error" : false, "msg": "Registered service successfuly."}`, 201
 }
 
-func ListServicesFile() []Service {
-	return sd.registeredServices
+func ListServicesFile(page int, filterQuery string) []Service {
+	var servicesList []Service
+	if filterQuery != "" {
+		for _, v := range sd.registeredServices {
+			if strings.Contains(strings.ToLower(v.Name), strings.ToLower(filterQuery)) || strings.Contains(strings.ToLower(v.MatchingURI), strings.ToLower(filterQuery)) {
+				servicesList = append(servicesList, v)
+			}		
+		}
+	}else {
+		servicesList = sd.registeredServices
+	}
+	
+	sort.Slice(servicesList, func(i, j int) bool { return servicesList[i].MatchingURI < servicesList[j].MatchingURI })
+
+	if page == -1 {
+		return servicesList
+	}
+	from, to := pageFromTo(page, len(servicesList))
+	
+	return servicesList[from:to]
 }
 
 func DeleteServiceFile(service Service) (string, int) {
@@ -51,7 +71,8 @@ func DeleteServiceFile(service Service) (string, int) {
 	var newServices []Service
 
 	for _, element := range sd.registeredServices {
-		if element.Name == service.Name && element.MatchingURI == service.MatchingURI && element.ToURI == service.ToURI && element.Domain == service.Domain {
+		if element.Name == service.Name && element.MatchingURI == service.MatchingURI && element.ToURI == service.ToURI {
+			
 		} else {
 			newServices = append(newServices, element)
 		}

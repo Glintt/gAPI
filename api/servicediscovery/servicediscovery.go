@@ -1,11 +1,11 @@
 package servicediscovery
 
 import (
+	"strconv"
 	"encoding/json"
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
-
 	"github.com/qiangxue/fasthttp-routing"
 )
 
@@ -18,10 +18,10 @@ type ServiceDiscovery struct {
 var sd ServiceDiscovery
 
 var SERVICE_NAME = "/service-discovery"
-
+var PAGE_LENGTH = 10
 var SD_TYPE = "file"
 
-var funcMap = map[string]map[string]interface{}{
+var Methods = map[string]map[string]interface{}{
 	"mongo": {
 		"delete": DeleteServiceMongo,
 		"update": UpdateMongo,
@@ -63,11 +63,13 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Get("/services", ListServicesHandler)
 	sd.sdAPI.Get("/endpoint", GetEndpointHandler)
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
+	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
+	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
 	sd.isService = true
 }
 
 func NormalizeServices(c *routing.Context) error {
-	err := funcMap[SD_TYPE]["normalize"].(func() (error))()
+	err := Methods[SD_TYPE]["normalize"].(func() (error))()
 	if err != nil {
 		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, SERVICE_NAME)
 		return err
@@ -91,7 +93,7 @@ func UpdateHandler(c *routing.Context) error {
 		return nil
 	}
 
-	resp, status := funcMap[SD_TYPE]["update"].(func(Service, Service) (string, int))(service, serviceExists)
+	resp, status := Methods[SD_TYPE]["update"].(func(Service, Service) (string, int))(service, serviceExists)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil
@@ -114,14 +116,29 @@ func RegisterHandler(c *routing.Context) error {
 	}
 
 	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
-	resp, status := funcMap[SD_TYPE]["create"].(func(Service) (string, int))(service)
+	resp, status := Methods[SD_TYPE]["create"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil
 }
 
 func ListServicesHandler(c *routing.Context) error {
-	services := funcMap[SD_TYPE]["list"].(func() []Service)()
+	page := 1
+	searchQuery := ""
+	if c.QueryArgs().Has("page") {
+		var err error
+		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
+
+		if err != nil {
+			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, SERVICE_NAME)
+			return nil
+		}
+	}
+	if c.QueryArgs().Has("q") {
+		searchQuery = string(c.QueryArgs().Peek("q"))
+	}
+	
+	services := Methods[SD_TYPE]["list"].(func(int, string) []Service)(page, searchQuery)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, SERVICE_NAME)
@@ -129,9 +146,9 @@ func ListServicesHandler(c *routing.Context) error {
 		return nil
 	}
 
-	list, err := json.Marshal(services)
+	list, jsonErr := json.Marshal(services)
 
-	if err != nil {
+	if jsonErr != nil {
 		http.Response(c, `{"error" : true, "msg": "Error parsing body."}`, 404, SERVICE_NAME)
 		return nil
 	}
@@ -144,12 +161,6 @@ func ListServicesHandler(c *routing.Context) error {
 func GetEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
-	/*
-		fmt.Println("\n=============================================================")
-		fmt.Println("SERVICE DISCOVERY =====> uri param = " + string(matchingURI))
-		fmt.Println("=============================================================\n")
-	*/
-
 	service, err := sd.GetEndpointForUri(string(matchingURI))
 	serviceJSON, err1 := json.Marshal(service)
 
@@ -159,14 +170,47 @@ func GetEndpointHandler(c *routing.Context) error {
 	}
 	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, SERVICE_NAME)
 	return nil
+}
 
+func ManageServiceHandler(c *routing.Context) error {
+	matchingURI := c.QueryArgs().Peek("service")
+	managementType := string(c.QueryArgs().Peek("action"))
+
+	service, err := sd.GetEndpointForUri(string(matchingURI))
+
+	if err == nil {
+		success, callResponse := service.ServiceManagementCall(managementType)
+		
+		if success {
+			http.Response(c, `{"error": false, "msg": "Service ` + managementType + ` successfuly.", "service_response": ` + strconv.Quote(callResponse) + `}` , 200, SERVICE_NAME)
+			return nil
+		}
+		http.Response(c, `{"error": true, "msg": "Service could not be ` + managementType + `."}`, 400, SERVICE_NAME)
+		return nil
+	}
+	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, SERVICE_NAME)
+	return nil
+}
+
+func ManageServiceTypesHandler(c *routing.Context) error {
+	managementTypesJson, err := json.Marshal(config.GApiConfiguration.ManagementTypes)
+	
+	response := string(managementTypesJson)
+	statusCode := 200
+	if err != nil {	
+		response = `{"error": true, "msg": "Not found"}`
+		statusCode = 404
+	}
+	
+	http.Response(c, response, statusCode, SERVICE_NAME)
+	return nil
 }
 
 func DeleteEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
 	service := Service{MatchingURI: string(matchingURI)}
-	resp, status := funcMap[SD_TYPE]["delete"].(func(Service) (string, int))(service)
+	resp, status := Methods[SD_TYPE]["delete"].(func(Service) (string, int))(service)
 
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil

@@ -1,7 +1,9 @@
 package proxy
 
 import (
-	"fmt"
+	"gAPIManagement/api/ratelimiting"
+	"gAPIManagement/api/utils"
+	
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
@@ -15,23 +17,22 @@ var oauthserver authentication.OAuthServer
 
 func StartProxy(router *routing.Router) {
 	oauthserver = authentication.LoadFromConfig()
-
-	router.To("GET,POST,PUT,PATCH,DELETE", "/*", HandleRequest)
+	
+	ratelimiting.InitRateLimiting()
+	router.To("GET,POST,PUT,PATCH,DELETE", "/*", ratelimiting.RateLimiting, HandleRequest)
 
 	sd = *servicediscovery.GetServiceDiscoveryObject()
 }
 
 func HandleRequest(c *routing.Context) error {
-	fmt.Println("\n=============================================================")
-	fmt.Println("\n====================== NEW REQUEST ==========================")
-	fmt.Println("\n=============================================================")
-	fmt.Println("PROXY =====> Method = " + string(c.Method()) + "; URI = " + string(c.Request.RequestURI()))
-	fmt.Println("===============================================================")
+	utils.LogMessage("=========================================")
+	utils.LogMessage("REQUEST =====> Method = " + string(c.Method()) + "; URI = " + string(c.Request.RequestURI()))
+	utils.LogMessage("=========================================")
 
 	cachedRequest := cache.GetCacheForRequest(c)
 
 	if cachedRequest.Service.ToURI == "" {
-		fmt.Println("SD NOT FROM CACHE")
+		utils.LogMessage("SD NOT FROM CACHE")
 
 		var err error
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
@@ -43,32 +44,31 @@ func HandleRequest(c *routing.Context) error {
 
 		cachedRequest.UpdateServiceCache = true
 	} else {
-		fmt.Println("SD FROM CACHE")
+		utils.LogMessage("SD FROM CACHE")
 	}
 
 	if !cachedRequest.Protection.Cached {
-		fmt.Println("PROTECTION NOT FROM CACHE")
+		utils.LogMessage("PROTECTION NOT FROM CACHE")
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
 		if cachedRequest.Protection.Error != nil {
-			fmt.Println("HER")
 			http.Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, cachedRequest.Service.MatchingURI)
 			return nil
 		}
 
 		cachedRequest.UpdateProtectionCache = true
 	} else {
-		fmt.Println("PROTECTION FROM CACHE")
+		utils.LogMessage("PROTECTION FROM CACHE")
 	}
 
 	if cachedRequest.Response.StatusCode == 0 {
-		fmt.Println("RESPONSE NOT FROM CACHE")
+		utils.LogMessage("RESPONSE NOT FROM CACHE")
 		cachedRequest.Response = getApiResponse(c, cachedRequest.Protection, cachedRequest.Service)
 		if cachedRequest.Response.StatusCode < 300 {
 			cachedRequest.UpdateResponseCache = true
 		}
 	} else {
-		fmt.Println("RESPONSE FROM CACHE")
+		utils.LogMessage("RESPONSE FROM CACHE")
 	}
 
 	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI)

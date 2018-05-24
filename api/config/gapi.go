@@ -14,12 +14,16 @@ type GApiConfig struct {
 	ServiceDiscovery GApiServiceDiscoveryConfig
 	Urls             UrlsConstants
 	Healthcheck      GApiHealthCheckConfig
-	Notifications GApiNotificationsConfig
+	Notifications 	 GApiNotificationsConfig
+	ManagementTypes  map[string]map[string]string
+	RateLimiting 	GApiRateLimitingConfig
 }
 
 type GApiAuthenticationConfig struct {
 	Username string
 	Password string
+	TokenExpirationTime int
+	TokenSigningKey string
 }
 type GApiLogsConfig struct {
 	Active bool
@@ -48,6 +52,13 @@ type GApiNotificationsConfig struct {
 
 type GApiSlackNotificationsConfig struct {
 	WebhookUrl string
+}
+
+type GApiRateLimitingConfig struct {
+	Active bool
+	Limit int
+	Period int64
+	Metrics []string
 }
 
 var GApiConfiguration GApiConfig
