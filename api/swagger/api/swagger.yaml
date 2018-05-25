@@ -1,0 +1,500 @@
+---
+swagger: "2.0"
+info:
+  description: ""
+  version: "1.0.0"
+  title: "gAPI"
+  termsOfService: ""
+  contact:
+    email: "jose.melo@glintt.com"
+host: "localhost"
+basePath: "/"
+tags:
+- name: "Authentication"
+  description: "gAPI Authentication server"
+- name: "Service Discovery"
+  description: "Services management"
+- name: "Analytics"
+  description: "gAPI services analytics"
+- name: "Admin"
+  description: "Admin services"
+schemes:
+- "http"
+paths:
+  /oauth/token:
+    post:
+      tags:
+      - "Authentication"
+      summary: "Request OAuth token to access protected gAPI endpoints"
+      description: ""
+      operationId: "oauthTokenPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "User information"
+        required: true
+        schema:
+          $ref: "#/definitions/User"
+      responses:
+        200:
+          description: "Authorized"
+        401:
+          description: "Not Authorized"
+      x-swagger-router-controller: "Authentication"
+  /oauth/authorize:
+    get:
+      tags:
+      - "Authentication"
+      summary: "Check if token is valid"
+      description: ""
+      operationId: "oauthAuthorizeGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Authorized. Token is valid"
+        401:
+          description: "Not Authorized. Invalid token"
+      x-swagger-router-controller: "Authentication"
+  /service-discovery/register:
+    post:
+      tags:
+      - "Service Discovery"
+      summary: "Register new service"
+      description: ""
+      operationId: "service_discoveryRegisterPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Service information"
+        required: true
+        schema:
+          $ref: "#/definitions/Service"
+      responses:
+        201:
+          description: "Service created successfuly"
+        400:
+          description: "Service already exists"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /service-discovery/update:
+    post:
+      tags:
+      - "Service Discovery"
+      summary: "Update service on service discovery"
+      description: ""
+      operationId: "service_discoveryUpdatePOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Service update information"
+        required: true
+        schema:
+          $ref: "#/definitions/Service"
+      responses:
+        201:
+          description: "Service updated successfuly"
+        400:
+          description: "An error occurred"
+        404:
+          description: "Service not found"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /service-discovery/delete:
+    delete:
+      tags:
+      - "Service Discovery"
+      summary: "Delete service from service discovery"
+      description: ""
+      operationId: "service_discoveryDeleteDELETE"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - name: "uri"
+        in: "query"
+        description: "Matching uri to search for"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "List of services"
+        404:
+          description: "Service not found"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /service-discovery/services:
+    get:
+      tags:
+      - "Service Discovery"
+      summary: "List all services registered"
+      description: ""
+      operationId: "service_discoveryServicesGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - name: "q"
+        in: "query"
+        description: "Search query"
+        required: false
+        type: "string"
+      - name: "page"
+        in: "query"
+        description: "Page to fetch"
+        required: false
+        type: "integer"
+      responses:
+        200:
+          description: "List of services"
+        404:
+          description: "Error occurred with parameters provided"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /service-discovery/endpoint:
+    get:
+      tags:
+      - "Service Discovery"
+      summary: "Search service by matching uri"
+      description: ""
+      operationId: "service_discoveryEndpointGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "uri"
+        in: "query"
+        description: "Matching uri to search for"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "List of services"
+        404:
+          description: "Service not found"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /service-discovery/services/manage:
+    post:
+      tags:
+      - "Service Discovery"
+      summary: "Call action over a service"
+      description: ""
+      operationId: "service_discoveryServicesManagePOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - name: "service"
+        in: "query"
+        description: "Service matching uri to which action will be applied"
+        required: true
+        type: "string"
+      - name: "action"
+        in: "query"
+        description: "Action to apply. Available actions: call /service-discovery/services/manage/types\
+          \ endpoint"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Action applied successfuly"
+        400:
+          description: "Error applying action"
+        404:
+          description: "Service not found"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /service-discovery/services/manage/types:
+    get:
+      tags:
+      - "Service Discovery"
+      summary: "Get management available types"
+      description: ""
+      operationId: "service_discoveryServicesManageTypesGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "List of available management types"
+      x-swagger-router-controller: "ServiceDiscovery"
+  /analytics/api:
+    get:
+      tags:
+      - "Analytics"
+      summary: "Get API related analytics"
+      description: ""
+      operationId: "analyticsApiGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - name: "endpoint"
+        in: "query"
+        description: "API matching uri/endpoint"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "API related analytics"
+      x-swagger-router-controller: "Analytics"
+  /analytics/logs:
+    get:
+      tags:
+      - "Analytics"
+      summary: "Get API related analytics"
+      description: ""
+      operationId: "analyticsLogsGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      - name: "endpoint"
+        in: "query"
+        description: "API matching uri/endpoint"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "API related analytics"
+      x-swagger-router-controller: "Analytics"
+  /service-discovery/admin/normalize:
+    post:
+      tags:
+      - "Admin"
+      summary: "Normalize services"
+      description: ""
+      operationId: "service_discoveryAdminNormalizePOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Services normalized successfuly"
+        400:
+          description: "Normalization failed"
+      x-swagger-router-controller: "Admin"
+  /reload:
+    get:
+      tags:
+      - "Admin"
+      summary: "Reload gAPI configuration without restart process"
+      description: ""
+      operationId: "reloadGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Reloaded successfuly"
+      x-swagger-router-controller: "Admin"
+  /invalidate-cache:
+    get:
+      tags:
+      - "Admin"
+      summary: "Clear cache"
+      description: ""
+      operationId: "invalidate_cacheGET"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Authorization token"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Cache cleared successfuly"
+      x-swagger-router-controller: "Admin"
+securityDefinitions:
+  petstore_auth:
+    type: "oauth2"
+    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
+    flow: "implicit"
+    scopes:
+      write:pets: "modify pets in your account"
+      read:pets: "read your pets"
+  oauth:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:
+  User:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+        format: "string"
+        description: "User username"
+      password:
+        type: "string"
+        format: "string"
+        description: "User password"
+    example:
+      password: "password"
+      username: "username"
+  Service:
+    type: "object"
+    properties:
+      Name:
+        type: "string"
+        description: "Service name"
+      Hosts:
+        type: "array"
+        description: "Service list of hosts"
+        items:
+          type: "string"
+      Domain:
+        type: "string"
+        description: "Service default domain"
+      Port:
+        type: "string"
+        description: "Service default port"
+      MatchingURI:
+        type: "string"
+        description: "Service matching uri"
+      MatchingURIRegex:
+        type: "string"
+        description: "Service matching uri regex"
+      ToURI:
+        type: "string"
+        description: "Service base uri"
+      Protected:
+        type: "boolean"
+        description: "Is service protected with OAuth"
+      APIDocumentation:
+        type: "string"
+        description: "Service documentation path"
+      IsCachingActive:
+        type: "boolean"
+        description: "Is caching enabled?"
+      IsActive:
+        type: "boolean"
+        description: "Is service running"
+      HealthcheckUrl:
+        type: "string"
+        description: "Path to check if service is running"
+      LastActiveTime:
+        type: "integer"
+        format: "integer"
+        description: "Last time service was running"
+      ServiceManagementHost:
+        type: "string"
+        description: "Service management host"
+      ServiceManagementPort:
+        type: "string"
+        description: "Service management port"
+      ServiceManagementEndpoints:
+        type: "object"
+        description: "Mapping type-endpoint"
+        properties: {}
+      RateLimit:
+        type: "integer"
+        description: "Service custom rate limit (number requests per x time)"
+      RateLimitExpirationTime:
+        type: "integer"
+        description: "Service custom rate limit expiration time (in minutes)"
+    example:
+      Hosts:
+      - "Hosts"
+      - "Hosts"
+      ToURI: "ToURI"
+      Protected: true
+      IsCachingActive: true
+      IsActive: true
+      Port: "Port"
+      MatchingURI: "MatchingURI"
+      ServiceManagementHost: "ServiceManagementHost"
+      Name: "Name"
+      HealthcheckUrl: "HealthcheckUrl"
+      RateLimit: 6
+      RateLimitExpirationTime: 1
+      ServiceManagementPort: "ServiceManagementPort"
+      APIDocumentation: "APIDocumentation"
+      LastActiveTime: 0
+      Domain: "Domain"
+      MatchingURIRegex: "MatchingURIRegex"
+      ServiceManagementEndpoints: "{}"
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"
