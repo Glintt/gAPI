@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"encoding/json"
 	"gAPIManagement/api/authentication"
@@ -65,6 +66,9 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
 	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
 	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
+	sd.sdAPI.Post("/service-groups/register", authentication.AuthorizationMiddleware, RegisterServiceGroupHandler)
+	// sd.sdAPI.Post("/service-groups/service/register", authentication.AuthorizationMiddleware, RegisterServiceToServiceGroupHandler)
+	sd.sdAPI.Get("/service-groups", ListServiceGroupsHandler)
 	sd.sdAPI.To("GET,POST,PUT,PATCH,DELETE", "/*", ServiceNotFound)
 	sd.isService = true
 }
@@ -104,6 +108,50 @@ func UpdateHandler(c *routing.Context) error {
 	http.Response(c, resp, status, SERVICE_NAME)
 	return nil
 }
+
+func RegisterServiceGroupHandler(c *routing.Context) error {
+	servicegroup, err := ValidateServiceGroupBody(c)
+	if err != nil {
+		http.Response(c, err.Error(), 400, SERVICE_NAME)
+		return nil
+	}
+
+	ConnectToMongo()
+
+	servicegroup.Id = bson.NewObjectId()
+
+	err = db.C(SERVICE_GROUP_COLLECTION).Insert(&servicegroup)
+
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "` + err.Error() + `"}`, 400, SERVICE_NAME)
+		return nil
+	}
+	http.Response(c, `{"error" : false, "msg": "Service created successfuly."}`, 201, SERVICE_NAME)
+	return nil
+}
+
+func (sd *ServiceDiscovery) GetListOfServicesGroup() ([]ServiceGroup, error) {
+	ConnectToMongo()
+
+	var servicesGroup []ServiceGroup
+	err := db.C(SERVICE_GROUP_COLLECTION).Find(bson.M{}).All(&servicesGroup)
+
+	return servicesGroup, err
+}
+
+func ListServiceGroupsHandler(c *routing.Context) error {
+	sg, err := sd.GetListOfServicesGroup()
+
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "` + err.Error() + `"}`, 400, SERVICE_NAME)
+		return nil
+	}
+
+	json, _ := json.Marshal(sg)
+	http.Response(c, string(json), 200, SERVICE_NAME)
+	return nil
+}
+
 
 func RegisterHandler(c *routing.Context) error {
 	service, err := ValidateServiceBody(c)

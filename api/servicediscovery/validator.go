@@ -7,6 +7,20 @@ import (
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
+func ValidateServiceGroupBody(c *routing.Context) (ServiceGroup, error) {
+	var s ServiceGroup
+	err := json.Unmarshal(c.Request.Body(), &s)
+
+	if s.Name == "" {
+		return ServiceGroup{}, errors.New(`{"error" : true, "msg": "Missing body parameters."}`)
+	}
+	if err != nil {
+		return ServiceGroup{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
+	}
+	
+	return s, nil
+}
+
 func ValidateServiceBody(c *routing.Context) (Service, error) {
 	var s Service
 	err := json.Unmarshal(c.Request.Body(), &s)

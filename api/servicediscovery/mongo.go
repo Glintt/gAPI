@@ -15,7 +15,8 @@ import (
 var db *mgo.Database
 
 const (
-	COLLECTION = "services"
+	SERVICES_COLLECTION = "services"
+	SERVICE_GROUP_COLLECTION = "services_groups"
 )
 
 var MONGO_HOST string
@@ -39,7 +40,7 @@ func ConnectToMongo() {
 func UpdateMongo(service Service, serviceExists Service) (string, int) {
 	ConnectToMongo()
 
-	err := db.C(COLLECTION).UpdateId(service.Id, &service)
+	err := db.C(SERVICES_COLLECTION).UpdateId(service.Id, &service)
 
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
@@ -52,7 +53,7 @@ func CreateServiceMongo(s Service) (string, int) {
 
 	s.Id = bson.NewObjectId()
 
-	err := db.C(COLLECTION).Insert(&s)
+	err := db.C(SERVICES_COLLECTION).Insert(&s)
 
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
@@ -67,12 +68,12 @@ func ListServicesMongo(page int, filterQuery string) []Service {
 
 	var services []Service
 	if page == -1 {
-		db.C(COLLECTION).Find(bson.M{
+		db.C(SERVICES_COLLECTION).Find(bson.M{
 			"$or": []bson.M{ 
 				bson.M{"name": bson.RegEx{filterQuery+".*", ""}},
 				bson.M{"matchinguri":bson.RegEx{filterQuery+".*", ""}}}}).Sort("matchinguri").All(&services)
 	}else {
-		db.C(COLLECTION).Find(bson.M{
+		db.C(SERVICES_COLLECTION).Find(bson.M{
 			"$or": []bson.M{ 
 				bson.M{"name": bson.RegEx{filterQuery+".*", ""}},
 				bson.M{"matchinguri":bson.RegEx{filterQuery+".*", ""}}}}).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
@@ -87,7 +88,7 @@ func DeleteServiceMongo(s Service) (string, int) {
 		return `{"error": true, "msg": "Not found"}`, 404
 	}
 
-	err = db.C(COLLECTION).Remove(&service)
+	err = db.C(SERVICES_COLLECTION).Remove(&service)
 
 	if err == nil {
 		return `{"error": false, "msg": "Removed successfully."}`, 200
@@ -109,7 +110,7 @@ func FindMongo(s Service) (Service, error) {
 		s.Id = bson.NewObjectId()
 	}
 	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}},bson.M{"_id": s.Id}}}
-	db.C(COLLECTION).Find(query).All(&services)
+	db.C(SERVICES_COLLECTION).Find(query).All(&services)
 	
 	for _, rs := range services {
 		if (rs.MatchingURIRegex == "") {
@@ -128,12 +129,12 @@ func NormalizeServicesMongo() error {
 	ConnectToMongo()
 
 	var services []Service
-	db.C(COLLECTION).Find(bson.M{}).All(&services)
+	db.C(SERVICES_COLLECTION).Find(bson.M{}).All(&services)
 
 	for _, rs := range services {
 		rs.NormalizeService()
 
-		db.C(COLLECTION).UpdateId(rs.Id, &rs)
+		db.C(SERVICES_COLLECTION).UpdateId(rs.Id, &rs)
 	}	
 	return nil
 }
