@@ -5,7 +5,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"net"
 	"math/rand"
-	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
 	
@@ -93,7 +92,7 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 
 	callURLWithoutProtocol := service.GetHost() + uri
 	callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
-	fmt.Println(callURLWithoutProtocol)
+	
 	callURL := "http://" + callURLWithoutProtocol
 
 	return http.MakeRequest(method, callURL, body, headers)

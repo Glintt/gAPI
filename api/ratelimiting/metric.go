@@ -37,6 +37,6 @@ func matchingUri(c *routing.Context) string {
 }
 
 func serviceForUri(c *routing.Context) servicediscovery.Service {
-	s, _ := servicediscovery.GetServiceDiscoveryObject().FindServiceWithMatchingPrefix(string(c.Request.RequestURI()))
+	s, _ := sd.GetEndpointForUri(string(c.Request.RequestURI()))
 	return s
 }

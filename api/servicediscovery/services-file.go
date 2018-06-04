@@ -87,13 +87,6 @@ func DeleteServiceFile(service Service) (string, int) {
 
 func FindFile(service Service) (Service, error) {
 	for _, rs := range sd.registeredServices {
-		//if toMatchUri == rs.MatchingURI {
-		//fmt.Println("1=>" + toMatchUri)
-		//fmt.Println("2=>" + rs.MatchingURI)
-		/*if strings.HasPrefix(toMatchUri, rs.MatchingURI) {
-			return rs, nil
-		}*/
-		//fmt.Println("3=>" + GetMatchingURIRegex(rs.MatchingURI))
 		if (rs.MatchingURIRegex == "") {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}

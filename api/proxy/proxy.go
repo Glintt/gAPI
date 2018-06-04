@@ -73,7 +73,9 @@ func HandleRequest(c *routing.Context) error {
 
 	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI)
 
-	cache.StoreRequestInfoToCache(c, cachedRequest)
+	if cachedRequest.Response.StatusCode < 300 {
+		cache.StoreRequestInfoToCache(c, cachedRequest)
+	}
 	return nil
 }
 

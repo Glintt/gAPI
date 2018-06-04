@@ -1,7 +1,7 @@
 package servicediscovery
 
 import (
-	"gAPIManagement/api/utils"
+	"gAPIManagement/api/database"
 	"errors"
 	
 	"os"
@@ -12,8 +12,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var db *mgo.Database
-
 const (
 	SERVICES_COLLECTION = "services"
 	SERVICE_GROUP_COLLECTION = "services_groups"
@@ -22,25 +20,29 @@ const (
 var MONGO_HOST string
 var MONGO_DB string
 
+var mongoPool database.MongoPool
+
 func InitMongo() {
 	MONGO_HOST = os.Getenv("MONGO_HOST")
 	MONGO_DB = os.Getenv("MONGO_DB")
+
+	database.ConnectToMongo(MONGO_HOST)
+	mongoPool = database.MongoDBPool
 }
 
-func ConnectToMongo() {
-	session, err := mgo.Dial(MONGO_HOST)
+func GetSessionAndDB(db string) (*mgo.Session, *mgo.Database) {
+	session := database.GetSession()
+	dbConn := database.GetDB(session, db)
 
-	if err != nil {
-		utils.LogMessage("error connecting to mongo")
-	}
-
-	db = session.DB(MONGO_DB)
+	return session, dbConn
 }
 
 func UpdateMongo(service Service, serviceExists Service) (string, int) {
-	ConnectToMongo()
-
+	session, db := GetSessionAndDB(MONGO_DB)
+	
 	err := db.C(SERVICES_COLLECTION).UpdateId(service.Id, &service)
+
+	mongoPool.Close(session)
 
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
@@ -49,11 +51,12 @@ func UpdateMongo(service Service, serviceExists Service) (string, int) {
 }
 
 func CreateServiceMongo(s Service) (string, int) {
-	ConnectToMongo()
+	session, db := GetSessionAndDB(MONGO_DB)
 
 	s.Id = bson.NewObjectId()
-
 	err := db.C(SERVICES_COLLECTION).Insert(&s)
+
+	mongoPool.Close(session)
 
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
@@ -62,11 +65,11 @@ func CreateServiceMongo(s Service) (string, int) {
 }
 
 func ListServicesMongo(page int, filterQuery string) []Service {
-	ConnectToMongo()
-
-	skips := PAGE_LENGTH * (page - 1)
+	session, db := GetSessionAndDB(MONGO_DB)
 
 	var services []Service
+	skips := PAGE_LENGTH * (page - 1)
+	
 	if page == -1 {
 		db.C(SERVICES_COLLECTION).Find(bson.M{
 			"$or": []bson.M{ 
@@ -78,10 +81,15 @@ func ListServicesMongo(page int, filterQuery string) []Service {
 				bson.M{"name": bson.RegEx{filterQuery+".*", ""}},
 				bson.M{"matchinguri":bson.RegEx{filterQuery+".*", ""}}}}).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
 	}
+
+	mongoPool.Close(session)
+
 	return services
 }
 
 func DeleteServiceMongo(s Service) (string, int) {
+	session, db := GetSessionAndDB(MONGO_DB)	
+
 	service, err := FindMongo(s)
 
 	if err != nil {
@@ -90,6 +98,8 @@ func DeleteServiceMongo(s Service) (string, int) {
 
 	err = db.C(SERVICES_COLLECTION).Remove(&service)
 
+	mongoPool.Close(session)
+
 	if err == nil {
 		return `{"error": false, "msg": "Removed successfully."}`, 200
 	}
@@ -97,7 +107,7 @@ func DeleteServiceMongo(s Service) (string, int) {
 }
 
 func FindMongo(s Service) (Service, error) {
-	ConnectToMongo()
+	session, db := GetSessionAndDB(MONGO_DB)
 
 	var services []Service
 
@@ -112,6 +122,8 @@ func FindMongo(s Service) (Service, error) {
 	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}},bson.M{"_id": s.Id}}}
 	db.C(SERVICES_COLLECTION).Find(query).All(&services)
 	
+	mongoPool.Close(session)
+
 	for _, rs := range services {
 		if (rs.MatchingURIRegex == "") {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
@@ -126,11 +138,13 @@ func FindMongo(s Service) (Service, error) {
 }
 
 func NormalizeServicesMongo() error {
-	ConnectToMongo()
+	session, db := GetSessionAndDB(MONGO_DB)
 
 	var services []Service
 	db.C(SERVICES_COLLECTION).Find(bson.M{}).All(&services)
 
+	mongoPool.Close(session)
+	
 	for _, rs := range services {
 		rs.NormalizeService()
 
