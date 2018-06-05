@@ -10,6 +10,7 @@ import (
 )
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
+	var services []Service
 
 	if serviceDisc.isService == false {
 		resp := http.MakeRequest(config.GET, config.SERVICE_DISCOVERY_URL+config.SERVICE_DISCOVERY_GROUP+"/services?page=-1", "", nil)
@@ -19,17 +20,12 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		}
 
 		responseBody := resp.Body()
-		var services []Service
 		json.Unmarshal(responseBody, services)
-
-		return services, nil
-
 	} else {
-		services := Methods[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
-		return services, nil
+		services = Methods[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
 	}
 
-	//return []Service{}, errors.New("Not found.")
+	return services, nil
 }
 
 func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, error) {
@@ -51,8 +47,6 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, err
 		service := Service{MatchingURI: uri}
 		return serviceDisc.FindService(service)
 	}
-
-	//return Service{}, errors.New("Not found.")
 }
 
 func GetMatchURI(uri string) string {
@@ -86,13 +80,10 @@ func GetMatchingURIRegex(uri string) string {
 }
 
 func (serviceDisc *ServiceDiscovery) FindService(service Service) (Service, error) {
-	//toMatchUri := uri
-	//toMatchUri := GetMatchURI(uri)
 	return Methods[SD_TYPE]["get"].(func(Service) (Service, error))(service)
 }
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (Service, error) {
 	toMatchUri := GetMatchURI(uri)
 	return serviceDisc.FindService(Service{MatchingURI: toMatchUri})
-	/* return Methods[SD_TYPE]["get"].(func(Service) (Service, error))(service) */
 }

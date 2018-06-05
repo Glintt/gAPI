@@ -1,7 +1,6 @@
 package servicediscovery
 
 import (
-	//"gAPIManagement/api/servicediscovery"
 	"gopkg.in/mgo.v2/bson"
 	"net"
 	"math/rand"
@@ -12,7 +11,6 @@ import (
 	"strings"
 	"regexp"
 	"github.com/valyala/fasthttp"
-	//"gopkg.in/mgo.v2/bson"
 )
 
 type Service struct {

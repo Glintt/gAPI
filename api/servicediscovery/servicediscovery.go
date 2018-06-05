@@ -44,18 +44,14 @@ func GetServiceDiscoveryObject() *ServiceDiscovery {
 	return &sd
 }
 
-func StartServiceDiscovery(router *routing.Router) {
-	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
-		SD_TYPE = "mongo"
-		InitMongo()
-	} else {
-		servicesConfig := LoadServicesConfiguration()
-		sd.registeredServices = servicesConfig.Services
-	}
+func LoadDBSpecificEndpoints() {
+	sd.sdAPI.Post("/service-groups/register", authentication.AuthorizationMiddleware, RegisterServiceGroupHandler)
+	// sd.sdAPI.Post("/service-groups/service/register", authentication.AuthorizationMiddleware, RegisterServiceToServiceGroupHandler)
+	sd.sdAPI.Get("/service-groups", ListServiceGroupsHandler)
+}
 
-	sd.sdAPI = router.Group(config.SERVICE_DISCOVERY_GROUP)
-
-	sd.isService = true
+func LoadServiceDiscoveryAPIEndpoints() {
+	
 	sd.sdAPI.Post("/register", authentication.AuthorizationMiddleware, RegisterHandler)
 	sd.sdAPI.Post("/admin/normalize", authentication.AuthorizationMiddleware, NormalizeServices)
 	sd.sdAPI.Post("/update", authentication.AuthorizationMiddleware, UpdateHandler)
@@ -64,10 +60,31 @@ func StartServiceDiscovery(router *routing.Router) {
 	sd.sdAPI.Delete("/delete", authentication.AuthorizationMiddleware, DeleteEndpointHandler)
 	sd.sdAPI.Post("/services/manage", ManageServiceHandler)
 	sd.sdAPI.Get("/services/manage/types", ManageServiceTypesHandler)
-	sd.sdAPI.Post("/service-groups/register", authentication.AuthorizationMiddleware, RegisterServiceGroupHandler)
-	// sd.sdAPI.Post("/service-groups/service/register", authentication.AuthorizationMiddleware, RegisterServiceToServiceGroupHandler)
-	sd.sdAPI.Get("/service-groups", ListServiceGroupsHandler)
+	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
+		LoadDBSpecificEndpoints()
+	}
 	sd.sdAPI.To("GET,POST,PUT,PATCH,DELETE", "/*", ServiceNotFound)
+}
+
+func StartServiceDiscovery(router *routing.Router) {
+	sd.sdAPI = router.Group(config.SERVICE_DISCOVERY_GROUP)
+	
+	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
+		SD_TYPE = "mongo"
+		mongoConnErr := InitMongo()
+		if mongoConnErr != nil {
+			panic(mongoConnErr.Error())
+		}
+	} else {
+		servicesConfig := LoadServicesConfiguration()
+		sd.registeredServices = servicesConfig.Services
+	}
+
+	sd.sdAPI = router.Group(config.SERVICE_DISCOVERY_GROUP)
+
+	LoadServiceDiscoveryAPIEndpoints()
+
+	sd.isService = true
 	sd.isService = true
 }
 

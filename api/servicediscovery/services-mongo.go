@@ -22,12 +22,13 @@ var MONGO_DB string
 
 var mongoPool database.MongoPool
 
-func InitMongo() {
+func InitMongo() error {
 	MONGO_HOST = os.Getenv("MONGO_HOST")
 	MONGO_DB = os.Getenv("MONGO_DB")
 
-	database.ConnectToMongo(MONGO_HOST)
+	err := database.ConnectToMongo(MONGO_HOST)
 	mongoPool = database.MongoDBPool
+	return err
 }
 
 func GetSessionAndDB(db string) (*mgo.Session, *mgo.Database) {

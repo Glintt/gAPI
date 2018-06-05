@@ -43,7 +43,7 @@ func (mp *MongoPool) Close(session *mgo.Session) {
 }
 
 
-func ConnectToMongo(host string) {
+func ConnectToMongo(host string) error{
 	var err error
 	MongoDBPool.URL = host
 	err = MongoDBPool.New()
@@ -53,6 +53,8 @@ func ConnectToMongo(host string) {
 	} else {
 		utils.LogMessage("connected to mongo")
 	}
+
+	return err
 }
 
 func GetSession() *mgo.Session {	
