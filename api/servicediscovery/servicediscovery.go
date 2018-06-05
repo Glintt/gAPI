@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"fmt"
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
@@ -87,4 +88,18 @@ func (service *ServiceDiscovery) SetIsService(isServ bool) {
 
 func (service *ServiceDiscovery) IsService() bool {
 	return service.isService
+}
+
+
+func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
+	hosts, _ := ListAllAvailableHosts()
+	requestHost := string(requestContxt.Host())
+	fmt.Println(hosts)
+
+	for _, v := range hosts {
+		if v == requestHost {
+			return false
+		}
+	}
+	return true
 }

@@ -137,6 +137,18 @@ func FindMongo(s Service) (Service, error) {
 	return Service{}, errors.New("Not found.")
 }
 
+func ListAllAvailableHosts() ([]string, error) {
+	session, db := GetSessionAndDB(MONGO_DB)
+
+	var hosts []string
+
+	db.C(SERVICES_COLLECTION).Find(nil).Distinct("hosts", &hosts)
+	
+	mongoPool.Close(session)
+
+	return hosts, nil
+}
+
 func NormalizeServicesMongo() error {
 	session, db := GetSessionAndDB(MONGO_DB)
 
