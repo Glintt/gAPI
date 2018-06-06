@@ -17,8 +17,13 @@
                     </ul>
                 </div>
                 <div class="form-group col-sm-6">
+                    <label for="serviceMatchingURI">Matching URI</label>
+                    <input type="text" v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingURIHelp" placeholder="Enter API Matching URI">
+                    <small id="serviceMatchingURIHelp" class="form-text text-info">URI which will link to the API.</small>
+                </div>
+                <div class="form-group col-sm-6">
                     <label for="serviceToUri">URI</label>
-                    <input type="text" v-model="service.ToURI" class="form-control" id="serviceToUri" aria-describedby="serviceToUriHelp" placeholder="Enter domain">
+                    <input type="text" v-model="service.ToURI" class="form-control" id="serviceToUri" aria-describedby="serviceToUriHelp" placeholder="Enter API base uri">
                     <small id="serviceToUriHelp" class="form-text text-info">Service/API Base URI.</small>
                 </div>
                 <div class="form-group col-sm-6">
