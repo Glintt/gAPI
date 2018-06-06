@@ -16,7 +16,7 @@ router.get('/assets/:file', (req, res, next) => {
 })
 
 router.get('/*', (req, res, next) => {
-  res.sendFile(`${__dirname}/dist/index.html`);  
+  res.sendFile(`${__dirname}/dist/index.html`);
 })
 
 app.use('/', router)

@@ -24,7 +24,7 @@
         </div>
         <table class="table">
             <thead>
-                <tr class="text-success">
+                <tr class="table-secondary" >
                     <th scope="col">Name</th>
                     <th scope="col">gAPI Path</th>
                     <th scope="col">API Documentation</th>
@@ -66,102 +66,108 @@
 </template>
 
 <script>
-    var serviceDiscoveryAPI = require("@/api/service-discovery");
-    import DataTable from "@/components/DataTable";
-    import ErrorMessage from "@/components/modals/ErrorMessage";
-    import ConfirmationModal from "@/components/modals/ConfirmationModal";
-    import SuccessModal from "@/components/modals/SuccessModal";
+var serviceDiscoveryAPI = require("@/api/service-discovery");
+import DataTable from "@/components/DataTable";
+import ErrorMessage from "@/components/modals/ErrorMessage";
+import ConfirmationModal from "@/components/modals/ConfirmationModal";
+import SuccessModal from "@/components/modals/SuccessModal";
 
-    export default {
-        name: "home",
-        mounted() {
-            this.updateData();
-            this.$api.serviceDiscovery.manageServiceTypes(response => {
-                this.managementTypes = response.body;
-            })
-        },
-        watch: {
-            currentPage: function() {
-                this.updateData();
-            }
-        },
-        computed:{
-            isLoggedIn(){
-                return this.$oauthUtils.vmA.isLoggedIn()
-            }
-        },
-        data() {
-            return {
-                managementTypes:{},
-                services : [],
-                statusMessage:{
-                    msg: "",
-                    showing: false,
-                    isError: false
-                },
-                management: {
-                    action: "",
-                    service: null
-                },
-                confirmation: {
-                    showing:false,
-                    title: "",
-                    msg: ""
-                },
-                currentPage: 1,
-                searchText: ""
-            }
-        },
-        methods:{
-            manageService: function(service, action){
-                this.confirmation.showing = true;
-                this.confirmation.title = "Confirm - " + action;
-                this.confirmation.msg = "Are you sure you want to " + action + " service " + service.Name + "?";
-                this.management.service = service;
-                this.management.action = action;
-            },
-            managementConfirmationReceived: function(answer) {
-                if (answer == false) return;
-                
-                serviceDiscoveryAPI.manageService(this.management.service.MatchingURI, this.management.action, (response) => {
-                    this.statusMessage.msg = response.body.msg;
-                    this.statusMessage.isError = false;
-                    if (response.status != 200) {
-                        this.statusMessage.isError = true;
-                        if (response.body.service_response != undefined) {
-                            this.statusMessage.msg = response.body.service_response;    
-                        }
-                    }
-                    this.statusMessage.showing = true;
-                });
-            },
-            confirmationClosed: function(){
-                this.confirmation.showing = false;
-                this.confirmation.msg = "";
-            },
-            statusModalClosed: function(){
-                this.statusMessage.showing = false;
-                this.statusMessage.msg = "";
-            },
-
-            updateData: function() {
-                serviceDiscoveryAPI.listServices(
-                    this.currentPage,
-                    this.searchText,
-                    response => {
-                    if (response.status != 200) {
-                        this.services = [];
-                        return;
-                    }
-                    this.services = response.body;
-                });
-            }
-        },
-        components:{
-            ErrorMessage,
-            SuccessModal,
-            ConfirmationModal,
-            DataTable
-        }
+export default {
+  name: "home",
+  mounted() {
+    this.updateData();
+    this.$api.serviceDiscovery.manageServiceTypes(response => {
+      this.managementTypes = response.body;
+    });
+  },
+  watch: {
+    currentPage: function() {
+      this.updateData();
+    }
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$oauthUtils.vmA.isLoggedIn();
+    }
+  },
+  data() {
+    return {
+      managementTypes: {},
+      services: [],
+      statusMessage: {
+        msg: "",
+        showing: false,
+        isError: false
+      },
+      management: {
+        action: "",
+        service: null
+      },
+      confirmation: {
+        showing: false,
+        title: "",
+        msg: ""
+      },
+      currentPage: 1,
+      searchText: ""
     };
+  },
+  methods: {
+    manageService: function(service, action) {
+      this.confirmation.showing = true;
+      this.confirmation.title = "Confirm - " + action;
+      this.confirmation.msg =
+        "Are you sure you want to " + action + " service " + service.Name + "?";
+      this.management.service = service;
+      this.management.action = action;
+    },
+    managementConfirmationReceived: function(answer) {
+      if (answer == false) return;
+
+      serviceDiscoveryAPI.manageService(
+        this.management.service.MatchingURI,
+        this.management.action,
+        response => {
+          this.statusMessage.msg = response.body.msg;
+          this.statusMessage.isError = false;
+          if (response.status != 200) {
+            this.statusMessage.isError = true;
+            if (response.body.service_response != undefined) {
+              this.statusMessage.msg = response.body.service_response;
+            }
+          }
+          this.statusMessage.showing = true;
+        }
+      );
+    },
+    confirmationClosed: function() {
+      this.confirmation.showing = false;
+      this.confirmation.msg = "";
+    },
+    statusModalClosed: function() {
+      this.statusMessage.showing = false;
+      this.statusMessage.msg = "";
+    },
+
+    updateData: function() {
+      serviceDiscoveryAPI.listServices(
+        this.currentPage,
+        this.searchText,
+        response => {
+          if (response.status != 200) {
+            this.services = [];
+            return;
+          }
+          this.services = response.body;
+        }
+      );
+    }
+  },
+  components: {
+    ErrorMessage,
+    SuccessModal,
+    ConfirmationModal,
+    DataTable
+  }
+};
 </script>

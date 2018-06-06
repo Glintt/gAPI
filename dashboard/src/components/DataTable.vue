@@ -52,57 +52,60 @@
 </template>
 
 <script>
-    export default {
-        name: "datatable",
-        props : ["headers", "data", "actions"],
-        data(){
-          return {
-            maxLength : 25,
-            showingMore:  {
-              index : null,
-              item : null
-            }
-          }
-        },
-        mounted() {
-          console.log(this.data)
-        },
-        methods: {
-          isJSON : function(jsonStr) {
-            try {
-                JSON.parse(jsonStr);
-            } catch (e) {
-                return false;
-            }
-            return true;
-          },
+export default {
+  name: "datatable",
+  props: ["headers", "data", "actions"],
+  data() {
+    return {
+      maxLength: 25,
+      showingMore: {
+        index: null,
+        item: null
+      }
+    };
+  },
+  mounted() {
+    console.log(this.data);
+  },
+  methods: {
+    isJSON: function(jsonStr) {
+      try {
+        JSON.parse(jsonStr);
+      } catch (e) {
+        return false;
+      }
+      return true;
+    },
 
-          showMore : function(item, index){
-            this.showingMore.index = index;
-            this.showingMore.item = item;
-          },
-          simplifyString : function(jsonStr){
-            if (jsonStr === undefined || this.isJSON(jsonStr)) {
-              return "";
-            }
-            var upToNCharacters = jsonStr.substring(0, Math.min(jsonStr.length, this.maxLength));
+    showMore: function(item, index) {
+      this.showingMore.index = index;
+      this.showingMore.item = item;
+    },
+    simplifyString: function(jsonStr) {
+      if (jsonStr === undefined || this.isJSON(jsonStr)) {
+        return "";
+      }
+      var upToNCharacters = jsonStr.substring(
+        0,
+        Math.min(jsonStr.length, this.maxLength)
+      );
 
-            if (upToNCharacters == jsonStr) {
-              return jsonStr;
-            }
-            return upToNCharacters + "..."
-          },
+      if (upToNCharacters == jsonStr) {
+        return jsonStr;
+      }
+      return upToNCharacters + "...";
+    },
 
-          beautifyString : function(str) {
-            if (this.isJSON(str)) {
-              return JSON.parse(str);
-            }
-            return str;
-          },
+    beautifyString: function(str) {
+      if (this.isJSON(str)) {
+        return JSON.parse(str);
+      }
+      return str;
+    },
 
-          actionEmit: function(event, row) {
-            this.$emit(event, row);
-          }
-        }
+    actionEmit: function(event, row) {
+      this.$emit(event, row);
     }
+  }
+};
 </script>
