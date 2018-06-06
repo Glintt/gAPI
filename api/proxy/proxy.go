@@ -37,7 +37,7 @@ func HandleRequest(c *routing.Context) error {
 		var err error
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
 
-		if err != nil {
+		if err != nil || (sd.IsExternalRequest(c) && ! cachedRequest.Service.IsReachableFromExternal(sd)) {
 			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, "/proxy")
 			return nil
 		}
@@ -73,7 +73,9 @@ func HandleRequest(c *routing.Context) error {
 
 	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI)
 
-	cache.StoreRequestInfoToCache(c, cachedRequest)
+	if cachedRequest.Response.StatusCode < 300 {
+		cache.StoreRequestInfoToCache(c, cachedRequest)
+	}
 	return nil
 }
 

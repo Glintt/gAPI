@@ -1,7 +1,7 @@
 package ratelimiting
 
 import (
-	"fmt"
+	"sync"
 	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
@@ -23,9 +23,19 @@ type RateStatus struct {
 var limiter config.GApiRateLimitingConfig 
 var limits map[string]RateStatus
 
+type Updater struct {
+	NewRate RateStatus
+	Service servicediscovery.Service
+	ReqName string
+}
+
+var sd servicediscovery.ServiceDiscovery
+var rateLimitingMutex sync.RWMutex
+
 func InitRateLimiting() {
 	limiter = config.GApiConfiguration.RateLimiting
 	limits = make(map[string]RateStatus)
+	sd = *servicediscovery.GetServiceDiscoveryObject()
 }
 
 
@@ -34,11 +44,13 @@ func RateLimiting(c *routing.Context) error {
 		return nil
 	}
 
+	rateLimitingMutex.Lock()
+	
 	currentRequestMetricName := GetRateLimitingMetricName(c, limiter)
 
 	service := serviceForUri(c)
 
-	CreateRateLimitingIfNotExists(currentRequestMetricName, service)
+	IncrementRateLimiting(currentRequestMetricName, service)
 
 	rateStatus := RateLimitingStatusForRequest(currentRequestMetricName)
 
@@ -47,18 +59,19 @@ func RateLimiting(c *routing.Context) error {
 		c.Abort()
 		return nil
 	}
-	
-	limits[currentRequestMetricName] = RateStatus{NumberRequests: (rateStatus.NumberRequests + 1), ExpirationTime: rateStatus.ExpirationTime}
 
-	fmt.Println(limits[currentRequestMetricName])
-	fmt.Println((limits[currentRequestMetricName].ExpirationTime - utils.CurrentTimeMilliseconds()))
+	rate := RateStatus{NumberRequests: (rateStatus.NumberRequests + 1), ExpirationTime: rateStatus.ExpirationTime}
+
+	limits[currentRequestMetricName] = rate
+	
+    rateLimitingMutex.Unlock()
+
 	return nil
 }
 
-func CreateRateLimitingIfNotExists(currentRequestMetricName string, service servicediscovery.Service) {
+func IncrementRateLimiting(currentRequestMetricName string, service servicediscovery.Service) {
 	if _, ok := limits[currentRequestMetricName]; ok == false {
-		expirationTime := RateLimitingExpirationTime(service)		
-		limits[currentRequestMetricName] = RateStatus{NumberRequests:1, ExpirationTime: expirationTime}
+		limits[currentRequestMetricName] = RateStatus{NumberRequests:1, ExpirationTime: RateLimitingExpirationTime(service)}
 	}
 }
 

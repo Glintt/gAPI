@@ -4,7 +4,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"net"
 	"math/rand"
-	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
 	
@@ -12,7 +11,6 @@ import (
 	"strings"
 	"regexp"
 	"github.com/valyala/fasthttp"
-	//"gopkg.in/mgo.v2/bson"
 )
 
 type Service struct {
@@ -35,6 +33,7 @@ type Service struct {
 	ServiceManagementEndpoints  map[string]string
 	RateLimit	int
 	RateLimitExpirationTime	int64
+	IsReachable              bool
 }
 
 func Contains(array []int, value int) bool {
@@ -46,6 +45,23 @@ func Contains(array []int, value int) bool {
 	return false
 }
 
+func (service *Service) IsReachableFromExternal(sd ServiceDiscovery) bool {
+	if service.IsReachable {
+		return service.IsReachable
+	}
+
+	sgList, err := sd.GetListOfServicesGroup()
+	if err != nil {
+		return false
+	}
+
+	for _, sg := range sgList {
+		if sg.Contains(*service) {
+			return sg.IsReachable
+		}
+	}
+	return false
+}
 
 func (service *Service) BalanceUrl() string {
 	numHosts := len(service.Hosts)
@@ -74,7 +90,7 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 
 	callURLWithoutProtocol := service.GetHost() + uri
 	callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
-	fmt.Println(callURLWithoutProtocol)
+	
 	callURL := "http://" + callURLWithoutProtocol
 
 	return http.MakeRequest(method, callURL, body, headers)

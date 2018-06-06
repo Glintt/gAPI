@@ -1,6 +1,8 @@
 package servicediscovery
 
 import (
+	"gAPIManagement/api/utils"
+	"gAPIManagement/api/database"
 	"sort"
 	"strings"
 	"encoding/json"
@@ -9,6 +11,22 @@ import (
 	"io/ioutil"
 	"regexp"
 )
+
+type ServicesConfig struct {
+	Services []Service `json:"services"`
+}
+
+func LoadServicesConfiguration() ServicesConfig {
+	servicesJSON, err := utils.LoadJsonFile(config.CONFIGS_LOCATION + config.SERVICE_DISCOVERY_CONFIG_FILE)
+
+	if err != nil {
+		return ServicesConfig{}
+	}
+
+	var sc ServicesConfig
+	json.Unmarshal(servicesJSON, &sc)
+	return sc
+}
 
 func UpdateFile(service Service, serviceExists Service) (string, int) {
 	var newServices []Service
@@ -55,7 +73,7 @@ func ListServicesFile(page int, filterQuery string) []Service {
 	if page == -1 {
 		return servicesList
 	}
-	from, to := pageFromTo(page, len(servicesList))
+	from, to := database.PageFromTo(page, PAGE_LENGTH, len(servicesList))
 	
 	return servicesList[from:to]
 }
@@ -87,13 +105,6 @@ func DeleteServiceFile(service Service) (string, int) {
 
 func FindFile(service Service) (Service, error) {
 	for _, rs := range sd.registeredServices {
-		//if toMatchUri == rs.MatchingURI {
-		//fmt.Println("1=>" + toMatchUri)
-		//fmt.Println("2=>" + rs.MatchingURI)
-		/*if strings.HasPrefix(toMatchUri, rs.MatchingURI) {
-			return rs, nil
-		}*/
-		//fmt.Println("3=>" + GetMatchingURIRegex(rs.MatchingURI))
 		if (rs.MatchingURIRegex == "") {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}

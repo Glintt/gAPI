@@ -26,14 +26,14 @@ var router *routing.Router
 
 func main() {
 	config.LoadConfigs()
-
+	
 	router = routing.New()
 	router.Get("/reload", authentication.AuthorizationMiddleware, ReloadServices)
 	router.Get("/invalidate-cache", authentication.AuthorizationMiddleware, InvalidateCache)
 	initServices()
 
 	InitSocketServices()
-
+	
 	listenAPI(router)
 }
 

@@ -82,5 +82,7 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 		resp.SetStatusCode(400)
 	}
 
+	fasthttp.ReleaseRequest(request)
+
 	return resp
 }
