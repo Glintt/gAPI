@@ -3,14 +3,23 @@
         <div class="card-header text-white bg-success" @click="toggleCard('management_config')">Management configuration</div>
         <div class="card-body" v-if="showing">
             <div class="row">
-                <div class="form-group col-sm-3">
-                    <label for="serviceDocumentation">Service Management Service Host</label>
-                    <input type="text" v-model="service.ServiceManagementHost" class="form-control" id="ServiceManagementHost" aria-describedby="ServiceManagementHostHelp" placeholder="Enter service management webservices host">
+                 <div class="form-group col-sm-4 text-center a offset-sm-4">
+                <h6>
+                    <i class="fas fa-desktop"></i> Service Management Service
+                </h6>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-sm-3 offset-sm-3">
+                    <label for="serviceDocumentation">
+                        Host
+                    </label>
+                    <input type="text" v-model="service.ServiceManagementHost" class="form-control" id="ServiceManagementHost" aria-describedby="ServiceManagementHostHelp" placeholder="Service management webservices host">
                     <small id="ServiceManagementeHostHelp" class="form-text text-success">Host where service management webservices (restart, undeploy, ...) are located at.</small>
                 </div>
                 <div class="form-group col-sm-3">
-                    <label for="serviceDocumentation">Service Management Port</label>
-                    <input type="text" v-model="service.ServiceManagementPort" class="form-control" id="ServiceManagementPort" aria-describedby="ServiceManagementPortHelp" placeholder="Enter service management webservices port">
+                    <label for="serviceDocumentation">Port</label>
+                    <input type="text" v-model="service.ServiceManagementPort" class="form-control" id="ServiceManagementPort" aria-describedby="ServiceManagementPortHelp" placeholder="Service management webservices port">
                     <small id="ServiceManagementPortHelp" class="form-text text-success">Port where service management webservices (restart, undeploy, ...) are located at.</small>
                 </div>
             </div>
