@@ -5,7 +5,7 @@
                 <div class="row">
                     <div class="col-md-6 mx-auto">
                         <div class="card rounded-0">
-                            <div class="card-header">
+                            <div class="card-header text-white bg-success">
                                 <h3 class="mb-0">Login</h3>
                             </div>
                             <div class="card-body">

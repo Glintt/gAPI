@@ -2,82 +2,22 @@
     <div class="row">
         <div class="col-sm">
             <InformationPanel v-if="informationStatus.isActive" :msg="informationStatus.msg" :className="informationStatus.className"></InformationPanel>
+            <h2>Add new API Service</h2>
+            
             <form v-on:keyup.13="store">
                 <div class="row">
-
-                    <div class="col-sm">
+                    <div class="col-sm-4">
                         <div class="form-group">
-                            <label for="serviceName">Name</label>
+                            <label for="serviceName" class="text-info">Name</label>
                             <input type="text" v-model="service.Name" class="form-control" id="serviceName" aria-describedby="nameHelp" placeholder="Enter name">
                             <small id="nameHelp" class="form-text text-muted">Give the service/API a name.</small>
                         </div>
-                        <div class="form-group">
-                            <label for="hostsName">Hosts</label>
-                            <input type="text" v-model="hostToAdd" class="form-control" id="hostsName" aria-describedby="hostsHelp" placeholder="Enter hosts">
-                            <small id="hostsHelp" class="form-text text-muted">Hosts where the service is hosted.</small>
-                            <button type="button" @click="addHost" class="btn btn-sm btn-success">Add</button>
-                        </div>         
-                        <ul class="list-group">
-                            <li class="list-group-item" v-for="h in service.Hosts" v-bind:key="h">
-                                {{ h }}
-                                <button type="button" @click="removeHost(h)" class="btn btn-sm btn-danger">Delete</button>
-                            </li>
-                        </ul>
-                        <div class="form-group">
-                            <label for="serviceMatchingUri">MatchingURI</label>
-                            <input type="text" v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
-                            <small id="serviceMatchingUriHelp" class="form-text text-muted">Base URI which links to the service on API Management Platform.</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="serviceToUri">To URI</label>
-                            <input type="text" v-model="service.ToURI" class="form-control" id="serviceToUri" aria-describedby="serviceToUriHelp" placeholder="Enter domain">
-                            <small id="serviceToUriHelp" class="form-text text-muted">Service/API Base URI.</small>
-                        </div>
-                    </div>
-                    <div class="col-sm">
-                        <div class="form-group">
-                            <label for="serviceDocumentation">Healthcheck URL</label>
-                            <input type="text" v-model="service.HealthcheckUrl" class="form-control" id="serviceHealthcheckUrl" aria-describedby="serviceHealthcheckUrl" placeholder="Enter Healthcheck Url">
-                            <small id="serviceHealthcheckUrl" class="form-text text-muted">Healthcheck URL</small>
-                        </div>
-                        <div class="form-check">
-                            <input type="checkbox" v-model="service.Protected" class="form-check-input" id="serviceProtected">
-                            <label class="form-check-label" for="serviceProtected">Protected</label>
-                            <small id="serviceProtectedHelp" class="form-text text-muted">Is Service Protected with OAuth?</small>
-                        </div>
-        
-                        <div class="form-check">
-                            <input type="checkbox" v-model="service.IsCachingActive" class="form-check-input" id="serviceCaching">
-                            <label class="form-check-label" for="serviceCaching">Activate Cache?</label>
-                            <small id="serviceCachingHelp" class="form-text text-muted">Is caching enabled for the service?</small>
-                        </div>
-        
-                        <div class="form-group">
-                            <label for="serviceDocumentation">Documentation Location</label>
-                            <input type="text" v-model="service.APIDocumentation" class="form-control" id="serviceDocumentation" aria-describedby="serviceDocumentationHelp" placeholder="Enter domain">
-                            <small id="serviceDocumentationHelp" class="form-text text-muted">API documentation URI.</small>
-                        </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Service Management Service Host</label>
-                        <input type="text" v-model="service.ServiceManagementHost" class="form-control" id="ServiceManagementHost" aria-describedby="ServiceManagementHostHelp" placeholder="Enter service management webservices host">
-                        <small id="ServiceManagementeHostHelp" class="form-text text-muted">Host where service management webservices (restart, undeploy, ...) are located at.</small>
-                    </div>
-                    <div class="form-group col-sm-3">
-                        <label for="serviceDocumentation">Service Management Port</label>
-                        <input type="text" v-model="service.ServiceManagementPort" class="form-control" id="ServiceManagementPort" aria-describedby="ServiceManagementPortHelp" placeholder="Enter service management webservices port">
-                        <small id="ServiceManagementPortHelp" class="form-text text-muted">Port where service management webservices (restart, undeploy, ...) are located at.</small>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group col-sm-3" v-for="(type, c) in managementTypes" v-bind:key="type.action">
-                        <label for="serviceDocumentation">Service {{ type.action }} endpoint</label>
-                        <input type="text" v-model="service.ServiceManagementEndpoints[type.action]" class="form-control" :id="type.action + 'ServiceEndpoint'" :aria-describedby="type.action + 'ServiceEndpointHelp'"  v-bind:placeholder="'Enter ' + type.action + ' service endpoint'">
-                        <small :id="type.action + 'ServiceEndpointHelp'" class="form-text text-muted">Endpoint to call to {{ type.action }} service.</small>
-                    </div>                    
-                </div>              
+
+                <ServiceAPIConfiguration v-on:addHost="addHost" v-on:toggleCard="toggleCard" v-on:removeHost="removeHost" :showing="cards.api_config.showing" :service="service"/>
+                   
+                <ServiceManagementConfig v-on:toggleCard="toggleCard" :showing="cards.management_config.showing" :service="service"/>         
             </form>
     
             <div class="row">
@@ -91,14 +31,11 @@
 
 <script>
     import InformationPanel from "@/components/InformationPanel";
+    import ServiceAPIConfiguration from "@/views/Service/ServiceAPIConfiguration";
+    import ServiceManagementConfig from "@/views/Service/ServiceManagementConfig";
 
     export default {
-        name: "home",
-        mounted() {
-            this.$api.serviceDiscovery.manageServiceTypes(response => {
-                this.managementTypes = response.body;
-            })
-        },
+        name: "new-service",
         data() {
             return {
                 hostToAdd: "",
@@ -120,17 +57,31 @@
                     className: 'alert-success',
                     msg : ""
                 },
-                managementTypes:{}
+                cards: {
+                    basic: {
+                    showing: true
+                    },
+                    api_config: {
+                    showing: false
+                    },
+                    management_config: {
+                    showing: false
+                    }
+                }
             }
         },
         methods: {
-            addHost : function() {
-                this.service.Hosts.push(this.hostToAdd);
-                this.hostToAdd = "";
+            addHost: function(hostToAdd) {
+                this.service.Hosts.push(hostToAdd);
+                hostToAdd = "";
             },
             removeHost: function(hostToRemove) {
                 var index = this.service.Hosts.indexOf(hostToRemove);
                 this.service.Hosts.splice(index, 1);
+            },
+            toggleCard: function(cardName) {
+                console.log(cardName)
+                this.cards[cardName].showing = !this.cards[cardName].showing;
             },
             store : function(){
                 this.$api.serviceDiscovery.storeService(this.service, (response) => {
@@ -148,7 +99,9 @@
             }
         },
         components:{
-            InformationPanel
+            InformationPanel,
+            ServiceAPIConfiguration,
+            ServiceManagementConfig
         }
     }
 </script>
