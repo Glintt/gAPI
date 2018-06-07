@@ -1,6 +1,8 @@
 package authentication
 
 import (
+	"golang.org/x/crypto/bcrypt"
+	"gAPIManagement/api/users"
 	"github.com/dgrijalva/jwt-go"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gAPIManagement/api/config"
@@ -22,6 +24,12 @@ type TokenRequestObj struct{
 	Password string `json:password`
 }
 
+type TokenCustomClaims struct {
+	Username string `json:"Username"`
+    jwt.StandardClaims
+}
+
+
 func InitGAPIAuthenticationServer(router *routing.Router){
 	if config.GApiConfiguration.Authentication.TokenExpirationTime > MinExpirationTime {
 		EXPIRATION_TIME = config.GApiConfiguration.Authentication.TokenExpirationTime 
@@ -30,7 +38,7 @@ func InitGAPIAuthenticationServer(router *routing.Router){
 		SIGNING_KEY = config.GApiConfiguration.Authentication.TokenSigningKey
 	}
 
-	LoadUsers()
+	// LoadUsers()
 
 	router.Post("/oauth/token", GetTokenHandler)
 	router.Get("/oauth/authorize", AuthorizeTokenHandler)
@@ -58,7 +66,7 @@ func AuthorizeTokenHandler(c *routing.Context) error {
 	c.Response.Header.SetContentType("application/json")
 	authorizationToken := c.Request.Header.Peek("Authorization")
 
-	err := ValidateToken(string(authorizationToken))
+	_, err := ValidateToken(string(authorizationToken))
 
 	if err != nil{
 		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
@@ -69,31 +77,37 @@ func AuthorizeTokenHandler(c *routing.Context) error {
 	return nil
 }
 
-func ValidateToken(tokenString string) error {
+func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 	tokenParsed, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte(SIGNING_KEY), nil
 	})
 
-	if  err == nil && tokenParsed.Valid {
-		return nil
-	} 
+	claims := tokenParsed.Claims.(jwt.MapClaims)
+	
+	if err == nil && tokenParsed.Valid {
+		return claims, nil
+	}
 
-	return errors.New("Not Authorized.")
+	return nil, errors.New("Not Authorized.")
 }
 
 func GenerateToken(username string, password string) (string, error){
-	if err := ValidateUserCredentials(username, password); err != nil{
+	_, err := ValidateUserCredentials(username, password)
+	if err != nil{
 		return "", err
 	}
 
 	mySigningKey := []byte(SIGNING_KEY)
 
 	// Create the Claims
-	claims := &jwt.StandardClaims{
-		ExpiresAt: (time.Now().Unix() + int64(EXPIRATION_TIME)),
-		Issuer:    "gAPI",
+	claims := TokenCustomClaims{
+		username,
+		jwt.StandardClaims{
+			ExpiresAt: (time.Now().Unix() + int64(EXPIRATION_TIME)),
+			Issuer:    "gAPI",
+		},
 	}
 	
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -102,21 +116,18 @@ func GenerateToken(username string, password string) (string, error){
 	return ss, nil
 }
 
-func ValidateUserCredentials(username string, password string) error {
-	if username == config.GApiConfiguration.Authentication.Username && password == config.GApiConfiguration.Authentication.Password {
-		return nil
+func ValidateUserCredentials(username string, password string) (users.User, error) {
+	userList := users.GetUserByUsername(username)
+	if len(userList) == 0 {
+		return users.User{}, errors.New("Not Authorized.")
 	}
 
-	user, err := FindUserByUsername(username)
-	if err != nil{
-		return err
+	user := userList[0]
+	if username == user.Username && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil {
+		return user, nil
 	}
 
-	if username == user.Username && password == user.Password {
-		return nil
-	}
-
-	return errors.New("Not Authorized.")
+	return users.User{}, errors.New("Not Authorized.")
 }
 
 
@@ -130,9 +141,32 @@ func NotAllowed(c *routing.Context) error {
 func AuthorizationMiddleware(c *routing.Context) error {
 	token := c.Request.Header.Peek("Authorization")
 
-	validate := ValidateToken(string(token))
+	_, validate := ValidateToken(string(token))
 
 	if validate != nil {
+		NotAllowed(c)
+		c.Abort()
+		return nil
+	}
+
+	return nil
+}
+
+func AdminRequiredMiddleware(c *routing.Context) error {
+	token := c.Request.Header.Peek("Authorization")
+
+	claims, validate := ValidateToken(string(token))
+
+	if validate != nil {
+		NotAllowed(c)
+		c.Abort()
+		return nil
+	}
+
+	username := claims["Username"].(string)
+	usersList := users.GetUserByUsername(username)
+
+	if len(usersList) == 0 || len(usersList) > 1 || !usersList[0].IsAdmin {
 		NotAllowed(c)
 		c.Abort()
 		return nil

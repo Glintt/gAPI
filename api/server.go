@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gAPIManagement/api/users"
 	"encoding/json"
 	
 	apianalytics "gAPIManagement/api/api-analytics"
@@ -57,11 +58,24 @@ func ReloadServices(c *routing.Context) error {
 	return nil
 }
 
+func InitUsersService(router *routing.Router) {
+	users.InitUsers()
+	
+	usersGroup := router.Group(config.USERS_GROUP)
+
+	usersGroup.Get("", authentication.AdminRequiredMiddleware, users.FindUsersHandler)
+	usersGroup.Get("/", authentication.AdminRequiredMiddleware, users.FindUsersHandler)
+	usersGroup.Post("/", authentication.AdminRequiredMiddleware, users.CreateUserHandler)
+	usersGroup.Post("", authentication.AdminRequiredMiddleware, users.CreateUserHandler)
+	usersGroup.Get("/<username>", authentication.AdminRequiredMiddleware, users.GetUserHandler)
+}
+
 func initServices() {
 	authentication.InitGAPIAuthenticationServer(router)
 	cache.InitCachingService()
 	logs.StartDispatcher(2)
 	servicediscovery.StartServiceDiscovery(router)
+	InitUsersService(router)
 	apianalytics.StartAPIAnalytics(router)
 	proxy.StartProxy(router)
 	healthcheck.InitHealthCheck()

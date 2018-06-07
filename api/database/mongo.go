@@ -12,6 +12,13 @@ type MongoPool struct {
 	Open int
 }
 
+func GetSessionAndDB(db string) (*mgo.Session, *mgo.Database) {
+	session := GetSession()
+	dbConn := GetDB(session, db)
+
+	return session, dbConn
+}
+
 func (mp *MongoPool) New() error {
 	var err error
 	maxPool := 50
