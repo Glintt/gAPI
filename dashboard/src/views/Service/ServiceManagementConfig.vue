@@ -37,7 +37,6 @@
 
 
 <script>
-
 export default {
   name: "service-management-config",
   props: ["service", "showing"],
@@ -46,15 +45,15 @@ export default {
       this.managementTypes = response.body;
     });
   },
-  data(){
-      return {
-         managementTypes: {},
-      }
+  data() {
+    return {
+      managementTypes: {}
+    };
   },
   methods: {
     toggleCard: function(cardName) {
-        console.log(cardName)
-        this.$emit("toggleCard", cardName)
+      console.log(cardName);
+      this.$emit("toggleCard", cardName);
     }
   }
 };
