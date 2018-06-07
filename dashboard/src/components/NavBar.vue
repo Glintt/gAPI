@@ -22,7 +22,7 @@
                         <router-link to="/service-discovery/services" class="dropdown-item" href="#">List APIs</router-link>
                     </div>
                 </li>
-                <li class="nav-item dropdown" v-if="isLoggedIn">
+                <li class="nav-item dropdown" v-if="isLoggedIn && loggedInUser.IsAdmin">
                     <a href="" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Analytics</a>
 
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -36,11 +36,17 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
+
 export default {
   computed: {
     isLoggedIn() {
       return this.$oauthUtils.vmA.isLoggedIn();
-    }
+    },
+    ...mapGetters({
+      loggedInUser: 'loggedInUser'
+    })
   },
   methods: {
     logout: function() {

@@ -12,7 +12,7 @@ import (
 type User struct {
 	Id bson.ObjectId `bson:"_id" json:"Id"`
 	Username string
-	Password string
+	Password string `json:"-"`
 	Email string
 	IsAdmin bool
 }

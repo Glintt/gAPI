@@ -42,6 +42,7 @@ func InitGAPIAuthenticationServer(router *routing.Router){
 
 	router.Post("/oauth/token", GetTokenHandler)
 	router.Get("/oauth/authorize", AuthorizeTokenHandler)
+	router.Get("/oauth/me", MeHandler)
 }
 
 func GetTokenHandler(c *routing.Context) error {
@@ -59,6 +60,32 @@ func GetTokenHandler(c *routing.Context) error {
 	}
 
 	c.Response.SetBody([]byte(`{"token":"` + token + `", "expiration_time": ` + strconv.Itoa(EXPIRATION_TIME) +`}`))
+	return nil
+}
+
+func MeHandler(c *routing.Context) error {
+	c.Response.Header.SetContentType("application/json")
+	authorizationToken := c.Request.Header.Peek("Authorization")
+
+	tokenClaims, err := ValidateToken(string(authorizationToken))
+
+	if err != nil{
+		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
+		c.Response.Header.SetStatusCode(400)
+		return nil
+	}
+
+	username := tokenClaims["Username"].(string)
+	usersList := users.GetUserByUsername(username)
+
+	if len(usersList) == 0 || len(usersList) > 1 || !usersList[0].IsAdmin {
+		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
+		c.Response.Header.SetStatusCode(400)
+		return nil
+	}
+
+	userJSON,_ := json.Marshal(usersList[0])
+	c.Response.SetBody(userJSON)
 	return nil
 }
 
@@ -84,6 +111,9 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 		return []byte(SIGNING_KEY), nil
 	})
 
+	if err != nil {
+		return nil, errors.New("Not Authorized.")
+	}
 	claims := tokenParsed.Claims.(jwt.MapClaims)
 	
 	if err == nil && tokenParsed.Valid {
