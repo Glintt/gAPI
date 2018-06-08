@@ -6,9 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gAPIManagement/api/config"
-	"strconv"
 	"errors"
-	"encoding/json"
 	"strings"
 	"time"
 )
@@ -30,79 +28,15 @@ type TokenCustomClaims struct {
 }
 
 
-func InitGAPIAuthenticationServer(router *routing.Router){
+func InitGAPIAuthenticationServer(){
 	if config.GApiConfiguration.Authentication.TokenExpirationTime > MinExpirationTime {
 		EXPIRATION_TIME = config.GApiConfiguration.Authentication.TokenExpirationTime 
 	}
 	if len(config.GApiConfiguration.Authentication.TokenSigningKey) > MinSizeSigningKey {
 		SIGNING_KEY = config.GApiConfiguration.Authentication.TokenSigningKey
 	}
-
-	// LoadUsers()
-
-	router.Post("/oauth/token", GetTokenHandler)
-	router.Get("/oauth/authorize", AuthorizeTokenHandler)
-	router.Get("/oauth/me", MeHandler)
 }
 
-func GetTokenHandler(c *routing.Context) error {
-	c.Response.Header.SetContentType("application/json")
-	tokenRequestBody := c.Request.Body()
-	var tokenRequestObj TokenRequestObj
-	json.Unmarshal(tokenRequestBody, &tokenRequestObj)
-
-	token, err := GenerateToken(tokenRequestObj.Username, tokenRequestObj.Password)
-
-	if err != nil {
-		c.Response.SetBody([]byte(`{"error":true, "msg":"` + err.Error() + `"}`))
-		c.Response.SetStatusCode(401)
-		return nil
-	}
-
-	c.Response.SetBody([]byte(`{"token":"` + token + `", "expiration_time": ` + strconv.Itoa(EXPIRATION_TIME) +`}`))
-	return nil
-}
-
-func MeHandler(c *routing.Context) error {
-	c.Response.Header.SetContentType("application/json")
-	authorizationToken := c.Request.Header.Peek("Authorization")
-
-	tokenClaims, err := ValidateToken(string(authorizationToken))
-
-	if err != nil{
-		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
-		c.Response.Header.SetStatusCode(400)
-		return nil
-	}
-
-	username := tokenClaims["Username"].(string)
-	usersList := users.GetUserByUsername(username)
-
-	if len(usersList) == 0 || len(usersList) > 1 || !usersList[0].IsAdmin {
-		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
-		c.Response.Header.SetStatusCode(400)
-		return nil
-	}
-
-	userJSON,_ := json.Marshal(usersList[0])
-	c.Response.SetBody(userJSON)
-	return nil
-}
-
-func AuthorizeTokenHandler(c *routing.Context) error {
-	c.Response.Header.SetContentType("application/json")
-	authorizationToken := c.Request.Header.Peek("Authorization")
-
-	_, err := ValidateToken(string(authorizationToken))
-
-	if err != nil{
-		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
-		c.Response.Header.SetStatusCode(401)
-		return nil
-	}
-	c.Response.SetBody([]byte(`{"error":false, "msg":"Token is valid."}`))
-	return nil
-}
 
 func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")

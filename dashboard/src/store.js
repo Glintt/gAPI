@@ -17,6 +17,7 @@ export default new Vuex.Store({
     },
     loggedInUserUpdate (state,user) {
       state.loggedInUser = user
+      localStorage.setItem('user', user)
     }
   },
   getters: {

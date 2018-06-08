@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2"
-	"os"
 	"gopkg.in/mgo.v2/bson"
 	"gAPIManagement/api/database"
 )
@@ -22,13 +21,17 @@ const (
 	SERVICE_NAME = "gapi_users"
 	PAGE_LENGTH = 10
 )
-var MONGO_DB = ""
+
 var UsersList []User
 
 func InitUsers() {	
-	MONGO_DB = os.Getenv("MONGO_DB")
+	if ! database.IsConnectionDone {
+		if err := database.InitDatabaseConnection(); err != nil {
+			panic(err.Error())
+		}
+	}
 	
-	_, db := database.GetSessionAndDB(MONGO_DB)
+	_, db := database.GetSessionAndDB(database.MONGO_DB)
 	
 	userCollection := db.C(USERS_COLLECTION)
 	
@@ -56,7 +59,7 @@ func CreateUser(user User) error {
 	user.Password = string(hashedPwd)
 	user.Id = bson.NewObjectId()
 
-	session, db := database.GetSessionAndDB(MONGO_DB)
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	err := db.C(USERS_COLLECTION).Insert(&user)
 
@@ -66,7 +69,7 @@ func CreateUser(user User) error {
 }
 
 func FindUsersByUsernameOrEmail(q string, page int ) []User {
-	session, db := database.GetSessionAndDB(MONGO_DB)
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	query := bson.M{"$or": []bson.M{bson.M{"username": bson.RegEx{"/" + q + ".*", "i"}},bson.M{"email": q}}}
 
@@ -81,7 +84,7 @@ func FindUsersByUsernameOrEmail(q string, page int ) []User {
 }
 
 func GetUserByUsername(username string) []User {
-	session, db := database.GetSessionAndDB(MONGO_DB)
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	query := bson.M{"$or": []bson.M{bson.M{"username": username}}}
 

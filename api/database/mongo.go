@@ -11,6 +11,8 @@ type MongoPool struct {
 	URL string
 	Open int
 }
+var MongoDBPool MongoPool
+
 
 func GetSessionAndDB(db string) (*mgo.Session, *mgo.Database) {
 	session := GetSession()
@@ -76,5 +78,3 @@ func Query(q interface{}) error {
 
 	return nil
 }
-
-var MongoDBPool MongoPool
