@@ -11,7 +11,7 @@ import (
 type User struct {
 	Id bson.ObjectId `bson:"_id" json:"Id"`
 	Username string
-	Password string `json:"-"`
+	Password string `json:",omitempty"`
 	Email string
 	IsAdmin bool
 }
@@ -54,8 +54,12 @@ func InitUsers() {
 	}
 }
 
+func GeneratePassword(password string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+}
+
 func CreateUser(user User) error {
-	hashedPwd, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPwd, _ := GeneratePassword(user.Password)
 	user.Password = string(hashedPwd)
 	user.Id = bson.NewObjectId()
 
@@ -68,15 +72,27 @@ func CreateUser(user User) error {
 	return err
 }
 
+func UpdateUser(user User) error {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	err := db.C(USERS_COLLECTION).UpdateId(user.Id, &user)
+
+	database.MongoDBPool.Close(session)
+
+	return err
+}
+
 func FindUsersByUsernameOrEmail(q string, page int ) []User {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	query := bson.M{"$or": []bson.M{bson.M{"username": bson.RegEx{"/" + q + ".*", "i"}},bson.M{"email": q}}}
+	p := ".*" + q + ".*"
+	query := bson.M{"$or": []bson.M{bson.M{"username": bson.RegEx{p, "i"}}, 
+									bson.M{"email": bson.RegEx{p ,  "i"}}}}
 
 	skips := PAGE_LENGTH * (page - 1)
 	var users []User
 	
-	db.C(USERS_COLLECTION).Find(query).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&users)
+	db.C(USERS_COLLECTION).Find(query).Select(bson.M{"password": 0}).Sort("username").Skip(skips).Limit(PAGE_LENGTH).All(&users)
 	
 	database.MongoDBPool.Close(session)
 	

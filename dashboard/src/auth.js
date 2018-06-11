@@ -1,6 +1,7 @@
 
 const OAUTH_API = require("@/api/auth");
 import Vue from "vue";
+var store = require('./store');
 
 export const vmA = new Vue({
     data: {
@@ -26,19 +27,7 @@ export const vmA = new Vue({
         }
     }
 })
-/* 
-export function logout() {
-    OAUTH_API.clearAccessToken();    
-}
-  
-export function isLoggedIn() {
-    return OAUTH_API.getToken() && new Date().getTime() < OAUTH_API.getExpirationTime();
-}
-*/
 
-export function updateAuthenticatedStatus(){
-
-}
 
 export function requireAdminAuth(to, from, next) {
     if (!vmA.isLoggedIn()) {
@@ -46,8 +35,7 @@ export function requireAdminAuth(to, from, next) {
             path: '/login'
           });
     } else {
-        console.log("HERE")
-        if (! vmA.user.IsAdmin) next({path: '/'})
+        if (! store.default.state.loggedInUser.IsAdmin) next({path: '/'})
         next();
     }
 }

@@ -29,6 +29,12 @@ export function DELETE(url, params){
     return Vue.http.delete(url , params);
 }
 
+export function PUT(url, body, params){
+    params = AddAuthorizationToHeader(params);
+
+    return Vue.http.put(url , body, params);
+}
+
 export function POST(url, body, params){
     params = AddAuthorizationToHeader(params);
 

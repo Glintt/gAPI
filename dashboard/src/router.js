@@ -8,6 +8,9 @@ import ViewService from "./views/Service/ViewService.vue";
 import ServiceLogs from "./views/Service/ServiceLogs.vue";
 import ByApi from "./views/Analytics/ByApi.vue";
 import Realtime from "./views/Analytics/Realtime.vue";
+import ListUsers from "./views/Users/ListUsers.vue";
+import EditUser from "./views/Users/EditUser.vue";
+import NewUser from "./views/Users/NewUser.vue";
 
 var OAuthValidator = require("@/auth");
 Vue.use(Router);
@@ -18,6 +21,24 @@ export default new Router({
       path: "/",
       name: "home",
       component: Home
+    },
+    {
+      path: "/users",
+      name: "users",
+      component: ListUsers,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/users/create",
+      name: "users-create",
+      component: NewUser,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/profile",
+      name: "profile",
+      component: EditUser,
+      beforeEnter: OAuthValidator.requireAuth
     },
     {
       path: "/login",

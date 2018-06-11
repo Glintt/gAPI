@@ -3,7 +3,13 @@ import Vuex from "vuex";
 var auth = require('./auth')
 Vue.use(Vuex);
 
+
+import users from './store/modules/users/index';
+
 export default new Vuex.Store({
+  modules:{
+    users
+  },
   state: {
     isLoggedIn : false,
     loggedInUser: null

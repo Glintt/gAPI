@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	auth "gAPIManagement/api/authentication"
 	"gAPIManagement/api/users"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -41,14 +40,14 @@ func MeHandler(c *routing.Context) error {
 
 	username := tokenClaims["Username"].(string)
 	usersList := users.GetUserByUsername(username)
-
-	fmt.Println(usersList)
+	
 	if len(usersList) == 0 || len(usersList) > 1 {
 		c.Response.SetBody([]byte(`{"error":true, "msg":"User not found."}`))
 		c.Response.Header.SetStatusCode(404)
 		return nil
 	}
 
+	usersList[0].Password = ""
 	userJSON,_ := json.Marshal(usersList[0])
 	c.Response.SetBody(userJSON)
 	return nil
