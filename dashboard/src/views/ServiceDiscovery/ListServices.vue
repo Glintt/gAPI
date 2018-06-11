@@ -46,7 +46,7 @@
                           <i class="fas fa-info-circle"></i> Info
                       </router-link>
 
-                      <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn">
+                      <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin">
                         <i class="fas fa-desktop"></i> Manage
                       </button>
                     
@@ -62,7 +62,6 @@
               :id="'manageModal'" 
               :title="'Manage Service - ' + manageModal.service.Name"
               :service="manageModal.service"/>
-
     </div>
 </template>
 
@@ -70,6 +69,7 @@
 var serviceDiscoveryAPI = require("@/api/service-discovery");
 import DataTable from "@/components/DataTable";
 import ServiceManagementModal from "@/components/modals/ServiceManagementModal";
+import { mapGetters } from 'vuex'
 
 export default {
   name: "list-services",
@@ -81,10 +81,13 @@ export default {
       this.updateData();
     }
   },
-  computed: {
+   computed: {
     isLoggedIn() {
       return this.$oauthUtils.vmA.isLoggedIn();
-    }
+    },
+    ...mapGetters({
+      loggedInUser: 'loggedInUser'
+    })
   },
   data() {
     return {

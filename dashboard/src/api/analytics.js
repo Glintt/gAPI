@@ -7,7 +7,7 @@ export function byApi(api, cb){
   return HTTP.GET(HTTP.PathToCall(AnalyticsBaseURL + "/api"), {params:api}).then(response => {
       cb(response);
     }, response => {
-      cb(response);
+      HTTP.handleError(response, cb)
     });
 }
 
@@ -15,6 +15,6 @@ export function logs(api, cb){
   return HTTP.GET(HTTP.PathToCall(AnalyticsBaseURL + "/logs"), {params:api}).then(response => {
       cb(response);
     }, response => {
-      cb(response);
+      HTTP.handleError(response, cb)
     });
 }

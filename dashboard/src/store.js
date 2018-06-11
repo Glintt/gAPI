@@ -5,7 +5,8 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    isLoggedIn : false
+    isLoggedIn : false,
+    loggedInUser: null
   },
   mutations: {
     loggedIn (state) {
@@ -14,14 +15,27 @@ export default new Vuex.Store({
     loggedOut (state) {
       state.isLoggedIn = false
     },
-
+    loggedInUserUpdate (state,user) {
+      state.loggedInUser = user
+      localStorage.setItem('user', user)
+    }
   },
   getters: {
     isLoggedIn: state => {
       return state.isLoggedIn
+    },
+    loggedInUser: state => {
+      return state.loggedInUser
+    },
+    isAdmin: state => {
+      if (! state.loggedInUser) return false
+      return state.loggedInUser.IsAdmin
     }
   },
   actions: {
+    loggedInUserUpdate: ({commit}, user) => {
+      commit("loggedInUserUpdate", user)
+    },
     login : ({ commit }) => {
       commit("loggedIn")
     },

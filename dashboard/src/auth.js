@@ -3,9 +3,9 @@ const OAUTH_API = require("@/api/auth");
 import Vue from "vue";
 
 export const vmA = new Vue({
-
     data: {
-        loggedIn : false   
+        loggedIn : false,
+        user: null
     },
     methods:{
         logout(){
@@ -20,6 +20,9 @@ export const vmA = new Vue({
             OAUTH_API.authenticate(user.username,user.password, (response) => {
                 cb(response)
             });
+        },
+        currentUser() {
+            return this.user
         }
     }
 })
@@ -36,6 +39,19 @@ export function isLoggedIn() {
 export function updateAuthenticatedStatus(){
 
 }
+
+export function requireAdminAuth(to, from, next) {
+    if (!vmA.isLoggedIn()) {
+        next({
+            path: '/login'
+          });
+    } else {
+        console.log("HERE")
+        if (! vmA.user.IsAdmin) next({path: '/'})
+        next();
+    }
+}
+
 export function requireAuth(to, from, next) {
     if (!vmA.isLoggedIn()) {
         next({

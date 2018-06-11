@@ -1,9 +1,9 @@
 package main
 
 import (
+	"gAPIManagement/api/routes"
 	"encoding/json"
 	
-	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
@@ -28,9 +28,10 @@ func main() {
 	config.LoadConfigs()
 	
 	router = routing.New()
-	router.Get("/reload", authentication.AuthorizationMiddleware, ReloadServices)
-	router.Get("/invalidate-cache", authentication.AuthorizationMiddleware, InvalidateCache)
-	initServices()
+	
+	InitServices()
+	
+	InitAPIs()
 
 	InitSocketServices()
 	
@@ -42,28 +43,18 @@ func InitSocketServices() {
 	sockets.StartRequestsCounterSender()
 }
 
-func InvalidateCache(c *routing.Context) error {
-	cache.InvalidateCache()
-	c.Response.SetBody([]byte(`{"error":false, "msg": "Invalidation finished."}`))
-	c.Response.Header.SetContentType("application/json")
-	return nil
+
+func InitAPIs() {
+	routes.InitAPIRoutes(router)
+
+	proxy.StartProxy(router)	
 }
 
-func ReloadServices(c *routing.Context) error {
-	initServices()
-	cache.InvalidateCache()
-	c.Response.SetBody([]byte(`{"error":false, "msg": "Reloaded successfully."}`))
-	c.Response.Header.SetContentType("application/json")
-	return nil
-}
-
-func initServices() {
-	authentication.InitGAPIAuthenticationServer(router)
+func InitServices() {
 	cache.InitCachingService()
 	logs.StartDispatcher(2)
-	servicediscovery.StartServiceDiscovery(router)
-	apianalytics.StartAPIAnalytics(router)
-	proxy.StartProxy(router)
+	authentication.InitGAPIAuthenticationServer()
+	servicediscovery.InitServiceDiscovery()
 	healthcheck.InitHealthCheck()
 }
 

@@ -33,7 +33,7 @@ export default new Router({
       path: "/service-discovery/services/new",
       name: "service-discovery-services-new",
       component: NewService,
-      beforeEnter: OAuthValidator.requireAuth
+      beforeEnter: OAuthValidator.requireAdminAuth
     },
     {
       path: "/service-discovery/service",

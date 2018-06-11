@@ -10,10 +10,10 @@
                         <div class="col-sm-10" v-show="isLoggedIn">
                             <h2>{{ service.Name }} API Information</h2>
                         </div>
-                        <div class="col-sm-2" v-show="isLoggedIn">
-                            <button type="submit" v-if="isLoggedIn" class="btn btn-xs btn-primary" v-on:click="store">Save</button>
-                            <button type="submit" v-if="isLoggedIn" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
-                            <button class="btn btn-danger" v-if="isLoggedIn" @click="deleteService">Delete</button>
+                        <div class="col-sm-2" v-show="isAdmin">
+                            <button type="submit" class="btn btn-xs btn-primary" v-on:click="store">Save</button>
+                            <button class="btn btn-danger"  @click="deleteService">Delete</button>
+                            <button type="submit" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
                         </div>
                     </div>
 
@@ -34,7 +34,7 @@
                             <div class="form-group col-sm">
                                 <label for="serviceName">Name</label>
                                 <input type="text"
-                                    :disabled="!isLoggedIn"
+                                    :disabled="! (isLoggedIn && isAdmin)"
                                     v-model="service.Name" class="form-control" id="serviceName" aria-describedby="nameHelp" placeholder="Enter name">
                                 <small id="nameHelp" class="form-text text-primary">Give the service/API a name.</small>
                             </div>
@@ -42,7 +42,7 @@
                             <div class="form-group col-sm">
                                 <label for="serviceMatchingUri">MatchingURI</label>
                                 <input type="text"
-                                    :disabled="!isLoggedIn"
+                                    :disabled="! $permissions.HasPermission(pageType, loggedInUser)"
                                     v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
                                 <small id="serviceMatchingUriHelp" class="form-text text-primary">Base URI which links to the service on API Management Platform.</small>
                             </div>
@@ -72,13 +72,18 @@ var serviceDiscoveryAPI = require("@/api/service-discovery");
 import InformationPanel from "@/components/InformationPanel";
 import ServiceAPIConfiguration from "@/views/Service/ServiceAPIConfiguration";
 import ServiceManagementConfig from "@/views/Service/ServiceManagementConfig";
+import { mapGetters } from 'vuex'
 
 export default {
   name: "view-service",
   computed: {
     isLoggedIn() {
       return this.$oauthUtils.vmA.isLoggedIn();
-    }
+    },
+    ...mapGetters({
+      isAdmin: 'isAdmin',
+      loggedInUser: 'loggedInUser'
+    })
   },
   mounted() {
     serviceDiscoveryAPI.getServices(this.$route.query.uri, response => {
@@ -92,9 +97,12 @@ export default {
         : "text-danger";
       this.serviceFetched = true;
     });
+
   },
   data() {
+
     return {
+      pageType: 'ServiceDiscovery.EditService',
       serviceFetched: false,
       service: {
         Name: "",

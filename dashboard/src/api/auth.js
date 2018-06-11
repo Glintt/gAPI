@@ -6,10 +6,10 @@ export function authenticate(user, password,cb) {
     return HTTP.POST(HTTP.PathToCall("/oauth/token"), {"username":user, "password":password}, {}).then((response) => {
       
       storeToken(response.body.token, response.body.expiration_time);
-
+      
       cb(response);
     }, (response) => {
-      cb(response);
+      HTTP.handleError(response, cb)
     });
 }
 
