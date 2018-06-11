@@ -21,10 +21,10 @@ const UsersServices = require('@/api/users')
 
 UsersServices.me(require("@/api/auth").getToken(), (response) => {
   store.dispatch('loggedInUserUpdate', response.body)
+  
+  new Vue({
+    router,
+    store,
+    render: h => h(App)
+  }).$mount("#app");
 })
-
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount("#app");

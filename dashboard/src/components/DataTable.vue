@@ -1,5 +1,24 @@
 <template>
 <div>
+  <div class="row" v-if="searchable">
+    <div class="col-sm-5 form-inline ">
+        <input class="form-control" v-model="searchText"/>
+        <button class="btn btn-sm btn-info" @click="search">
+        <i class="fas fa-search"></i>
+        </button>
+    </div>
+    
+    <div class="col-sm-3 offset-sm-4 form-inline">
+        <button class="btn btn-sm btn-info" @click="changePage(currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1)">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <input class="form-control sm-1 mr-sm-1" v-model="currentPage" />
+        <button class="btn btn-sm btn-info" @click="changePage(currentPage += 1)">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+  </div>
+        
 <table class="table">
   <thead>
     <tr>
@@ -54,18 +73,17 @@
 <script>
 export default {
   name: "datatable",
-  props: ["headers", "data", "actions"],
+  props: ["headers", "data", "actions", "searchable"],
   data() {
     return {
       maxLength: 25,
       showingMore: {
         index: null,
         item: null
-      }
+      },
+      searchText: '',
+      currentPage: 1
     };
-  },
-  mounted() {
-    console.log(this.data);
   },
   methods: {
     isJSON: function(jsonStr) {
@@ -105,6 +123,15 @@ export default {
 
     actionEmit: function(event, row) {
       this.$emit(event, row);
+    },
+
+    search: function() {
+      this.$emit('search', this.searchText);
+    },
+
+    changePage: function(value) {
+      this.currentPage = value
+      this.$emit('changePage', this.currentPage);
     }
   }
 };
