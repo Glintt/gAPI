@@ -18,7 +18,8 @@
                     <a href="" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Service Discovery</a>
                    
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <router-link v-if="isLoggedIn" to="/service-discovery/services/new" class="dropdown-item">Register New API</router-link>
+                        <router-link to="/service-discovery/services/new" class="dropdown-item"
+                            v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">Register New API</router-link>
                         <router-link to="/service-discovery/services" class="dropdown-item" href="#">List APIs</router-link>
                     </div>
                 </li>

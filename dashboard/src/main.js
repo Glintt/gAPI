@@ -15,6 +15,7 @@ Vue.prototype.$chartColors = require("@/configs/chartColors");
 Vue.prototype.$random = require("@/configs/random");
 Vue.prototype.$oauthUtils = require("@/auth");
 Vue.prototype.$api = require("@/api/api").api;
+Vue.prototype.$permissions = require("@/configs/permissions")
 
 const UsersServices = require('@/api/users')
 

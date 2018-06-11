@@ -26,6 +26,10 @@ export default new Vuex.Store({
     },
     loggedInUser: state => {
       return state.loggedInUser
+    },
+    isAdmin: state => {
+      if (! state.loggedInUser) return false
+      return state.loggedInUser.IsAdmin
     }
   },
   actions: {

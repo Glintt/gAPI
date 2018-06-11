@@ -18,7 +18,7 @@ export function listServices(page, searchQuery, cb){
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.list + "?page=" + page + "&q=" + searchQuery), {}).then(response => {
       cb(response);
     }, response => {
-      cb(response)
+      HTTP.handleError(response, cb)
   });
 }
 
@@ -26,7 +26,7 @@ export function getServices(serviceEndpoint, cb){
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.get), {params: {uri: serviceEndpoint}}).then(response => {
       cb(response);
     }, response => {
-      cb(response);
+      HTTP.handleError(response, cb)
     });
 }
 
@@ -34,7 +34,7 @@ export function storeService(service, cb){
   HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.store), service, {}).then(response => {
     cb(response);
   }, response => {
-    cb(response);
+    HTTP.handleError(response, cb)
   });
 }
 
@@ -42,7 +42,7 @@ export function deleteService(serviceEndpoint, cb){
   HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.delete), {params: {uri: serviceEndpoint}}).then(response => {
     cb(response);
   }, response => {
-    cb(response);
+    HTTP.handleError(response, cb)
   });
 }
 

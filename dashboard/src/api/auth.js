@@ -9,7 +9,7 @@ export function authenticate(user, password,cb) {
       
       cb(response);
     }, (response) => {
-      cb(response);
+      HTTP.handleError(response, cb)
     });
 }
 

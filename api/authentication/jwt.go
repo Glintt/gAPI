@@ -95,7 +95,7 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 }
 
 
-func NotAllowed(c *routing.Context) error {
+func NotAuthorized(c *routing.Context) error {
 	c.Response.SetBody([]byte(`{"error":true, "msg": "Not authorized."}`))
 	c.Response.SetStatusCode(401)
 	c.Response.Header.SetContentType("application/json")
@@ -108,12 +108,19 @@ func AuthorizationMiddleware(c *routing.Context) error {
 	_, validate := ValidateToken(string(token))
 
 	if validate != nil {
-		NotAllowed(c)
+		NotAuthorized(c)
 		c.Abort()
 		return nil
 	}
 
 	return nil
+}
+
+func UserNotAllowed(c *routing.Context) error {
+	c.Response.SetBody([]byte(`{"error":true, "msg": "Not authorized to access resource."}`))
+	c.Response.SetStatusCode(405)
+	c.Response.Header.SetContentType("application/json")
+	return errors.New("Not allowed")
 }
 
 func AdminRequiredMiddleware(c *routing.Context) error {
@@ -122,7 +129,7 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 	claims, validate := ValidateToken(string(token))
 
 	if validate != nil {
-		NotAllowed(c)
+		NotAuthorized(c)
 		c.Abort()
 		return nil
 	}
@@ -131,7 +138,7 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 	usersList := users.GetUserByUsername(username)
 
 	if len(usersList) == 0 || len(usersList) > 1 || !usersList[0].IsAdmin {
-		NotAllowed(c)
+		UserNotAllowed(c)
 		c.Abort()
 		return nil
 	}

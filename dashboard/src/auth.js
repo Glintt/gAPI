@@ -39,6 +39,19 @@ export function isLoggedIn() {
 export function updateAuthenticatedStatus(){
 
 }
+
+export function requireAdminAuth(to, from, next) {
+    if (!vmA.isLoggedIn()) {
+        next({
+            path: '/login'
+          });
+    } else {
+        console.log("HERE")
+        if (! vmA.user.IsAdmin) next({path: '/'})
+        next();
+    }
+}
+
 export function requireAuth(to, from, next) {
     if (!vmA.isLoggedIn()) {
         next({
