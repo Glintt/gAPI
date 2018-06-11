@@ -20,4 +20,6 @@ func InitUsersService(router *routing.Router) {
 	usersGroup.Post("/", authentication.AdminRequiredMiddleware, controllers.CreateUserHandler)
 	usersGroup.Post("", authentication.AdminRequiredMiddleware, controllers.CreateUserHandler)
 	usersGroup.Get("/<username>", authentication.AdminRequiredMiddleware, controllers.GetUserHandler)
+	usersGroup.Put("/<username>", authentication.AuthorizationMiddleware, controllers.UpdateUserHandler)
+	usersGroup.Put("/admin/<username>", authentication.AdminRequiredMiddleware, controllers.UpdateUserByAdminHandler)
 }

@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"gAPIManagement/api/users"
 	"github.com/dgrijalva/jwt-go"
@@ -73,7 +74,6 @@ func GenerateToken(username string, password string) (string, error){
 			Issuer:    "gAPI",
 		},
 	}
-	
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString(mySigningKey)
 	
@@ -87,7 +87,15 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 	}
 
 	user := userList[0]
+	fmt.Println(user.Password)
+	fmt.Println(password)
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	if username == user.Username && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil {
+		
 		return user, nil
 	}
 
@@ -105,7 +113,7 @@ func NotAuthorized(c *routing.Context) error {
 func AuthorizationMiddleware(c *routing.Context) error {
 	token := c.Request.Header.Peek("Authorization")
 
-	_, validate := ValidateToken(string(token))
+	userClaims, validate := ValidateToken(string(token))
 
 	if validate != nil {
 		NotAuthorized(c)
@@ -113,6 +121,7 @@ func AuthorizationMiddleware(c *routing.Context) error {
 		return nil
 	}
 
+	c.Request.Header.Add("User", userClaims["Username"].(string))
 	return nil
 }
 
