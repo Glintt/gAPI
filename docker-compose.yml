@@ -4,20 +4,7 @@ services:
     restart: always
     build:
       context: ./api
-    environment: 
-      - API_MANAGEMENT_PORT=${API_MANAGEMENT_PORT:-8080}
-      - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
-      - RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
-      - RABBITMQ_USER=${RABBITMQ_USER:-gapi}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-gapi}
-      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-gAPI-logqueue}
-      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elastic}
-      - ELASTICSEARCH_PORT=${ELASTICSEARCH_URL:-9200}
-      - SERVICEDISCOVERY_HOST=${SERVICEDISCOVERY_HOST:-localhost}
-      - SERVICEDISCOVERY_PORT=${SERVICEDISCOVERY_PORT:-8080}
-      - MONGO_HOST=${MONGO_HOST:-mongodb}
-      - MONGO_DB=${MONGO_DB:-gapi}
-      - SOCKET_PORT=${SOCKET_PORT:-5000}
+    env_file: .env
     ports:
       - 8080:8080
       - 5000:5000
@@ -36,14 +23,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile-rabbitlistener
-    environment: 
-      - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbit}
-      - RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
-      - RABBITMQ_USER=${RABBITMQ_USER:-gapi}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-gapi}
-      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-gAPI-logqueue}
-      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:-elastic}
-      - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-9200}
+    env_file: .env
     volumes:
       - ./api/configs:/go/src/gAPIManagement/api/configs/
 
@@ -51,11 +31,7 @@ services:
     restart: always
     image: "rabbitmq:3-management"
     hostname: "rabbit"
-    environment:
-      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
-      RABBITMQ_DEFAULT_USER: "gapi"
-      RABBITMQ_DEFAULT_PASS: "gapi"
-      RABBITMQ_DEFAULT_VHOST: "/"
+    env_file: .env
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -65,6 +41,7 @@ services:
   elastic:
     restart: always
     image: elasticsearch:latest
+    env_file: .env
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -74,6 +51,7 @@ services:
   mongodb:
     image: mongo
     restart: always
+    env_file: .env
     volumes:
       - ./data:/data/db
     ports:

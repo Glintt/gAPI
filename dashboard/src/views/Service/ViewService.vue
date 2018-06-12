@@ -29,7 +29,7 @@
         },
         methods:{
             updateDocumentationEndpoint : function(service){
-                this.ServiceDocumentationEndpoint = "http://" + service.Domain + ":" + service.Port + service.APIDocumentation;
+                this.ServiceDocumentationEndpoint = service.APIDocumentation;
             }
         },
         components:{
