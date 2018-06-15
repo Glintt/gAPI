@@ -11,6 +11,7 @@ const Endpoints = {
   "manage_types":"/services/manage/types",
   "update" :"/update",
   "add_to_group" : "/service-groups/<group_id>/services",
+  "deassociate_from_group" : "/service-groups/<group_id>/services/<service_id>",
   "list_groups": "/service-groups"
 };
 
@@ -50,8 +51,15 @@ export function storeServiceGroup(group, cb){
 
 export function addServiceToServiceGroup(groupId, serviceId, cb){
   let obj = {service_id: serviceId}
-  console.log(obj)
   HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.add_to_group.replace('<group_id>', groupId)), obj , {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function deassociateServiceFromServiceGroup(groupId, serviceId, cb){
+  HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.deassociate_from_group.replace('<group_id>', groupId).replace('<service_id>', serviceId)),  {}).then(response => {
     cb(response);
   }, response => {
     HTTP.handleError(response, cb)

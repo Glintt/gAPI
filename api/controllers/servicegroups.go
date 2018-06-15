@@ -89,3 +89,40 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 	http.Response(c, `{"error" : false, "msg": "Service added to group successfuly."}`, 201, ServiceDiscoveryServiceName())
 	return nil
 }
+
+func DeassociateServiceFromGroup(c *routing.Context) error {	
+	serviceGroupId := c.Param("group_id")
+	serviceId := c.Param("service_id")
+	
+	if serviceGroupId == "null" || serviceId == "null" || serviceId == "" {
+		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName())
+		return nil
+	}
+
+	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
+	serviceIdHex := bson.ObjectIdHex(serviceId)
+
+	updateGroup := bson.M{"$pull": bson.M{"services": serviceIdHex }}
+	updateService := bson.M{"$set": bson.M{"group_id": nil}}
+	
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+	
+	err := db.C(servicediscovery.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "` + err.Error() + `"}`, 400, ServiceDiscoveryServiceName())
+		return nil
+	}
+
+	err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
+
+	database.MongoDBPool.Close(session)
+
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "` + err.Error() + `"}`, 400, ServiceDiscoveryServiceName())
+		return nil
+	}
+	http.Response(c, `{"error" : false, "msg": "Service deassociated from group successfuly."}`, 201, ServiceDiscoveryServiceName())
+	return nil
+}
+

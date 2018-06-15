@@ -28,6 +28,7 @@ func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 func LoadDBSpecificEndpoints(router *routing.RouteGroup) {
 	router.Post("/service-groups/register", authentication.AdminRequiredMiddleware, controllers.RegisterServiceGroupHandler)
 	router.Post("/service-groups/<group_id>/services", authentication.AdminRequiredMiddleware, controllers.AddServiceToGroupHandler)
+	router.Delete("/service-groups/<group_id>/services/<service_id>", authentication.AdminRequiredMiddleware, controllers.DeassociateServiceFromGroup)
 	// sd.sdAPI.Post("/service-groups/service/register", authentication.AuthorizationMiddleware, RegisterServiceToServiceGroupHandler)
 	router.Get("/service-groups", controllers.ListServiceGroupsHandler)
 }

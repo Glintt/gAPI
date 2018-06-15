@@ -6,11 +6,12 @@
             <div class="row col-sm"> 
                 <div class="form-group col-sm-6">
                     Associated Group
-                    <select class="form-control" v-model="selectedGroup">
+                    <select class="form-control" v-model="selectedGroup" @change="changed = selectedGroup == service.GroupId ? false : true">
                         <option :value="null"></option>                        
                         <option v-for="group in groups" :value="group.Id" :key="group.Id">{{ group.Name }}</option>
                     </select>
-                    <button class="btn btn-sm btn-success" @click="associateToGroup">Associate</button>
+                    <button class="btn btn-sm btn-success" v-if="selectedGroup != null && changed" @click="associateToGroup">Associate</button>
+                    <button class="btn btn-sm btn-danger" v-if="selectedGroup != null" @click="deassociateFromGroup">Deassociate</button>
                 </div>
             </div>
             <div class="row col-sm">
@@ -88,7 +89,8 @@ export default {
     return {
       hostToAdd: "",
       groups: [],
-      selectedGroup: null
+      selectedGroup: null,
+      changed : false
     };
   },
   computed: {
@@ -104,14 +106,18 @@ export default {
   },
   watch:{
       service: function() {
-          this.selectedGroup = this.service.GroupId
+          this.selectedGroup = this.service.GroupId == "" ? null : this.service.GroupId
       }
   },
   methods: {
     associateToGroup: function() {
-        console.log(this.service)
         this.$api.serviceDiscovery.addServiceToServiceGroup(this.selectedGroup, this.service.Id, response => {
             console.log(response.body)
+        })
+    },
+    deassociateFromGroup: function() {
+        this.$api.serviceDiscovery.deassociateServiceFromServiceGroup(this.selectedGroup, this.service.Id, response => {
+            this.selectedGroup = null
         })
     },
     removeHost: function(hostToRemove) {
