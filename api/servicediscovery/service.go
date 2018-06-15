@@ -35,6 +35,7 @@ type Service struct {
 	RateLimitExpirationTime	int64
 	IsReachable              bool
 	GroupVisibility		bool
+	GroupId 			bson.ObjectId `bson:"group_id" json:"GroupId"`
 }
 
 func Contains(array []int, value int) bool {

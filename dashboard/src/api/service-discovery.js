@@ -6,11 +6,12 @@ const Endpoints = {
   "list" : "/services",
   "get" : "/endpoint",
   "store" : "/register",
-  "store_group" : "/service-groups/register",
   "delete":"/delete",
   "manage":"/services/manage",
   "manage_types":"/services/manage/types",
-  "update" :"/update"
+  "update" :"/update",
+  "add_to_group" : "/service-groups/<group_id>/services",
+  "list_groups": "/service-groups"
 };
 
 export const CustomManagementActions = ["logs"]
@@ -46,6 +47,26 @@ export function storeServiceGroup(group, cb){
     HTTP.handleError(response, cb)
   });
 }
+
+export function addServiceToServiceGroup(groupId, serviceId, cb){
+  let obj = {service_id: serviceId}
+  console.log(obj)
+  HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.add_to_group.replace('<group_id>', groupId)), obj , {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function listServiceGroups(cb){
+  HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.list_groups), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
 
 export function deleteService(serviceEndpoint, cb){
   HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.delete), {params: {uri: serviceEndpoint}}).then(response => {

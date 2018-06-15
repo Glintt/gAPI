@@ -16,7 +16,7 @@
                             <button type="submit" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
                         </div>
                     </div>
-
+                    
                     <div class="card mb-12">
                         <div class="card-header text-white bg-primary" @click="toggleCard('basic')">
                             <div class="row">
@@ -97,7 +97,6 @@ export default {
         : "text-danger";
       this.serviceFetched = true;
     });
-
   },
   data() {
 

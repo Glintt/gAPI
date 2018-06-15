@@ -3,6 +3,16 @@
     <div class="card mb-6">
         <div class="card-header text-white bg-info" @click="toggleCard('api_config')">API configuration</div>
         <div class="card-body" v-if="showing">
+            <div class="row col-sm"> 
+                <div class="form-group col-sm-6">
+                    Associated Group
+                    <select class="form-control" v-model="selectedGroup">
+                        <option :value="null"></option>                        
+                        <option v-for="group in groups" :value="group.Id" :key="group.Id">{{ group.Name }}</option>
+                    </select>
+                    <button class="btn btn-sm btn-success" @click="associateToGroup">Associate</button>
+                </div>
+            </div>
             <div class="row col-sm">
                 <div class="form-group col-sm-6">
                     <label for="hostsName">Hosts</label>
@@ -10,7 +20,7 @@
                     <small id="hostsHelp" class="form-text text-info">Hosts where the service is hosted.</small>
                     <button type="button" v-if="isAdmin"  @click="addHost" class="btn btn-sm btn-success">Add</button>
                     <ul class="list-group">
-                        <li class="list-group-item" v-for="h in service.Hosts" v-bind:key="h">
+                        <li class="list-group-item" v-for="h in service.Hosts" :key="h">
                             {{ h }}
                             <button v-if="isAdmin" type="button" @click="removeHost(h)" class="btn btn-sm btn-danger">Delete</button>
                         </li>
@@ -76,7 +86,9 @@ export default {
   props: ["iLoggedIn", "service", "showing"],
   data() {
     return {
-      hostToAdd: ""
+      hostToAdd: "",
+      groups: [],
+      selectedGroup: null
     };
   },
   computed: {
@@ -85,7 +97,23 @@ export default {
       loggedInUser: 'loggedInUser'
     })
   },
+  mounted() {
+    this.$api.serviceDiscovery.listServiceGroups(response => {
+        this.groups = response.body;
+    });
+  },
+  watch:{
+      service: function() {
+          this.selectedGroup = this.service.GroupId
+      }
+  },
   methods: {
+    associateToGroup: function() {
+        console.log(this.service)
+        this.$api.serviceDiscovery.addServiceToServiceGroup(this.selectedGroup, this.service.Id, response => {
+            console.log(response.body)
+        })
+    },
     removeHost: function(hostToRemove) {
       this.$emit("removeHost", hostToRemove);
     },
