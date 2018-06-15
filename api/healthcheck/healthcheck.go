@@ -49,7 +49,7 @@ func CheckServicesHealth() {
 
 	for _, s := range ServicesList() {
 		healthcheckURL := s.HealthcheckUrl
-		healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
+		// healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
 
 		utils.LogMessage("-----> " + healthcheckURL)
 		

@@ -53,6 +53,16 @@
                     <label class="form-check-label" for="serviceProtected">&nbsp;&nbsp;Cache</label>
                     <small id="serviceProtectedHelp" class="form-text text-info">Enable caching on this service? It will improve performance but be careful as it may affect results.</small> 
                 </div>
+                <div class="form-group col-sm-6">                      
+                    <i class="fas " :class="service.IsReachable ? 'fa-eye text-success' : 'fa-eye-slash text-danger'" @click="toggleReachable" />
+                    <label class="form-check-label" for="serviceReachable">&nbsp;&nbsp;Reachable</label>
+                    <small id="serviceReachableHelp" class="form-text text-info">Is service reachable from external sources?</small> 
+                </div>
+                <div class="form-group col-sm-6">                      
+                    <i class="fas " :class="service.GroupVisibility ? 'fa-eye text-success' : 'fa-eye-slash text-danger'" />
+                    <label class="form-check-label" for="serviceReachable">&nbsp;&nbsp;Group Reachability</label>
+                    <small id="serviceReachableHelp" class="form-text text-info">Group to which service is associated reachability from external. This value is used when Reachable status is set to false</small> 
+                </div>
             </div>
         </div>
     </div>
@@ -93,6 +103,10 @@ export default {
     toggleProtection: function() {
         if (! this.isAdmin) return 
         this.service.Protected = !this.service.Protected
+    },
+    toggleReachable: function() {
+        if (! this.isAdmin) return
+        this.service.IsReachable = !this.service.IsReachable
     }
   }
 };

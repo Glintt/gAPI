@@ -34,6 +34,7 @@ type Service struct {
 	RateLimit	int
 	RateLimitExpirationTime	int64
 	IsReachable              bool
+	GroupVisibility		bool
 }
 
 func Contains(array []int, value int) bool {
@@ -77,6 +78,7 @@ func (service *Service) BalanceUrl() string {
 
 	return service.Domain + ":" + service.Port
 }
+
 func (service *Service) GetHost() string {
 	if service.Hosts == nil || len(service.Hosts) == 0{
 		return service.Domain + ":" + service.Port

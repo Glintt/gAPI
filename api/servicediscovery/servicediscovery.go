@@ -1,8 +1,8 @@
 package servicediscovery
 
 import (
+	"strings"
 	"gAPIManagement/api/database"
-	"fmt"
 	"gAPIManagement/api/config"
 	"github.com/qiangxue/fasthttp-routing"
 )
@@ -57,17 +57,19 @@ func InitServiceDiscovery() {
 	}
 
 	sd.isService = true
-	sd.isService = true
 }
 
 
 func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
 	hosts, _ := ListAllAvailableHosts()
-	requestHost := string(requestContxt.Host())
-	fmt.Println(hosts)
+	requestHost := requestContxt.RemoteIP().String()
 
 	for _, v := range hosts {
-		if v == requestHost {
+		hostInfo := strings.Split(v, ":")
+		if hostInfo[0] == "localhost" {
+			hostInfo[0] = "127.0.0.1"
+		}
+		if hostInfo[0] == requestHost {
 			return false
 		}
 	}
