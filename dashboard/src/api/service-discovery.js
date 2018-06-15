@@ -6,6 +6,7 @@ const Endpoints = {
   "list" : "/services",
   "get" : "/endpoint",
   "store" : "/register",
+  "store_group" : "/service-groups/register",
   "delete":"/delete",
   "manage":"/services/manage",
   "manage_types":"/services/manage/types",
@@ -32,6 +33,14 @@ export function getServices(serviceEndpoint, cb){
 
 export function storeService(service, cb){
   HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.store), service, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function storeServiceGroup(group, cb){
+  HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.store_group), group, {}).then(response => {
     cb(response);
   }, response => {
     HTTP.handleError(response, cb)

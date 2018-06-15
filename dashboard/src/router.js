@@ -11,6 +11,7 @@ import Realtime from "./views/Analytics/Realtime.vue";
 import ListUsers from "./views/Users/ListUsers.vue";
 import EditUser from "./views/Users/EditUser.vue";
 import NewUser from "./views/Users/NewUser.vue";
+import NewServiceGroup from "./views/ServiceDiscovery/NewServiceGroup.vue";
 
 var OAuthValidator = require("@/auth");
 Vue.use(Router);
@@ -66,6 +67,12 @@ export default new Router({
       name: "service-logs-view",
       component: ServiceLogs,
       beforeEnter: OAuthValidator.requireAuth
+    },
+    {
+      path: "/service-discovery/groups/create",
+      name: "service-groups-create",
+      component: NewServiceGroup,
+      beforeEnter: OAuthValidator.requireAdminAuth
     },
     {
       path: "/analytics/by-api",
