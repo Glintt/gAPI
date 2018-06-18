@@ -131,6 +131,7 @@ export default {
         this.$api.serviceDiscovery.addServiceToServiceGroup(this.selectedGroup, this.service.Id, response => {
             if (response.status == 201) {
                 this.service.GroupId = this.selectedGroup
+                if (! this.service.UseGroupAttributes) return
                 this.service.GroupVisibility = this.groups.find(element => {
                     return element.Id == this.selectedGroup
                 }).IsReachable

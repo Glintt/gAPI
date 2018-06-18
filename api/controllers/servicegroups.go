@@ -156,7 +156,7 @@ func RemoveServiceGroup(c *routing.Context) error {
 
 	err := db.C(servicediscovery.SERVICE_GROUP_COLLECTION).RemoveId(serviceGroupId)
 
-	_,err = db.C(servicediscovery.SERVICE_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"group_id": nil}})
+	_,err = db.C(servicediscovery.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"group_id": nil}})
 
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": "` + err.Error() + `"}`, 400, ServiceDiscoveryServiceName())
