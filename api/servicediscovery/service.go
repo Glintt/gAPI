@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
+	"gAPIManagement/api/database"
 	
 	"gAPIManagement/api/http"
 	"strings"
@@ -34,6 +35,9 @@ type Service struct {
 	RateLimit	int
 	RateLimitExpirationTime	int64
 	IsReachable              bool
+	GroupId 			bson.ObjectId `bson:"group_id,omitempty" json:"GroupId"`
+	GroupVisibility		bool
+	UseGroupAttributes bool
 }
 
 func Contains(array []int, value int) bool {
@@ -46,7 +50,7 @@ func Contains(array []int, value int) bool {
 }
 
 func (service *Service) IsReachableFromExternal(sd ServiceDiscovery) bool {
-	if service.IsReachable {
+	if ! service.UseGroupAttributes || service.GroupId == "" {
 		return service.IsReachable
 	}
 
@@ -77,6 +81,7 @@ func (service *Service) BalanceUrl() string {
 
 	return service.Domain + ":" + service.Port
 }
+
 func (service *Service) GetHost() string {
 	if service.Hosts == nil || len(service.Hosts) == 0{
 		return service.Domain + ":" + service.Port
@@ -133,4 +138,19 @@ func (service *Service) GetManagementEndpointMethod(managementType string) strin
 func ValidateURL(url string) bool {
 	var validURL = regexp.MustCompile(`^(((http|https):\/{2})+(([0-9a-z_-]+\.?)+(:[0-9]+)?((\/([~0-9a-zA-Z#\+%@\.\/_-]+))?(\?[0-9a-zA-Z\+%@\/&\[\];=_-]+)?)?))\b$`)
 	return validURL.MatchString(url)
+}
+
+func (service *Service) GetGroup() (ServiceGroup, error) {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	var servicesGroup ServiceGroup
+	err := db.C(SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
+
+	if err != nil {
+		return ServiceGroup{}, err
+	}
+	
+	database.MongoDBPool.Close(session)
+	
+	return servicesGroup, nil
 }

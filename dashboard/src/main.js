@@ -20,7 +20,7 @@ Vue.prototype.$permissions = require("@/configs/permissions")
 const UsersServices = require('@/api/users')
 
 UsersServices.me(require("@/api/auth").getToken(), (response) => {
-  store.dispatch('loggedInUserUpdate', response.body)
+  if (response.status == 200) store.dispatch('loggedInUserUpdate', response.body)
   
   new Vue({
     router,

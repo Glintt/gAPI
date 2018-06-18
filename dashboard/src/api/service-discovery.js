@@ -9,7 +9,14 @@ const Endpoints = {
   "delete":"/delete",
   "manage":"/services/manage",
   "manage_types":"/services/manage/types",
-  "update" :"/update"
+  "update" :"/update",
+  "add_to_group" : "/service-groups/<group_id>/services",
+  "deassociate_from_group" : "/service-groups/<group_id>/services/<service_id>",
+  "list_groups": "/service-groups",
+  "store_group": "/service-groups",
+  "update_group": "/service-groups/<group_id>",
+  "remove_group": "/service-groups/<group_id>"
+
 };
 
 export const CustomManagementActions = ["logs"]
@@ -37,6 +44,56 @@ export function storeService(service, cb){
     HTTP.handleError(response, cb)
   });
 }
+
+export function storeServiceGroup(group, cb){
+  HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.store_group), group, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function addServiceToServiceGroup(groupId, serviceId, cb){
+  let obj = {service_id: serviceId}
+  HTTP.POST(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.add_to_group.replace('<group_id>', groupId)), obj , {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function deassociateServiceFromServiceGroup(groupId, serviceId, cb){
+  HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.deassociate_from_group.replace('<group_id>', groupId).replace('<service_id>', serviceId)),  {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function listServiceGroups(cb){
+  HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.list_groups), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function updateServiceGroup(group, cb){
+  HTTP.PUT(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.update_group.replace('<group_id>', group.Id)), group, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+export function deleteServiceGroup(groupId, cb){
+  HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.remove_group.replace('<group_id>', groupId)), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
 
 export function deleteService(serviceEndpoint, cb){
   HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.delete), {params: {uri: serviceEndpoint}}).then(response => {
