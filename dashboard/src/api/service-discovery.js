@@ -12,7 +12,9 @@ const Endpoints = {
   "update" :"/update",
   "add_to_group" : "/service-groups/<group_id>/services",
   "deassociate_from_group" : "/service-groups/<group_id>/services/<service_id>",
-  "list_groups": "/service-groups"
+  "list_groups": "/service-groups",
+  "update_group": "/service-groups/<group_id>"
+
 };
 
 export const CustomManagementActions = ["logs"]
@@ -68,6 +70,14 @@ export function deassociateServiceFromServiceGroup(groupId, serviceId, cb){
 
 export function listServiceGroups(cb){
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.list_groups), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function updateServiceGroup(group, cb){
+  HTTP.PUT(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.update_group.replace('<group_id>', group.Id)), group, {}).then(response => {
     cb(response);
   }, response => {
     HTTP.handleError(response, cb)

@@ -5,10 +5,12 @@ Vue.use(Vuex);
 
 
 import users from './store/modules/users/index';
+import serviceGroups from './store/modules/services-groups'
 
 export default new Vuex.Store({
   modules:{
-    users
+    users,
+    serviceGroups
   },
   state: {
     isLoggedIn : false,
