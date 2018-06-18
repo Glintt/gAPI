@@ -1,5 +1,5 @@
 
-FROM node:7.10.0
+FROM node:8.11.3
 
 ADD package.json /tmp/package.json
 RUN cd /tmp && yarn install
