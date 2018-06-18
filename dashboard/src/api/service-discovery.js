@@ -13,7 +13,9 @@ const Endpoints = {
   "add_to_group" : "/service-groups/<group_id>/services",
   "deassociate_from_group" : "/service-groups/<group_id>/services/<service_id>",
   "list_groups": "/service-groups",
-  "update_group": "/service-groups/<group_id>"
+  "store_group": "/service-groups",
+  "update_group": "/service-groups/<group_id>",
+  "remove_group": "/service-groups/<group_id>"
 
 };
 
@@ -78,6 +80,13 @@ export function listServiceGroups(cb){
 
 export function updateServiceGroup(group, cb){
   HTTP.PUT(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.update_group.replace('<group_id>', group.Id)), group, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+export function deleteServiceGroup(groupId, cb){
+  HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.remove_group.replace('<group_id>', groupId)), {}).then(response => {
     cb(response);
   }, response => {
     HTTP.handleError(response, cb)

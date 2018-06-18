@@ -4,7 +4,7 @@
         <div class="card-header text-white bg-info" @click="toggleCard('api_config')">API configuration</div>
         <div class="card-body" v-if="showing">
             <div class="row col-sm"> 
-                <div class="form-group col-sm-6">
+                <div class="form-group col-sm-6" v-if="isAdmin">
                     Associated Group
                     <select class="form-control" v-model="selectedGroup" @change="changed = selectedGroup == service.GroupId ? false : true">
                         <option :value="null"></option>                        
@@ -12,6 +12,13 @@
                     </select>
                     <button class="btn btn-sm btn-success" v-if="selectedGroup != null && changed" @click="associateToGroup">Associate</button>
                     <button class="btn btn-sm btn-danger" v-if="selectedGroup != null" @click="deassociateFromGroup">Deassociate</button>
+                </div>
+                <div class="form-group col-sm-6" v-if="!isAdmin">
+                    Associated Group
+                    <select class="form-control" v-model="selectedGroup" disabled="true">
+                        <option :value="null"></option>                        
+                        <option v-for="group in groups" :value="group.Id" :key="group.Id">{{ group.Name }}</option>
+                    </select>
                 </div>
             </div>
             <div class="row col-sm">
@@ -122,12 +129,21 @@ export default {
   methods: {
     associateToGroup: function() {
         this.$api.serviceDiscovery.addServiceToServiceGroup(this.selectedGroup, this.service.Id, response => {
-            console.log(response.body)
+            if (response.status == 201) {
+                this.service.GroupId = this.selectedGroup
+                this.service.GroupVisibility = this.groups.find(element => {
+                    return element.Id == this.selectedGroup
+                }).IsReachable
+            }
         })
     },
     deassociateFromGroup: function() {
         this.$api.serviceDiscovery.deassociateServiceFromServiceGroup(this.selectedGroup, this.service.Id, response => {
-            this.selectedGroup = null
+            if (response.status == 201) {
+                this.selectedGroup = null
+                this.service.GroupId = null
+                this.service.GroupVisibility = this.service.IsReachable
+            }
         })
     },
     removeHost: function(hostToRemove) {

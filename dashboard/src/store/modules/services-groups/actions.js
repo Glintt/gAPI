@@ -12,3 +12,9 @@ export const updateGroup = ({commit}, group) => {
         commit('updateGroup', response.body)
     })
 }
+
+export const deleteGroup = ({commit}, group) => {
+    serviceDiscoveryAPI.deleteServiceGroup(group.Id, response => {
+        if (response.status == 200) commit('groupDeleted', group)
+    })
+}

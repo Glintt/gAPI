@@ -20,6 +20,8 @@
                 <td v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
                     <button class="btn btn-sm btn-success" @click="editing = editing == sg.Id ? false : sg.Id">Edit</button>
                     <button class="btn btn-sm btn-primary" @click="updateGroup(sg)">Save</button>
+                    <button class="btn btn-sm btn-danger" @click="deleteGroup(sg)">Delete</button>
+                    
                 </td>
             </tr>
         </tbody>
@@ -50,7 +52,8 @@ export default {
     methods: {
         ...mapActions('serviceGroups', [
             'fetchGroups',
-            'updateGroup'
+            'updateGroup',
+            'deleteGroup'
         ])
     }
 }
