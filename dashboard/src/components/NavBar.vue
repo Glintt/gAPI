@@ -12,6 +12,8 @@
                         <router-link to="/service-discovery/services/new" class="dropdown-item"
                             v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin"><i class="fas fa-plus text-danger"></i> Register New API</router-link>
                         <router-link to="/service-discovery/services" class="dropdown-item" href="#"><i class="fas fa-server text-primary"></i> List APIs</router-link>
+                        <router-link to="/service-discovery/groups/create" class="dropdown-item" href="#"><i class="fas fa-plus text-danger"></i> Add Service Group</router-link>
+                        <router-link to="/service-discovery/groups" class="dropdown-item" href="#"><i class="fas fa-server text-info"></i> Service Groups</router-link>
                     </div>
                 </li>
                 <li class="nav-item dropdown" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
