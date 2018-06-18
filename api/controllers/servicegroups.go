@@ -67,6 +67,7 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
 	serviceId := bson.ObjectIdHex(bodyMap["service_id"])
 
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceId }}
 	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceId }}
 	updateService := bson.M{"$set": bson.M{"group_id": serviceGroupIdHex}}
 	
@@ -78,6 +79,7 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 		return nil
 	}
 
+	_,err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
 	err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
 
 	database.MongoDBPool.Close(session)

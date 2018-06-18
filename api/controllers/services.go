@@ -121,12 +121,14 @@ func GetEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
 	service, err := ServiceDiscovery().GetEndpointForUri(string(matchingURI))
-
-	reachable := service.IsReachableFromExternal(*ServiceDiscovery())
 	
-	if reachable != service.IsReachable {
-		service.GroupVisibility = reachable
+	group, getGroupErr := service.GetGroup()
+	if getGroupErr != nil {
+		service.GroupVisibility = service.IsReachable
+	}else {
+		service.GroupVisibility = group.IsReachable
 	}
+	
 
 	serviceJSON, err1 := json.Marshal(service)
 

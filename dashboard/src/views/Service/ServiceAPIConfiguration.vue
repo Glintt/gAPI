@@ -67,8 +67,18 @@
                 <div class="form-group col-sm-6">                      
                     <i class="fas " :class="service.IsReachable ? 'fa-eye text-success' : 'fa-eye-slash text-danger'" @click="toggleReachable" />
                     <label class="form-check-label" for="serviceReachable">&nbsp;&nbsp;Reachable</label>
-                    <small id="serviceReachableHelp" class="form-text text-info">Is service reachable from external sources?</small> 
+                    <small id="serviceReachableHelp" class="form-text text-info">Is service reachable from external sources? If use group attributes is set to true, the it is used Group Reachability</small> 
                 </div>
+                <div class="form-group col-sm-6">                      
+                    <i class="fas " :class="service.UseGroupAttributes ? 'fa-check text-success' : 'fa-times text-danger'" @click="toggleUseGroup" />
+                    <label class="form-check-label" for="serviceUseGroup">&nbsp;&nbsp;Use Group Attributes</label>
+                    <small id="serviceUseGroupHelp" class="form-text text-info">Use group attributes (reachability, ...)</small> 
+                </div>
+            </div>
+            <hr />
+            <h5>Group Info <small class="text-info">This section is not editable </small></h5>
+            <br />
+            <div class="row col-sm">                
                 <div class="form-group col-sm-6">                      
                     <i class="fas " :class="service.GroupVisibility ? 'fa-eye text-success' : 'fa-eye-slash text-danger'" />
                     <label class="form-check-label" for="serviceReachable">&nbsp;&nbsp;Group Reachability</label>
@@ -141,6 +151,10 @@ export default {
     toggleReachable: function() {
         if (! this.isAdmin) return
         this.service.IsReachable = !this.service.IsReachable
+    },
+    toggleUseGroup: function() {
+        if (! this.isAdmin) return
+        this.service.UseGroupAttributes = !this.service.UseGroupAttributes
     }
   }
 };

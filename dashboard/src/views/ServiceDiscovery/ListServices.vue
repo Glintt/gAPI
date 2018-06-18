@@ -34,7 +34,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="service in services" v-bind:key="service.Id">
+                <tr v-for="service in services" v-bind:key="service.Id" v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || loggedInUser">
                     <td>{{ service.Name }}</td>
                     <td>{{ service.MatchingURI }}</td>
                     <td>{{ service.APIDocumentation }}</td>
