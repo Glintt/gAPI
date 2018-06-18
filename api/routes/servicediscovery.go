@@ -33,4 +33,5 @@ func LoadDBSpecificEndpoints(router *routing.RouteGroup) {
 	router.Delete("/service-groups/<group_id>/services/<service_id>", authentication.AdminRequiredMiddleware, controllers.DeassociateServiceFromGroup)
 	// sd.sdAPI.Post("/service-groups/service/register", authentication.AuthorizationMiddleware, RegisterServiceToServiceGroupHandler)
 	router.Get("/service-groups", controllers.ListServiceGroupsHandler)
+	router.Get("/service-groups/<group>", controllers.GetServiceGroupHandler)
 }
