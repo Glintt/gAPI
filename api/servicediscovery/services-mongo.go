@@ -96,6 +96,9 @@ func FindMongo(s Service) (Service, error) {
 	if s.Id == "" {
 		s.Id = bson.NewObjectId()
 	}
+	if len(uriParts) == 0 {
+		uriParts = append(uriParts, "")
+	}
 	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}},bson.M{"_id": s.Id}}}
 	db.C(SERVICES_COLLECTION).Find(query).All(&services)
 	
