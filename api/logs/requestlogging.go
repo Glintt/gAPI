@@ -6,12 +6,12 @@ import (
 	"gAPIManagement/api/utils"
 	"encoding/json"
 
-	"github.com/streadway/amqp"
+	// "github.com/streadway/amqp"
 
 	"github.com/valyala/fasthttp"
 )
-var RabbitConnection *amqp.Connection
 /* 
+var RabbitConnection *amqp.Connection
 var RabbitConnection *amqp.Connection
 var RabbitChannel *amqp.Channel
 var LogQueue amqp.Queue */
@@ -92,12 +92,12 @@ func PublishElastic(reqLogging *RequestLogging) {
 func PublishRabbit(reqLogging *RequestLogging) {
 	reqLoggingJson, _ := json.Marshal(reqLogging)
 
-	if RabbitConnection == nil{
+	/* if RabbitConnection == nil{
 		RabbitConnection = rabbit.ConnectToRabbit()
-	}
+	} */
 
-	RabbitChannel := rabbit.CreateChannel(RabbitConnection)
-	
+	// RabbitChannel := rabbit.CreateChannel(rabbit.RabbitConnection)
+	/* 
 	LogQueue, err := RabbitChannel.QueueDeclare(
 		rabbit.Queue(), // name
 		true,           // durable
@@ -107,16 +107,18 @@ func PublishRabbit(reqLogging *RequestLogging) {
 		nil,            // arguments
 	)
 	rabbit.FailOnError(err, "Failed to declare queue")
-
-	err = RabbitChannel.Publish(
+ */
+	/* err := rabbit.RabbitChannelGlobal.Publish(
 		"",            // exchange
-		LogQueue.Name, // routing key
+		rabbit.Queue(), // routing key
 		false,         // mandatory
 		false,         	// immediate
 		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        reqLoggingJson,
-		})
+		}) */
 
-	rabbit.FailOnError(err, "Failed to publish message")
+	rabbit.PublishToRabbitMQ(reqLoggingJson)
+
+	// rabbit.FailOnError(err, "Failed to publish message")
 }

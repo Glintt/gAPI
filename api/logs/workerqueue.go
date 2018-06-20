@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"gAPIManagement/api/rabbit"
 	"strconv"
 	"gAPIManagement/api/utils"
 )
@@ -32,4 +33,6 @@ func StartDispatcher(nworkers int) {
 			}
 		}
 	}()
+
+	rabbit.InitPublishers(2)
 }

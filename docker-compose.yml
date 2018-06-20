@@ -1,23 +1,22 @@
 version: "3"
 services:
-  nginx:
-    image: nginx:stable-alpine
-    restart: always
-    ports:
-      - ${API_MANAGEMENT_PORT_EXT}:80
-      - ${SOCKET_PORT_EXT}:${SOCKET_PORT}
-    volumes:
-      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+  # nginx:
+  #   image: nginx:stable-alpine
+  #   restart: always
+  #   ports:
+  #     - ${API_MANAGEMENT_PORT_EXT}:80
+  #     - ${SOCKET_PORT_EXT}:${SOCKET_PORT}
+  #   volumes:
+  #     - ./nginx/sites-enabled:/etc/nginx/sites-enabled
 
   backend:
     restart: always
-    scale: 2
     build:
       context: ./api
     env_file: .env
-    #ports:
-      #- ${API_MANAGEMENT_PORT_EXT}:${API_MANAGEMENT_PORT}
-      #- ${SOCKET_PORT_EXT}:${SOCKET_PORT}
+    ports:
+      - ${API_MANAGEMENT_PORT_EXT}:${API_MANAGEMENT_PORT}
+      - ${SOCKET_PORT_EXT}:${SOCKET_PORT}
     volumes:
       - ./api/configs:/go/src/gAPIManagement/api/configs/
 

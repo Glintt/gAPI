@@ -57,7 +57,7 @@ func RabbitMQConnectionReconnectHandle(RabbitConnection *amqp.Connection,RabbitC
 
 func ConnectToRabbit() *amqp.Connection {
 	connectionString := "amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/"
-	InitPublishers(2)
+	// InitPublishers(2)
 	utils.LogMessage("Connecting to: " + connectionString)
 	
 	for {
