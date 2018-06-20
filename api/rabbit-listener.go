@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/logs"
 	"gAPIManagement/api/utils"
 	"gAPIManagement/api/rabbit"
@@ -13,6 +14,8 @@ var ELASTICPORT string
 
 func main(){
 	StartListeningToRabbit()
+
+	config.LoadURLConstants()
 }
 
 
