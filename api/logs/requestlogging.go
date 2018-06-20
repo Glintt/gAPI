@@ -85,6 +85,8 @@ func PublishElastic(reqLogging *RequestLogging) {
 	err := client.Do(request, resp)
 
 	if err != nil {
+		utils.LogMessage("ELASTIC PUBLISH - error:" + err.Error())
+		
 		resp.SetStatusCode(400)
 	}
 }
