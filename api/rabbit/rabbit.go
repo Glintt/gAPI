@@ -1,12 +1,11 @@
 package rabbit
 
 import (
-	"gAPIManagement/api/utils"
-	"time"
-	"github.com/streadway/amqp"
-	
+	"gAPIManagement/api/utils"	
 	"os"
 )
+
+var WorkerPool chan []byte
 
 func User() string{
 	return os.Getenv("RABBITMQ_USER")
@@ -28,29 +27,20 @@ func Queue() string{
 	return os.Getenv("RABBITMQ_QUEUE")
 }
 
-
-func ConnectToRabbit() *amqp.Connection {
-	utils.LogMessage("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
-	
-	for {
-		connection, err := amqp.Dial("amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/")
-		FailOnError(err, "Failed to connect to RabbitMQ")
-		if err == nil {
-			return connection
-		}
-		
-		time.Sleep(500 * time.Millisecond)
-	}
-}
-
-func CreateChannel(connection *amqp.Connection) *amqp.Channel {
-	rc, err := connection.Channel()
-	FailOnError(err, "Failed to open a channel")
-	return rc
-}
-
-func FailOnError(err error, msg string) {
+func FailOnError(err error, msg string) error {
 	if err != nil {
-	  utils.LogMessage( msg + ":" + err.Error())
+		utils.LogMessage(msg + ": " + err.Error())
 	}
+	return err
+}
+
+func InitPublishers(workers int) {
+	WorkerPool = make(chan []byte)
+	for i:=0; i < workers; i++ {
+		go StartPublisherWorker()
+	}
+}
+
+func PublishToRabbitMQ(log []byte){
+	WorkerPool <- log
 }
