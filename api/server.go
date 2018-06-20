@@ -88,6 +88,10 @@ func CORSHandle(ctx *fasthttp.RequestCtx) {
 
 	RequestCounterSocket(service)
 	LogRequest(ctx, service, beginTime)
+	
+	if string(ctx.Request.Header.Peek("Connection")) != "keep-alive" {
+		defer ctx.Response.SetConnectionClose()
+	}
 }
 
 func RequestCounterSocket(service []byte) {
