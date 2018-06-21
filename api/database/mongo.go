@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"gAPIManagement/api/utils"
 	"gopkg.in/mgo.v2"
 )
@@ -45,7 +46,7 @@ func (mp *MongoPool) Session() *mgo.Session {
 	return mp.BaseSession.Clone()
 }
 func (mp *MongoPool) Close(session *mgo.Session) {
-	defer session.Close()
+	session.Close()
 
 	mp.Queue <- 1
 	mp.Open--
