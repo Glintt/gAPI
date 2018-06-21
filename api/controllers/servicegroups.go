@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"gopkg.in/mgo.v2"
 	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/database"
@@ -81,9 +82,18 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 
 	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceId }}
 	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceId }}
-	updateService := bson.M{"$set": bson.M{"group_id": serviceGroupIdHex}}
 	
+
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
+	
+	_,err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
+	err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
+
+	var sg servicediscovery.ServiceGroup
+	db.C(servicediscovery.SERVICE_GROUP_COLLECTION).FindId(serviceGroupIdHex).One(&sg)
+
+	fmt.Println(sg.IsReachable)
+	updateService := bson.M{"$set": bson.M{"groupid": sg.Id,"groupvisibility": sg.IsReachable}}
 	
 	err = db.C(servicediscovery.SERVICES_COLLECTION).UpdateId(serviceId, updateService)
 	if err != nil {
@@ -93,8 +103,6 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 		return nil
 	}
 
-	_,err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
-	err = db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
 
 	database.MongoDBPool.Close(session)
 
@@ -119,7 +127,7 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 	serviceIdHex := bson.ObjectIdHex(serviceId)
 
 	updateGroup := bson.M{"$pull": bson.M{"services": serviceIdHex }}
-	updateService := bson.M{"$set": bson.M{"group_id": nil}}
+	updateService := bson.M{"$set": bson.M{"groupid": nil, "usegroupattributes": false}}
 	
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 	
@@ -174,7 +182,7 @@ func RemoveServiceGroup(c *routing.Context) error {
 
 	err := db.C(servicediscovery.SERVICE_GROUP_COLLECTION).RemoveId(serviceGroupId)
 
-	_,err = db.C(servicediscovery.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"group_id": nil}})
+	_,err = db.C(servicediscovery.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"groupid": nil}})
 	
 	database.MongoDBPool.Close(session)
 

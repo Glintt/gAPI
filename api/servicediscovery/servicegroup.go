@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"errors"
 	"gAPIManagement/api/database"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -32,4 +33,27 @@ func (sd *ServiceDiscovery) GetListOfServicesGroup() ([]ServiceGroup, error) {
 	database.MongoDBPool.Close(session)
 	
 	return servicesGroup, err
+}
+
+func (sd *ServiceDiscovery) AddServiceToGroup(serviceGroupId string, serviceId string ) ( error) {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
+	serviceIdHex := bson.ObjectIdHex(serviceId)
+	
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHex }}
+	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHex }}
+	updateService := bson.M{"$set": bson.M{"groupid": serviceGroupIdHex}}
+
+	err := db.C(SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+	if err != nil {
+		database.MongoDBPool.Close(session)
+		return errors.New("Update Service failed")
+	}
+
+	_,err = db.C(SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
+	err = db.C(SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
+
+	database.MongoDBPool.Close(session)
+	return nil
 }

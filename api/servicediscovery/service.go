@@ -35,7 +35,7 @@ type Service struct {
 	RateLimit	int
 	RateLimitExpirationTime	int64
 	IsReachable              bool
-	GroupId 			bson.ObjectId `bson:"group_id,omitempty" json:"GroupId"`
+	GroupId 			bson.ObjectId `bson:"groupid,omitempty" json:"GroupId"`
 	GroupVisibility		bool
 	UseGroupAttributes bool
 }
