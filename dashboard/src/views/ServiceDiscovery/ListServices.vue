@@ -8,7 +8,7 @@
         <div class="row">
           <div class="col-sm-5 form-inline ">
               <input class="form-control" v-model="searchText"/>
-              <button class="btn btn-sm btn-info" @click="updateData">
+              <button class="btn btn-sm btn-info" @click="search">
                 <i class="fas fa-search"></i>
               </button>
           </div>
@@ -101,6 +101,10 @@ export default {
     };
   },
   methods: {
+    search: function() {
+      this.currentPage = 1;
+      this.updateData();
+    },
     updateData: function() {
       serviceDiscoveryAPI.listServices(
         this.currentPage,
