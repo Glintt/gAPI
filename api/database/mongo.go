@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"gAPIManagement/api/utils"
 	"gopkg.in/mgo.v2"
 )
