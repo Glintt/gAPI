@@ -13,9 +13,9 @@ var ELASTIC_URL string
 var ELASTICPORT string
 
 func main(){
-	StartListeningToRabbit()
-
 	config.LoadURLConstants()
+
+	StartListeningToRabbit()
 }
 
 
