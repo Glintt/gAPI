@@ -31,7 +31,7 @@ func InitUsers() {
 		}
 	}
 	
-	_, db := database.GetSessionAndDB(database.MONGO_DB)
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
 	
 	userCollection := db.C(USERS_COLLECTION)
 	
@@ -45,13 +45,17 @@ func InitUsers() {
 
 	err := userCollection.EnsureIndex(index)
 	if err != nil {
+		database.MongoDBPool.Close(session)
+
 		panic(err)
 	}
+	
 
 	err = CreateUser(User{Username: "admin", Email: "admin@gapi.com", Password: "admin", IsAdmin: true})
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	database.MongoDBPool.Close(session)
 }
 
 func GeneratePassword(password string) ([]byte, error) {

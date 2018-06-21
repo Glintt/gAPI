@@ -25,7 +25,6 @@ func ListServiceGroupsHandler(c *routing.Context) error {
 }
 
 func RegisterServiceGroupHandler(c *routing.Context) error {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
 	
 	servicegroup, err := servicediscovery.ValidateServiceGroupBody(c)
 	if err != nil {
@@ -33,6 +32,8 @@ func RegisterServiceGroupHandler(c *routing.Context) error {
 		return nil
 	}
 
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+	
 	servicegroup.Id = bson.NewObjectId()
 	collection := db.C(servicediscovery.SERVICE_GROUP_COLLECTION)
 	index := mgo.Index{
@@ -86,6 +87,8 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 	
 	err = db.C(servicediscovery.SERVICES_COLLECTION).UpdateId(serviceId, updateService)
 	if err != nil {
+		database.MongoDBPool.Close(session)
+
 		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
 		return nil
 	}
@@ -123,6 +126,8 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 	err := db.C(servicediscovery.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
 
 	if err != nil {
+		database.MongoDBPool.Close(session)
+
 		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
 		return nil
 	}
@@ -151,6 +156,8 @@ func UpdateServiceGroup(c *routing.Context) error {
 	err := db.C(servicediscovery.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupId, sGroup)
 
 	if err != nil {
+		database.MongoDBPool.Close(session)
+		
 		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
 		return nil
 	}

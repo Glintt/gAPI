@@ -70,6 +70,8 @@ func DeleteServiceMongo(s Service) (string, int) {
 	service, err := FindMongo(s)
 
 	if err != nil {
+		database.MongoDBPool.Close(session)
+		
 		return `{"error": true, "msg": "Not found"}`, 404
 	}
 

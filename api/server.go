@@ -52,7 +52,9 @@ func InitAPIs() {
 
 func InitServices() {
 	cache.InitCachingService()
-	logs.StartDispatcher(2)
+	if config.GApiConfiguration.Logs.Active {
+		logs.StartDispatcher(2)
+	}
 	authentication.InitGAPIAuthenticationServer()
 	servicediscovery.InitServiceDiscovery()
 	healthcheck.InitHealthCheck()

@@ -145,12 +145,12 @@ func (service *Service) GetGroup() (ServiceGroup, error) {
 
 	var servicesGroup ServiceGroup
 	err := db.C(SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
-
+	
+	database.MongoDBPool.Close(session)
+	
 	if err != nil {
 		return ServiceGroup{}, err
 	}
-	
-	database.MongoDBPool.Close(session)
 	
 	return servicesGroup, nil
 }
