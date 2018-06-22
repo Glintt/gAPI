@@ -42,7 +42,7 @@ func (w *Worker) Start() {
 
 			case <-w.QuitChan:
 				// We have been asked to stop.
-				utils.LogMessage("worker " + strconv.Itoa(w.ID) +" stopping\n")
+				utils.LogMessage("worker " + strconv.Itoa(w.ID) +" stopping\n", utils.DebugLogType)
 				return
 			}
 		}

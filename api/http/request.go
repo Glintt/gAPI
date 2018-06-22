@@ -59,9 +59,9 @@ func addQueryParamsToRequest(request *fasthttp.Request, queryParams map[string]s
 }
 
 func MakeRequest(method string, url string, body string, headers map[string]string) *fasthttp.Response {
-	utils.LogMessage("=============================================================")
-	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body)
-	utils.LogMessage("=============================================================")
+	utils.LogMessage("=============================================================", utils.InfoLogType)
+	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body, utils.InfoLogType)
+	utils.LogMessage("=============================================================", utils.InfoLogType)
 
 	request := fasthttp.AcquireRequest()
 	request.SetRequestURI(url)
@@ -78,7 +78,7 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	err := client.Do(request, resp)
 
 	if err != nil {
-		utils.LogMessage(err.Error())
+		utils.LogMessage(err.Error(), utils.ErrorLogType)
 		resp.SetStatusCode(400)
 	}
 

@@ -50,7 +50,10 @@
                     HealthcheckUrl:"",
                     ServiceManagementHost : "",
                     ServiceManagementPort : "",
-                    ServiceManagementEndpoints:{}
+                    ServiceManagementEndpoints:{},
+                    IsReachable: false,
+                    UseGroupAttributes: false
+
                 },
                 informationStatus:{
                     isActive : false,

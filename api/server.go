@@ -67,7 +67,7 @@ func listenAPI(router *routing.Router) {
 		listeningPort = "8080"
 	}
 
-	utils.LogMessage("Listening on port: " + listeningPort)
+	utils.LogMessage("Listening on port: " + listeningPort, utils.InfoLogType)
 	panic(fasthttp.ListenAndServe(":"+listeningPort, CORSHandle))
 }
 

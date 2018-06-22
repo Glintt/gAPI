@@ -33,11 +33,11 @@ func StartPublisher() {
 }
 
 func RabbitMQCreateConnection(RabbitConnection *amqp.Connection,RabbitChannel *amqp.Channel, RabbitCloseError chan *amqp.Error) (*amqp.Connection,*amqp.Channel, chan *amqp.Error){
-	utils.LogMessage("Connect to RabbitMQ")
+	utils.LogMessage("Connect to RabbitMQ", utils.InfoLogType)
 	RabbitConnection = ConnectToRabbit()
-	utils.LogMessage("Connecteded to RabbitMQ")
+	utils.LogMessage("Connecteded to RabbitMQ", utils.InfoLogType)
 	RabbitChannel = CreateChannel(RabbitConnection)
-	utils.LogMessage("Channel created on connection to RabbitMQ")
+	utils.LogMessage("Channel created on connection to RabbitMQ", utils.InfoLogType)
 	RabbitCloseError = make(chan *amqp.Error)
 	RabbitConnection.NotifyClose(RabbitCloseError)
 
@@ -58,13 +58,13 @@ func RabbitMQConnectionReconnectHandle(RabbitConnection *amqp.Connection,RabbitC
 func ConnectToRabbit() *amqp.Connection {
 	connectionString := "amqp://" + User() +":" + Pwd() + "@" + Host() + ":" + Port() 	+ "/"
 	// InitPublishers(2)
-	utils.LogMessage("Connecting to: " + connectionString)
+	utils.LogMessage("Connecting to: " + connectionString, utils.DebugLogType)
 	
 	for {
 		connection, err := amqp.Dial(connectionString)
 		FailOnError(err, "Failed to connect to RabbitMQ")
 		if err == nil {
-			utils.LogMessage("Connected to " + connectionString)
+			utils.LogMessage("Connected to " + connectionString, utils.InfoLogType)
 			return connection
 		}
 		

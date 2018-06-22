@@ -25,14 +25,14 @@ func StartProxy(router *routing.Router) {
 }
 
 func HandleRequest(c *routing.Context) error {
-	utils.LogMessage("=========================================")
-	utils.LogMessage("REQUEST =====> Method = " + string(c.Method()) + "; URI = " + string(c.Request.RequestURI()))
-	utils.LogMessage("=========================================")
+	utils.LogMessage("=========================================", utils.InfoLogType)
+	utils.LogMessage("REQUEST =====> Method = " + string(c.Method()) + "; URI = " + string(c.Request.RequestURI()), utils.InfoLogType)
+	utils.LogMessage("=========================================", utils.InfoLogType)
 
 	cachedRequest := cache.GetCacheForRequest(c)
 
 	if cachedRequest.Service.ToURI == "" {
-		utils.LogMessage("SD NOT FROM CACHE")
+		utils.LogMessage("SD NOT FROM CACHE", utils.DebugLogType)
 
 		var err error
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
@@ -44,11 +44,11 @@ func HandleRequest(c *routing.Context) error {
 
 		cachedRequest.UpdateServiceCache = true
 	} else {
-		utils.LogMessage("SD FROM CACHE")
+		utils.LogMessage("SD FROM CACHE", utils.DebugLogType)
 	}
 
 	if !cachedRequest.Protection.Cached {
-		utils.LogMessage("PROTECTION NOT FROM CACHE")
+		utils.LogMessage("PROTECTION NOT FROM CACHE", utils.DebugLogType)
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
 		if cachedRequest.Protection.Error != nil {
@@ -58,17 +58,17 @@ func HandleRequest(c *routing.Context) error {
 
 		cachedRequest.UpdateProtectionCache = true
 	} else {
-		utils.LogMessage("PROTECTION FROM CACHE")
+		utils.LogMessage("PROTECTION FROM CACHE", utils.DebugLogType)
 	}
 
 	if cachedRequest.Response.StatusCode == 0 {
-		utils.LogMessage("RESPONSE NOT FROM CACHE")
+		utils.LogMessage("RESPONSE NOT FROM CACHE", utils.DebugLogType)
 		cachedRequest.Response = getApiResponse(c, cachedRequest.Protection, cachedRequest.Service)
 		if cachedRequest.Response.StatusCode < 300 {
 			cachedRequest.UpdateResponseCache = true
 		}
 	} else {
-		utils.LogMessage("RESPONSE FROM CACHE")
+		utils.LogMessage("RESPONSE FROM CACHE", utils.DebugLogType)
 	}
 
 	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI)
@@ -83,6 +83,10 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 
 	c.Request.Header.Set(authorization.Header, authorization.UserInfo)
 	headers := http.GetHeadersFromRequest(c.Request)
+	if _, ok := headers["X-Forwarded-For"]; !ok {
+		headers["X-Forwarded-For"] = c.RemoteIP().String()
+	}
+
 	body := c.Request.Body()
 
 	response := service.Call(string(c.Method()), string(c.Request.RequestURI()), headers, string(body))

@@ -45,13 +45,13 @@ func ServicesList() []servicediscovery.Service {
 }
 
 func CheckServicesHealth() {
-	utils.LogMessage("##### HEALTH CHECK #####")
+	utils.LogMessage("##### HEALTH CHECK #####", utils.DebugLogType)
 
 	for _, s := range ServicesList() {
 		healthcheckURL := s.HealthcheckUrl
 		// healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
 
-		utils.LogMessage("-----> " + healthcheckURL)
+		utils.LogMessage("-----> " + healthcheckURL, utils.DebugLogType)
 		
 		go func(healthcheckURL string, s servicediscovery.Service){
 			resp, err := http.Get(healthcheckURL)
@@ -70,7 +70,7 @@ func CheckServicesHealth() {
 			sd.UpdateService(s)
 		}(healthcheckURL, s)
 	}
-	utils.LogMessage("### HEALTH CHECK ENDED ###")
+	utils.LogMessage("### HEALTH CHECK ENDED ###", utils.DebugLogType)
 }
 
 

@@ -66,7 +66,7 @@ func PublishLog(reqLogging *RequestLogging) {
 }
 
 func PublishElastic(reqLogging *RequestLogging) {
-	utils.LogMessage("ELASTIC PUBLISH")
+	utils.LogMessage("ELASTIC PUBLISH", utils.DebugLogType)
 	currentDate := utils.CurrentDate()
 	logsURL := config.ELASTICSEARCH_URL + "/request-logs-" + currentDate + "/logs"
 
@@ -85,7 +85,7 @@ func PublishElastic(reqLogging *RequestLogging) {
 	err := client.Do(request, resp)
 
 	if err != nil {
-		utils.LogMessage("ELASTIC PUBLISH - error:" + err.Error())
+		utils.LogMessage("ELASTIC PUBLISH - error:" + err.Error(), utils.DebugLogType)
 		
 		resp.SetStatusCode(400)
 	}

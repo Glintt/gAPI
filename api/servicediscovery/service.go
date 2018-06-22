@@ -118,7 +118,7 @@ func (service *Service) ServiceManagementCall(managementType string) (bool, stri
 
 	if ValidateURL(callURL) {
 		resp := http.MakeRequest(method, callURL, "", nil)
-		utils.LogMessage(string(resp.Body()))
+		utils.LogMessage(string(resp.Body()), utils.DebugLogType)
 		if resp.StatusCode() != 200 {
 			return false, string(resp.Body())
 		}

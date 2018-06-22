@@ -58,9 +58,9 @@ func ConnectToMongo(host string) error{
 	err = MongoDBPool.New()
 
 	if err != nil {
-		utils.LogMessage("error connecting to mongo " + err.Error())
+		utils.LogMessage("error connecting to mongo " + err.Error(), utils.ErrorLogType)
 	} else {
-		utils.LogMessage("connected to mongo")
+		utils.LogMessage("connected to mongo", utils.InfoLogType)
 	}
 
 	return err

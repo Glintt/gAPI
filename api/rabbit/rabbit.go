@@ -29,7 +29,7 @@ func Queue() string{
 
 func FailOnError(err error, msg string) error {
 	if err != nil {
-		utils.LogMessage(msg + ": " + err.Error())
+		utils.LogMessage(msg + ": " + err.Error(), utils.ErrorLogType)
 	}
 	return err
 }

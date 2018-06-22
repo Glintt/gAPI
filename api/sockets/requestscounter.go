@@ -46,6 +46,6 @@ func StartRequestsCounterSender(){
 
 func PreventCrash(){
 	if r := recover(); r != nil {
-		utils.LogMessage("recover")
+		utils.LogMessage("recover request counter", utils.DebugLogType)
 	}
 }

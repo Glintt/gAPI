@@ -66,7 +66,7 @@ func GetCacheForRequest(c *routing.Context) CachedRequest {
 
 func StoreRequestInfoToCache(c *routing.Context, requestInfo CachedRequest) {
 	if requestInfo.UpdateServiceCache {
-		utils.LogMessage("SET SD CACHE")
+		utils.LogMessage("SET SD CACHE", utils.DebugLogType)
 		serviceDiscoveryJson, _ := json.Marshal(requestInfo.Service)
 		ServiceDiscoveryCacheStore(sdCacheKey(c), serviceDiscoveryJson)
 	}
@@ -76,14 +76,14 @@ func StoreRequestInfoToCache(c *routing.Context, requestInfo CachedRequest) {
 	}
 
 	if requestInfo.UpdateProtectionCache {
-		utils.LogMessage("SET OAUTH CACHE")
+		utils.LogMessage("SET OAUTH CACHE", utils.DebugLogType)
 		requestInfo.Protection.Cached = true
 		protectionJson, _ := json.Marshal(requestInfo.Protection)
 		OAuthCacheStore(oauthCacheKey(c), protectionJson)
 	}
 
 	if requestInfo.UpdateResponseCache && string(c.Method()) == "GET" {
-		utils.LogMessage("SET RESPONSE CACHE")
+		utils.LogMessage("SET RESPONSE CACHE", utils.DebugLogType)
 		apiResponseJson, _ := json.Marshal(requestInfo.Response)
 		ApisCacheStore(apiResponseCacheKey(c), apiResponseJson)
 	}

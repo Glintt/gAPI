@@ -15,7 +15,7 @@ func StartDispatcher(nworkers int) {
 
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		utils.LogMessage("Starting worker - " + strconv.Itoa(i+1))
+		utils.LogMessage("Starting worker - " + strconv.Itoa(i+1), utils.InfoLogType)
 		worker := NewWorker(i+1, LogWorkQueue)
 		worker.Start()
 	}

@@ -32,14 +32,14 @@ func Start(workers int) {
 
 func failOnError(err error, msg string) {
   if err != nil {
-   utils.LogMessage(msg + err.Error())
+   utils.LogMessage(msg + err.Error(), utils.ErrorLogType)
   }
 }
 
 
 func PreventCrash(){
 	if r := recover(); r != nil {
-		utils.LogMessage("Rabbit Listener Crashed")
+		utils.LogMessage("Rabbit Listener Crashed", utils.ErrorLogType)
 		StartListeningToRabbit()
 	}
 }
@@ -86,14 +86,14 @@ func StartListeningToRabbit() {
 			var reqLogging logs.RequestLogging
 			err := json.Unmarshal(d.Body, &reqLogging)
 			if err == nil{				
-				utils.LogMessage("Publish to elasticsearch")
+				utils.LogMessage("Publish to elasticsearch - " + string(d.Body), utils.InfoLogType)
 				logs.PublishElastic(&reqLogging)
 			}else{
-				utils.LogMessage("Error logging message: " + string(d.Body))
+				utils.LogMessage("Error logging message: " + string(d.Body), utils.ErrorLogType)
 			}
 		}
 	}()
 	  
-	utils.LogMessage(" [*] Waiting for messages. To exit press CTRL+C")
+	utils.LogMessage(" [*] Waiting for messages. To exit press CTRL+C", utils.InfoLogType)
 	<-forever
 }
