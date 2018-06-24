@@ -1,48 +1,51 @@
 package servicediscovery
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"net"
-	"math/rand"
 	"gAPIManagement/api/config"
-	"gAPIManagement/api/utils"
 	"gAPIManagement/api/database"
-	
+	"gAPIManagement/api/utils"
+	"math/rand"
+	"net"
+
+	"gopkg.in/mgo.v2/bson"
+
 	"gAPIManagement/api/http"
-	"strings"
 	"regexp"
+	"strings"
+
 	"github.com/valyala/fasthttp"
 )
 
 type Service struct {
-	Id                    bson.ObjectId `bson:"_id" json:"Id"`
-	Name                  string
-	Hosts 				  []string
-	Domain				  string
-	Port				  string
-	MatchingURI           string
-	MatchingURIRegex      string
-	ToURI                 string
-	Protected             bool
-	APIDocumentation      string
-	IsCachingActive       bool 
-	IsActive              bool 
-	HealthcheckUrl		  string 
-	LastActiveTime 		  int64 
-	ServiceManagementHost       string 
-	ServiceManagementPort       string 
-	ServiceManagementEndpoints  map[string]string
-	RateLimit	int
-	RateLimitExpirationTime	int64
-	IsReachable              bool
-	GroupId 			bson.ObjectId `bson:"groupid,omitempty" json:"GroupId"`
-	GroupVisibility		bool
-	UseGroupAttributes bool
+	Id                         bson.ObjectId `bson:"_id" json:"Id"`
+	Name                       string
+	Hosts                      []string
+	Domain                     string
+	Port                       string
+	MatchingURI                string
+	MatchingURIRegex           string
+	ToURI                      string
+	Protected                  bool
+	APIDocumentation           string
+	IsCachingActive            bool
+	IsActive                   bool
+	HealthcheckUrl             string
+	LastActiveTime             int64
+	ServiceManagementHost      string
+	ServiceManagementPort      string
+	ServiceManagementEndpoints map[string]string
+	RateLimit                  int
+	RateLimitExpirationTime    int64
+	IsReachable                bool
+	GroupId                    bson.ObjectId `bson:"groupid,omitempty" json:"GroupId"`
+	GroupVisibility            bool
+	UseGroupAttributes         bool
+	ProtectedExclude           map[string]string
 }
 
 func Contains(array []int, value int) bool {
-	for _, v := range array{
-		if v == value{
+	for _, v := range array {
+		if v == value {
 			return true
 		}
 	}
@@ -50,7 +53,7 @@ func Contains(array []int, value int) bool {
 }
 
 func (service *Service) IsReachableFromExternal(sd ServiceDiscovery) bool {
-	if ! service.UseGroupAttributes || service.GroupId == "" {
+	if !service.UseGroupAttributes || service.GroupId == "" {
 		return service.IsReachable
 	}
 
@@ -83,7 +86,7 @@ func (service *Service) BalanceUrl() string {
 }
 
 func (service *Service) GetHost() string {
-	if service.Hosts == nil || len(service.Hosts) == 0{
+	if service.Hosts == nil || len(service.Hosts) == 0 {
 		return service.Domain + ":" + service.Port
 	}
 
@@ -95,7 +98,7 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 
 	callURLWithoutProtocol := service.GetHost() + uri
 	callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
-	
+
 	callURL := "http://" + callURLWithoutProtocol
 
 	return http.MakeRequest(method, callURL, body, headers)
@@ -145,12 +148,12 @@ func (service *Service) GetGroup() (ServiceGroup, error) {
 
 	var servicesGroup ServiceGroup
 	err := db.C(SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
-	
+
 	database.MongoDBPool.Close(session)
-	
+
 	if err != nil {
 		return ServiceGroup{}, err
 	}
-	
+
 	return servicesGroup, nil
 }
