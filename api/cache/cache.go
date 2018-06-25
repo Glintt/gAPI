@@ -48,13 +48,13 @@ func InitCachingService() {
 	}
 	GatewayCache.OAuth, _ = bigcache.NewBigCache(oauthCacheConfig)
 }
-func InvalidateCache(){
+func InvalidateCache() {
 	GatewayCache.ServiceDiscovery.Reset()
-	GatewayCache.ServiceDiscovery.Reset()
-	GatewayCache.ServiceDiscovery.Reset()
+	GatewayCache.Apis.Reset()
+	GatewayCache.OAuth.Reset()
 }
 func RemoveCache(key string, value []byte) {
-	
+
 }
 func ServiceDiscoveryCacheStore(key string, value []byte) {
 	GatewayCache.ServiceDiscovery.Set(key, value)

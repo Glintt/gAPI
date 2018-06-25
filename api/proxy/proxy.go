@@ -3,7 +3,9 @@ package proxy
 import (
 	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/utils"
-	
+	"regexp"
+	"strings"
+
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
@@ -17,7 +19,7 @@ var oauthserver authentication.OAuthServer
 
 func StartProxy(router *routing.Router) {
 	oauthserver = authentication.LoadFromConfig()
-	
+
 	ratelimiting.InitRateLimiting()
 	router.To("GET,POST,PUT,PATCH,DELETE", "/*", ratelimiting.RateLimiting, HandleRequest)
 
@@ -26,7 +28,7 @@ func StartProxy(router *routing.Router) {
 
 func HandleRequest(c *routing.Context) error {
 	utils.LogMessage("=========================================", utils.InfoLogType)
-	utils.LogMessage("REQUEST =====> Method = " + string(c.Method()) + "; URI = " + string(c.Request.RequestURI()), utils.InfoLogType)
+	utils.LogMessage("REQUEST =====> Method = "+string(c.Method())+"; URI = "+string(c.Request.RequestURI()), utils.InfoLogType)
 	utils.LogMessage("=========================================", utils.InfoLogType)
 
 	cachedRequest := cache.GetCacheForRequest(c)
@@ -36,8 +38,8 @@ func HandleRequest(c *routing.Context) error {
 
 		var err error
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
-		
-		if err != nil || (sd.IsExternalRequest(c) && ! cachedRequest.Service.IsReachableFromExternal(sd)) {
+
+		if err != nil || (sd.IsExternalRequest(c) && !cachedRequest.Service.IsReachableFromExternal(sd)) {
 			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, "/proxy")
 			return nil
 		}
@@ -99,6 +101,24 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 
 func checkAuthorization(c *routing.Context, service servicediscovery.Service) authentication.ProtectionInfo {
 	if !service.Protected {
+		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
+	}
+
+	endpoint := strings.Replace(string(c.RequestURI()), service.MatchingURI, "", 1)
+	endpoint = strings.Split(endpoint, "?")[0]
+
+	if _, ok := service.ProtectedExclude[endpoint]; !ok {
+		for key, val := range service.ProtectedExclude {
+			re := regexp.MustCompile(key)
+
+			value := strings.ToLower(val)
+			method := strings.ToLower(string(c.Method()))
+
+			if re.ReplaceAllString(endpoint, "") == "" && strings.Contains(value, method) {
+				return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
+			}
+		}
+	} else {
 		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
 	}
 
