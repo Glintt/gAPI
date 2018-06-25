@@ -66,6 +66,26 @@
                     <label class="form-check-label" for="serviceProtected">&nbsp;&nbsp;Protection</label>
                     <small id="serviceProtectedHelp" class="form-text text-info">Is Service Protected with OAuth?</small>
                 </div>
+
+                <div class="form-group col-sm-12" v-if="service.Protected">
+                    <label for="endpointExclude">Authentication Excluded Endpoints</label>
+                    <div class="form-inline">
+                        <input type="text"  v-if="isAdmin"  v-model="endpointExclude.endpoint" class="form-control form-inline col-sm-5" id="endpointExcludeEndpoint" aria-describedby="endpointExcludeEndpointHelp" placeholder="Enter endpoint" :disabled="! isAdmin">
+                        <small id="endpointExclude" class="form-text text-info">&nbsp;&nbsp;Endpoints to exclude from authentication - use Regex.</small>
+    
+                        <input type="text"  v-if="isAdmin"  v-model="endpointExclude.methods" class="form-control form-inline col-sm-5" id="endpointExcludeMethods" aria-describedby="endpointExcludeMethodsHelp" placeholder="Enter methods" :disabled="! isAdmin">
+                        <small id="endpointExclude" class="form-text text-info">&nbsp;&nbsp;Methods must be lower case and separated by commas. Ex: get,post,put</small>
+
+                    </div>
+                    <button type="button" v-if="isAdmin"  @click="addEndpointExclude" class="btn btn-sm btn-success">Add</button>
+                    <ul class="list-group col-sm-6">
+                        <li class="list-group-item" v-for="(v, k) in service.ProtectedExclude" :key="k">
+                            {{ k }} - {{v}}
+                            <button v-if="isAdmin" type="button" @click="removeEndpointExclude(k)" class="btn btn-sm btn-danger">Delete</button>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="form-group col-sm-6">                                    
                     <i class="fas fa-archive " :class="service.IsCachingActive ? 'text-success' : 'text-danger'" @click="toggleCaching" />
                     <label class="form-check-label" for="serviceProtected">&nbsp;&nbsp;Cache</label>
@@ -107,7 +127,11 @@ export default {
       hostToAdd: "",
       groups: [],
       selectedGroup: null,
-      changed : false
+      changed : false,
+      endpointExclude:{
+          endpoint: "",
+          methods:""
+      }
     };
   },
   computed: {
@@ -153,6 +177,14 @@ export default {
     addHost: function() {
       this.$emit("addHost", this.hostToAdd);
       this.hostToAdd = ""
+    },
+    addEndpointExclude: function() {
+        this.$emit("addEndpointExclude", this.endpointExclude)
+        this.endpointExclude.endpoint=""
+        this.endpointExclude.methods=""
+    },
+    removeEndpointExclude: function(endpoint) {
+        this.$emit("removeEndpointExclude", endpoint)
     },
     toggleCard: function(cardName) {
         this.$emit("toggleCard", cardName)

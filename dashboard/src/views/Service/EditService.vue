@@ -58,7 +58,7 @@
                         </div>
                     </div> 
 
-                    <ServiceAPIConfiguration v-on:addHost="addHost" v-show="isLoggedIn" v-on:toggleCard="toggleCard" v-on:removeHost="removeHost" :showing="cards.api_config.showing" :service="service"/>
+                    <ServiceAPIConfiguration v-on:addEndpointExclude="addEndpointExclude" v-on:removeEndpointExclude="removeEndpointExclude" v-on:addHost="addHost" v-show="isLoggedIn" v-on:toggleCard="toggleCard" v-on:removeHost="removeHost" :showing="cards.api_config.showing" :service="service"/>
                     
                     <ServiceManagementConfig v-on:toggleCard="toggleCard" :showing="cards.management_config.showing" :service="service" v-show="isLoggedIn" />
                 </div>
@@ -114,7 +114,8 @@ export default {
         HealthcheckUrl: "",
         ServiceManagementHost: "",
         ServiceManagementPort: "",
-        ServiceManagementEndpoints: {}
+        ServiceManagementEndpoints: {},
+        ProtectedExclude:{}
       },
       isActiveClass: "text-success",
       informationStatus: {
@@ -136,6 +137,14 @@ export default {
     };
   },
   methods: {
+    addEndpointExclude: function(endpointToExclude) {
+      this.service.ProtectedExclude[endpointToExclude.endpoint] = endpointToExclude.methods
+    },
+    removeEndpointExclude: function(endpointToExclude) {
+      var protect = Object.assign({},this.service.ProtectedExclude)
+      delete protect[endpointToExclude]
+      this.service.ProtectedExclude = protect
+    },
     addHost: function(hostToAdd) {
       this.service.Hosts.push(hostToAdd);
       hostToAdd = "";
