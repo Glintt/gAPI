@@ -2,8 +2,7 @@ package http
 
 import (
 	"gAPIManagement/api/utils"
-	
-
+	"strings"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
 )
@@ -42,6 +41,27 @@ func GetQueryParamsFromRequestCtx(c *fasthttp.RequestCtx) map[string]string {
 	return queryParamsMap
 }
 
+func GetURIWithParams(c *routing.Context) string {
+	queryParams := GetQueryParamsFromRequest(c)
+	
+	uri := string(c.Request.RequestURI())
+	uri = strings.Split(uri, "?")[0]
+	
+	first := true
+
+	for pKey, pValue := range queryParams {
+		if first {
+			uri = uri + "?"
+			first = false
+		} else {
+			uri = uri + "&"
+		}
+
+		uri = uri + pKey + "=" + pValue
+	}
+
+	return uri
+}
 
 func addHeadersToRequest(request *fasthttp.Request, headers map[string]string) {
 	if headers == nil {

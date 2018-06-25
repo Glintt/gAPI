@@ -5,7 +5,6 @@ import (
 	"gAPIManagement/api/utils"
 	"regexp"
 	"strings"
-
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
@@ -90,8 +89,8 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 	}
 
 	body := c.Request.Body()
-
-	response := service.Call(string(c.Method()), string(c.Request.RequestURI()), headers, string(body))
+	
+	response := service.Call(string(c.Method()), http.GetURIWithParams(c) , headers, string(body))
 
 	return http.ResponseInfo{
 		StatusCode:  response.Header.StatusCode(),
