@@ -105,7 +105,7 @@ func UpdateUserByAdminHandler(c *routing.Context) error {
 
 func UpdateUserHandler(c *routing.Context) error {
 	requestUser := string(c.Request.Header.Peek("User"))
-	
+
 	if requestUser != c.Param("username") {
 		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName())
 		return nil

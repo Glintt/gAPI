@@ -152,6 +152,7 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 		c.Abort()
 		return nil
 	}
-
+	
+	c.Request.Header.Add("User", username)
 	return nil
 }
