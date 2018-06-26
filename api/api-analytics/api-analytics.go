@@ -7,6 +7,8 @@ import (
 	"gAPIManagement/api/http"
 )
 
+var SERVICE_NAME = "api_analytics"
+
 func LogsURL() string {
 	return config.ELASTICSEARCH_URL + "/" + config.ELASTICSEARCH_LOGS_INDEX + "/_search"
 }
