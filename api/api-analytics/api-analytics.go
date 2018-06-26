@@ -17,7 +17,7 @@ func Logs(apiEndpoint string) (string, int) {
 	if apiEndpoint != "" {
 		apiEndpoint = `
 		"must":{
-			"match" : {
+			"match_phrase" : {
 				"ServiceName": "`+ apiEndpoint +`"
 			}
 		},`
@@ -35,7 +35,7 @@ func Logs(apiEndpoint string) (string, int) {
 func APIAnalytics(apiEndpoint string) (string, int) {
 	if apiEndpoint != "" {
 		apiEndpoint = `"query":{
-				"match":{
+				"match_phrase":{
 					"ServiceName":"` + apiEndpoint + `"
 				}	
 			},`
