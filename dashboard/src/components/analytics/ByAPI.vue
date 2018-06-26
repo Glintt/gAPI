@@ -134,7 +134,7 @@
     
                 for (var i = 0; i < size; i++) {
                     this.elapsedTimeInfo.max = this.fullAnalytics[i].MaxElapsedTime.value > this.elapsedTimeInfo.max ? this.fullAnalytics[i].MaxElapsedTime.value : this.elapsedTimeInfo.max;
-                    this.elapsedTimeInfo.min = this.fullAnalytics[i].MinElapsedTime.value > this.elapsedTimeInfo.min ? this.fullAnalytics[i].MinElapsedTime.value : this.elapsedTimeInfo.min;
+                    this.elapsedTimeInfo.min = this.fullAnalytics[i].MinElapsedTime.value < this.elapsedTimeInfo.min ? this.fullAnalytics[i].MinElapsedTime.value : this.elapsedTimeInfo.min;
                     totalTime += this.fullAnalytics[i].AvgElapsedTime.value;
                 }
     
