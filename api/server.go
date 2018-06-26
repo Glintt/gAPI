@@ -105,7 +105,7 @@ func RequestCounterSocket(service []byte) {
 func IsGApiService(service []byte) bool {
 	serviceString := string(service)
 	
-	if serviceString == servicediscovery.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == users.SERVICE_NAME {
+	if serviceString == servicediscovery.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME {
 		return true
 	}
 

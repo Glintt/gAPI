@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"gAPIManagement/api/http"
+	"gAPIManagement/api/authentication"
 	auth "gAPIManagement/api/authentication"
 	"gAPIManagement/api/users"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -17,12 +19,10 @@ func GetTokenHandler(c *routing.Context) error {
 	token, err := auth.GenerateToken(tokenRequestObj.Username, tokenRequestObj.Password)
 
 	if err != nil {
-		c.Response.SetBody([]byte(`{"error":true, "msg":"` + err.Error() + `"}`))
-		c.Response.SetStatusCode(401)
+		http.Response(c,`{"error":true, "msg":"` + err.Error() + `"}`, 401, authentication.SERVICE_NAME)
 		return nil
 	}
-
-	c.Response.SetBody([]byte(`{"token":"` + token + `", "expiration_time": ` + strconv.Itoa(auth.EXPIRATION_TIME) +`}`))
+	http.Response(c,`{"token":"` + token + `", "expiration_time": ` + strconv.Itoa(auth.EXPIRATION_TIME) +`}`, 200, authentication.SERVICE_NAME)
 	return nil
 }
 
@@ -33,8 +33,7 @@ func MeHandler(c *routing.Context) error {
 	tokenClaims, err := auth.ValidateToken(string(authorizationToken))
 
 	if err != nil{
-		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
-		c.Response.Header.SetStatusCode(400)
+		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 400, authentication.SERVICE_NAME)
 		return nil
 	}
 
@@ -42,14 +41,13 @@ func MeHandler(c *routing.Context) error {
 	usersList := users.GetUserByUsername(username)
 	
 	if len(usersList) == 0 || len(usersList) > 1 {
-		c.Response.SetBody([]byte(`{"error":true, "msg":"User not found."}`))
-		c.Response.Header.SetStatusCode(404)
+		http.Response(c, `{"error":true, "msg":"User not found."}`, 404, authentication.SERVICE_NAME)
 		return nil
 	}
 
 	usersList[0].Password = ""
 	userJSON,_ := json.Marshal(usersList[0])
-	c.Response.SetBody(userJSON)
+	http.Response(c, string(userJSON), 200, authentication.SERVICE_NAME)
 	return nil
 }
 
@@ -60,10 +58,10 @@ func AuthorizeTokenHandler(c *routing.Context) error {
 	_, err := auth.ValidateToken(string(authorizationToken))
 
 	if err != nil{
-		c.Response.SetBody([]byte(`{"error":true, "msg":"`+ err.Error() + `"}`))
-		c.Response.Header.SetStatusCode(401)
+		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 401, authentication.SERVICE_NAME)
 		return nil
 	}
-	c.Response.SetBody([]byte(`{"error":false, "msg":"Token is valid."}`))
+	http.Response(c, `{"error":false, "msg":"Token is valid."}`, 200, authentication.SERVICE_NAME)
+
 	return nil
 }
