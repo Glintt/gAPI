@@ -68,7 +68,8 @@ func PublishLog(reqLogging *RequestLogging) {
 func PublishElastic(reqLogging *RequestLogging) {
 	utils.LogMessage("ELASTIC PUBLISH", utils.DebugLogType)
 	currentDate := utils.CurrentDate()
-	logsURL := config.ELASTICSEARCH_URL + "/gapi-logs/request-logs-" + currentDate
+	logsURL := config.ELASTICSEARCH_URL + "/" + config.ELASTICSEARCH_LOGS_INDEX + "/request-logs-" + currentDate
+
 
 	reqLoggingJson, _ := json.Marshal(reqLogging)
 

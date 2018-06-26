@@ -10,6 +10,7 @@ var SERVICE_DISCOVERY_GROUP = "/service-discovery"
 var USERS_GROUP = "/users"
 var ANALYTICS_GROUP = "/analytics"
 var ELASTICSEARCH_URL = "http://localhost:9200"
+var ELASTICSEARCH_LOGS_INDEX = "gapi-logs"
 
 type UrlsConstants struct {
 	SERVICE_DISCOVERY_GROUP string `json:SERVICE_DISCOVERY_GROUP`
@@ -41,4 +42,7 @@ func LoadURLConstants() {
 	SERVICE_DISCOVERY_GROUP = GApiConfiguration.Urls.SERVICE_DISCOVERY_GROUP
 	ANALYTICS_GROUP = GApiConfiguration.Urls.ANALYTICS_GROUP
 	ELASTICSEARCH_URL = "http://" + os.Getenv("ELASTICSEARCH_HOST") + ":" + os.Getenv("ELASTICSEARCH_PORT")
+	if os.Getenv("ELASTICSEARCH_LOGS_INDEX") != "" {
+		ELASTICSEARCH_LOGS_INDEX = os.Getenv("ELASTICSEARCH_LOGS_INDEX")
+	}
  }

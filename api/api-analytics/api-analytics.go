@@ -8,7 +8,7 @@ import (
 )
 
 func LogsURL() string {
-	return config.ELASTICSEARCH_URL + "/request-logs-*/logs/_search"
+	return config.ELASTICSEARCH_URL + "/" + config.ELASTICSEARCH_LOGS_INDEX + "/request-logs-*/_search"
 }
 
 func Logs(apiEndpoint string) (string, int) {	
