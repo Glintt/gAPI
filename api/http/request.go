@@ -45,19 +45,11 @@ func GetURIWithParams(c *routing.Context) string {
 	queryParams := GetQueryParamsFromRequest(c)
 	
 	uri := string(c.Request.RequestURI())
-	uri = strings.Split(uri, "?")[0]
 	
-	first := true
-
 	for pKey, pValue := range queryParams {
-		if first {
-			uri = uri + "?"
-			first = false
-		} else {
-			uri = uri + "&"
+		if pValue == "" {
+			uri = strings.Replace(uri, pKey, pKey + "=", 1)
 		}
-
-		uri = uri + pKey + "=" + pValue
 	}
 
 	return uri
@@ -87,7 +79,7 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	request.SetRequestURI(url)
 	request.Header.SetMethod(method)
 
-	request.Header.SetContentType("application/json")
+	//request.Header.SetContentType("application/json")
 	request.SetBody([]byte(body))
 
 	addHeadersToRequest(request, headers)
