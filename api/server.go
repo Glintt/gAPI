@@ -2,7 +2,6 @@ package main
 
 import (
 	"gAPIManagement/api/users"
-	"fmt"
 	"gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
 	"encoding/json"
