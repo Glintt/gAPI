@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"strconv"
 	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/utils"
 	"regexp"
@@ -39,6 +40,9 @@ func HandleRequest(c *routing.Context) error {
 
 		var err error
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
+
+		utils.LogMessage("IsExternalRequest = " + strconv.FormatBool(sd.IsExternalRequest(c)), utils.DebugLogType)
+		utils.LogMessage("IsReachableFromExternal = " + strconv.FormatBool(cachedRequest.Service.IsReachableFromExternal(sd)), utils.DebugLogType)
 
 		if err != nil || (sd.IsExternalRequest(c) && !cachedRequest.Service.IsReachableFromExternal(sd)) {
 			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME)

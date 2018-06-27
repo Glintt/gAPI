@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"gAPIManagement/api/utils"
 	"strings"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/config"
@@ -63,7 +64,10 @@ func InitServiceDiscovery() {
 func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
 	hosts, _ := ListAllAvailableHosts()
 	requestHost := requestContxt.RemoteIP().String()
-
+	
+	utils.LogMessage("ListAllAvailableHosts = " + strings.Join(hosts,","), utils.DebugLogType)
+	utils.LogMessage("RequestIp = " + requestHost, utils.DebugLogType)
+	
 	for _, v := range hosts {
 		hostInfo := strings.Split(v, ":")
 		if hostInfo[0] == "localhost" {
