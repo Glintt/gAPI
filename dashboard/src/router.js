@@ -85,13 +85,13 @@ export default new Router({
       path: "/analytics/by-api",
       name: "analytics-by-api",
       component: ByApi,
-      beforeEnter: OAuthValidator.requireAuth
+      beforeEnter: OAuthValidator.requireAdminAuth
     },
     {
       path: "/analytics/realtime",
       name: "analytics-realtime",
       component: Realtime,
-      beforeEnter: OAuthValidator.requireAuth
+      beforeEnter: OAuthValidator.requireAdminAuth
     }
   ]
 });
