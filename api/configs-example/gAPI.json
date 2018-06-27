@@ -3,7 +3,12 @@
         "Username": "admin",
         "Password": "admin",
         "TokenExpirationTime": 30,
-        "TokenSigningKey": "SIGNING_KEY"
+        "TokenSigningKey": "SIGNING_KEY",
+        "LDAP": {
+            "Active": true,
+            "Domain": "ldap.example.com",
+            "Port": "389"
+        }
     },
     "Logs":{
         "Active":true,
