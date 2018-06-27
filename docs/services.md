@@ -21,10 +21,16 @@ A service contains the following information:
 * _ServiceManagementEndpoints_ - Service management service available endpoints
 * _RateLimit_ - Global rate limit (rps)
 * _RateLimitExpirationTime_ - Global rate limit expiration time (in minutes)
+* _IsReachable_ - If micro service is reachable from external requests
+* _GroupId_ - Group Id to which the micro service belongs. null if no group
+* _GroupVisibility_ - Group Visibility to external requests
+* _UseGroupAttributes_ - If the service must use group attributes (currently: visibility)
 
 In order to get more information on ServiceManagement part, check [here](./service-management.md)
 
 In order to get more information on Rate Limiting part, check [here](./rate-limiting.md)
+
+In order to get more information on Reachability, check [here](./reachability.md)
 
 #### Matching URI
 

@@ -14,6 +14,10 @@ Configuration files explanation:
     * **Authentication** - user and password configuration to access admin area;
         * TokenExpirationTime - time for the token to expire. Min value = 30s
         * TokenSigningKey - Signing key for the token. Min length = 10
+        * LDAP - Ldap related configuration
+            * Active - If LDAP is enabled on gAPI or not
+            * Domain - Ldap server
+            * Port - Ldap Port (default: 389)
     * **Logs** - activate/deactivate logs and type of logging (available: *Elastic* or *Rabbit*)
     * **CORS** - AllowedOrigins (array with all allowed origins) and AllowCredentials
     * **ServiceDiscovery** - configuration storage type (available: *file* and *mongo*) - note that when it is being used mongo, you MUST specify MONGO_HOST and MONGO_DB environment variables.
