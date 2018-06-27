@@ -82,14 +82,24 @@ func GenerateToken(username string, password string) (string, error){
 }
 
 func ValidateUserCredentials(username string, password string) (users.User, error) {
+
+	if config.GApiConfiguration.Authentication.LDAP.Active && AuthenticateWithLDAP(username, password) {
+		user := users.User{
+			Username: strings.Split(username, "@")[0],
+			Password: password,
+			Email: username,
+		}
+		users.CreateUser(user)
+		
+		return user, nil
+	}
+
 	userList := users.GetUserByUsername(username)
 	if len(userList) == 0 {
 		return users.User{}, errors.New("Not Authorized.")
 	}
 
 	user := userList[0]
-	fmt.Println(user.Password)
-	fmt.Println(password)
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if err != nil {

@@ -24,7 +24,15 @@ type GApiAuthenticationConfig struct {
 	Password string
 	TokenExpirationTime int
 	TokenSigningKey string
+	LDAP LDAPConfig
 }
+
+type LDAPConfig struct {
+	Active bool
+	Domain string
+	Port string
+}
+
 type GApiLogsConfig struct {
 	Active bool
 	Type   string
