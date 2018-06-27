@@ -28,6 +28,14 @@ export function update(user, cb) {
   });
 }
   
+export function updateByAdmin(user, cb) {
+  return HTTP.PUT(HTTP.PathToCall(`/users/admin/${user.Username}`), user, {}).then((response) => {
+    cb(response);
+  }, (response) => {
+    HTTP.handleError(response, cb)
+  });
+}
+
 export function create(user, cb) {
   return HTTP.POST(HTTP.PathToCall(`/users`), user, {}).then((response) => {
     cb(response);

@@ -11,10 +11,10 @@ func LogsQuery(apiEndpoint string) string {
 		"query":{
 			"bool": {
 				`+ apiEndpoint +`
-				"must_not" : {
+				"filter" : {
 					"range" : {
 						"StatusCode" : {
-							"lt" : 300
+							"gte" : 300
 						}
 					}
 				}

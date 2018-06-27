@@ -34,6 +34,16 @@ export const createUser = ({ commit }, user) => {
     })
 }
 
+export const updateUserWithAdmin = ({commit, state}) => {
+    usersAPI.updateByAdmin(state.user, (response) => {
+        if (response.status != 200) {
+            commit('newAlert', {msg:'Error updating user', classType: 'danger'})
+        }else {
+            commit('newAlert', {msg:'User updated successfuly', classType: 'success'})
+        }
+    })
+}
+
 export const updateUser = ({ commit, state }) => {
     usersAPI.update(state.user, (response) => {
         if (response.status != 200) {

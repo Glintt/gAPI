@@ -31,13 +31,14 @@ type RequestLogging struct {
 	ElapsedTime int64
 	StatusCode  int
 	ServiceName string
+	IndexName		string
 }
 
 var LoggingType = map[string]interface{}{
 	"Rabbit": PublishRabbit,
 	"Elastic": PublishElastic}
 
-func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte, currentDate string, elapsedTime int64, serviceName string) RequestLogging {
+func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte, currentDate string, elapsedTime int64, serviceName string, indexName string) RequestLogging {
 	return RequestLogging{string(
 		c.Method()),
 		string(c.Request.RequestURI()),
@@ -52,7 +53,8 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 		string(c.Response.Body()),
 		elapsedTime,
 		c.Response.StatusCode(),
-		serviceName}
+		serviceName,
+		indexName}
 }
 
 func (reqLogging *RequestLogging) Save() {	
@@ -68,7 +70,13 @@ func PublishLog(reqLogging *RequestLogging) {
 func PublishElastic(reqLogging *RequestLogging) {
 	utils.LogMessage("ELASTIC PUBLISH", utils.DebugLogType)
 	currentDate := utils.CurrentDate()
-	logsURL := config.ELASTICSEARCH_URL + "/" + config.ELASTICSEARCH_LOGS_INDEX + "/request-logs-" + currentDate
+	
+	indexName := config.ELASTICSEARCH_LOGS_INDEX
+	if reqLogging.IndexName != "" {
+		indexName = reqLogging.IndexName
+	}
+
+	logsURL := config.ELASTICSEARCH_URL + "/" + indexName + "/request-logs-" + currentDate
 
 
 	reqLoggingJson, _ := json.Marshal(reqLogging)

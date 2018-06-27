@@ -1,6 +1,8 @@
 package main
 
 import (
+	"gAPIManagement/api/users"
+	"gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
 	"encoding/json"
 	
@@ -100,15 +102,30 @@ func RequestCounterSocket(service []byte) {
 	sockets.IncrementRequestCounter()
 }
 
+func IsGApiService(service []byte) bool {
+	serviceString := string(service)
+	
+	if serviceString == servicediscovery.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME {
+		return true
+	}
+
+	return false
+}
+
 func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
 	if !config.GApiConfiguration.Logs.Active || string(ctx.Method()) == "OPTIONS" {
 		return
 	}
 
+	indexName := ""
+	if IsGApiService(service) {
+		indexName = "gapi-api-logs"
+	}
+	
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))
 	headers, _ := json.Marshal(http.GetHeadersFromRequest(ctx.Request))
-	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), elapsedTime, string(service))
+	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), elapsedTime, string(service), indexName)
 	work := logs.LogWorkRequest{Name: "", LogToSave: logRequest}
 	logs.WorkQueue <- work
 }

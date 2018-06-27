@@ -16,6 +16,8 @@ import (
 var sd servicediscovery.ServiceDiscovery
 var oauthserver authentication.OAuthServer
 
+var SERVICE_NAME = "/proxy"
+
 func StartProxy(router *routing.Router) {
 	oauthserver = authentication.LoadFromConfig()
 
@@ -39,7 +41,7 @@ func HandleRequest(c *routing.Context) error {
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
 
 		if err != nil || (sd.IsExternalRequest(c) && !cachedRequest.Service.IsReachableFromExternal(sd)) {
-			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, "/proxy")
+			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME)
 			return nil
 		}
 

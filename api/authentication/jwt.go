@@ -17,6 +17,7 @@ var MinExpirationTime = 30
 
 var SIGNING_KEY = "AllYourBase"
 var EXPIRATION_TIME = MinExpirationTime
+var SERVICE_NAME = "authentication"
 
 type TokenRequestObj struct{
 	Username string `json:username`
@@ -151,6 +152,7 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 		c.Abort()
 		return nil
 	}
-
+	
+	c.Request.Header.Add("User", username)
 	return nil
 }

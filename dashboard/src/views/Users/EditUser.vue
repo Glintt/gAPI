@@ -37,7 +37,8 @@
                 <label class="form-check-label" for="userIsAdmin">&nbsp;&nbsp;Is Admin?</label>
             </div>
 
-            <button class="btn btn-warning" @click="updateUser">Save changes</button>
+            <button class="btn btn-warning" @click="updateUser" v-if="! loggedInUser.IsAdmin">Save changes</button>
+            <button class="btn btn-warning" @click="updateUserWithAdmin" v-if="loggedInUser.IsAdmin">Save changes</button>
             
         </div>
 
@@ -67,7 +68,8 @@ export default {
         ...mapActions('users', [
             'updateUser',
             'changeUser',
-            'closeAlert'
+            'closeAlert',
+            'updateUserWithAdmin'
         ]),
         toggleAdmin: function() {
             this.user.IsAdmin = ! this.user.IsAdmin

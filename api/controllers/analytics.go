@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"gAPIManagement/api/config"
+	// "gAPIManagement/api/config"
 	"github.com/qiangxue/fasthttp-routing"
-	"gAPIManagement/api/api-analytics"
+	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/http"
 )
 
@@ -12,7 +12,7 @@ func Logs(c *routing.Context) error {
 	
 	res, status := apianalytics.Logs(apiEndpoint)
 
-	http.Response(c, res, status, config.ANALYTICS_GROUP+"/logs")
+	http.Response(c, res, status, apianalytics.SERVICE_NAME)
 
 	return nil
 }
@@ -22,7 +22,7 @@ func APIAnalytics(c *routing.Context) error {
 	
 	res, status := apianalytics.APIAnalytics(apiEndpoint)
 
-	http.Response(c, res, status, config.ANALYTICS_GROUP+"/api")
+	http.Response(c, res, status, apianalytics.SERVICE_NAME)
 
 	return nil
 }

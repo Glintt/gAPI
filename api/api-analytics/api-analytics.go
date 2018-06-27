@@ -7,6 +7,8 @@ import (
 	"gAPIManagement/api/http"
 )
 
+var SERVICE_NAME = "api_analytics"
+
 func LogsURL() string {
 	return config.ELASTICSEARCH_URL + "/" + config.ELASTICSEARCH_LOGS_INDEX + "/_search"
 }
@@ -15,7 +17,7 @@ func Logs(apiEndpoint string) (string, int) {
 	if apiEndpoint != "" {
 		apiEndpoint = `
 		"must":{
-			"match" : {
+			"match_phrase" : {
 				"ServiceName": "`+ apiEndpoint +`"
 			}
 		},`
@@ -33,7 +35,7 @@ func Logs(apiEndpoint string) (string, int) {
 func APIAnalytics(apiEndpoint string) (string, int) {
 	if apiEndpoint != "" {
 		apiEndpoint = `"query":{
-				"match":{
+				"match_phrase":{
 					"ServiceName":"` + apiEndpoint + `"
 				}	
 			},`
