@@ -12,7 +12,7 @@
             <div class="col-md">
                 <div class="card text-white bg-danger mb-3">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{ GlobalInformation().totalErrors }}</h5>
+                        <h5 class="card-title">{{ globalInformation.totalErrors }}</h5>
                         <p class="card-text">Total Errors</p>
                     </div>
                 </div>
@@ -20,7 +20,7 @@
             <div class="col-md">
                 <div class="card text-white bg-success mb-3">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{ GlobalInformation().totalSuccess }}</h5>
+                        <h5 class="card-title">{{ globalInformation.totalSuccess }}</h5>
                         <p class="card-text">Total Success</p>
                     </div>
                 </div>
@@ -30,7 +30,7 @@
             <div class="col-md">
                 <div class="card text-white bg-info mb-3">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{ ElapsedTimeInfo().avg }}</h5>
+                        <h5 class="card-title">{{ elapsedTimeInfo.avg }}</h5>
                         <p class="card-text">Average Elapsed Time (ms)</p>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
             <div class="col-md">
                 <div class="card text-white bg-danger mb-3">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{ ElapsedTimeInfo().max }}</h5>
+                        <h5 class="card-title">{{ elapsedTimeInfo.max }}</h5>
                         <p class="card-text">Max Elapsed Time (ms)</p>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
             <div class="col-md">
                 <div class="card text-white bg-success mb-3">
                     <div class="card-body text-center">
-                        <h5 class="card-title">{{ ElapsedTimeInfo().min }}</h5>
+                        <h5 class="card-title">{{ elapsedTimeInfo.min }}</h5>
                         <p class="card-text">Min Elapsed Time (ms)</p>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         <h5 class="card-title">Most Called APIs</h5>
                         <hr/>
                         <div class="card-text">
-                            <doughnut-chart :chartData="MostCalledApis()" :options="{responsive: false}"></doughnut-chart>
+                            <doughnut-chart :chartData="mostCalledApis" :options="{responsive: false}"></doughnut-chart>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                         <h5 class="card-title">User Agent</h5>
                         <hr/>
                         <div class="card-text">
-                            <bar-chart :chartData="GlobalUserAgent()" :options="{responsive: false}"></bar-chart>
+                            <bar-chart :chartData="globalUserAgent" :options="{responsive: false}"></bar-chart>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         <h5 class="card-title">Remote Address</h5>
                         <hr/>
                         <div class="card-text">
-                            <bar-chart :chartData="GlobalRemoteAddress()" :options="{responsive: false}"></bar-chart>
+                            <bar-chart :chartData="globalRemoteAddress" :options="{responsive: false}"></bar-chart>
                         </div>
                     </div>
                 </div>
@@ -112,27 +112,37 @@
         data() {
             return {
                 fullAnalytics:  {},
-                elapsedTimeInfo: {
-                    max: 0,
-                    min: -1,
-                    avg: 0
-                }
+                elapsedTimeInfo: {},
+                mostCalledApis: {},
+                globalInformation: {},
+                globalRemoteAddress: {},
+                globalUserAgent:{},
             }
         },
 
         methods: {
             GetData:function(){
+                analyticsAPI.byApi({
+                    "endpoint": this.selectedAPI
+                }, (response) => {
+                    this.fullAnalytics = response.body.aggregations.api.buckets;
+                    this.UpdateAllInfo()
+                });
+            },
+            ResetData: function() {
                 this.elapsedTimeInfo = {
                     max: 0,
                     min: -1,
                     avg: 0
                 };
-                
-                analyticsAPI.byApi({
-                    "endpoint": this.selectedAPI
-                }, (response) => {
-                    this.fullAnalytics = response.body.aggregations.api.buckets;
-                });
+            },
+            UpdateAllInfo: function() {
+                this.ResetData()
+                this.ElapsedTimeInfo()
+                this.mostCalledApis = this.MostCalledApis()
+                this.globalInformation = this.GlobalInformation()
+                this.globalUserAgent = this.GlobalUserAgent()
+                this.globalRemoteAddress = this.GlobalRemoteAddress()
             },
             ElapsedTimeInfo: function() {
                 var totalTime = 0;
