@@ -12,7 +12,7 @@ func LogsQuery(apiEndpoint string) string {
 			"bool": {
 				`+ apiEndpoint +`
 				"must_not" : {
-					"range" : {
+					"filter" : {
 						"StatusCode" : {
 							"lt" : 300
 						}

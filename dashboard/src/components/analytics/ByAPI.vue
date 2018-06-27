@@ -122,6 +122,12 @@
 
         methods: {
             GetData:function(){
+                this.elapsedTimeInfo = {
+                    max: 0,
+                    min: -1,
+                    avg: 0
+                };
+                
                 analyticsAPI.byApi({
                     "endpoint": this.selectedAPI
                 }, (response) => {
