@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"gAPIManagement/api/utils"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"gAPIManagement/api/users"
@@ -60,7 +61,7 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 }
 
 func GenerateToken(username string, password string) (string, error){
-	_, err := ValidateUserCredentials(username, password)
+	user, err := ValidateUserCredentials(username, password)
 	if err != nil{
 		return "", err
 	}
@@ -69,7 +70,7 @@ func GenerateToken(username string, password string) (string, error){
 
 	// Create the Claims
 	claims := TokenCustomClaims{
-		username,
+		user.Username,
 		jwt.StandardClaims{
 			ExpiresAt: (time.Now().Unix() + int64(EXPIRATION_TIME)),
 			Issuer:    "gAPI",
@@ -81,19 +82,46 @@ func GenerateToken(username string, password string) (string, error){
 	return ss, nil
 }
 
+func LdapUserCreateOrUpdate(user users.User) {
+	err := users.CreateUser(user)
+	if err != nil {
+		utils.LogMessage("Create user error = " + err.Error(), utils.DebugLogType)
+
+		userList := users.GetUserByUsername(user.Username)
+		if len(userList) == 0 {
+			return
+		}
+
+		if bcrypt.CompareHashAndPassword([]byte(userList[0].Password), []byte(user.Password)) != nil {
+			user.Id = userList[0].Id
+			user.IsAdmin = userList[0].IsAdmin			
+
+			hashedPwd, _ := users.GeneratePassword(user.Password)
+			user.Password = string(hashedPwd)
+
+			err = users.UpdateUser(user)
+			if err != nil {
+				utils.LogMessage("Update user error = " + err.Error(), utils.DebugLogType)
+			}
+		}
+	}
+}
+
 func ValidateUserCredentials(username string, password string) (users.User, error) {
 
 	if config.GApiConfiguration.Authentication.LDAP.Active && AuthenticateWithLDAP(username, password) {
-		user := users.User{
-			Username: strings.Split(username, "@")[0],
-			Password: password,
-			Email: username,
-		}
-		users.CreateUser(user)
-		
-		return user, nil
-	}
+		email := username
+		username = strings.Split(username, "@")[0]
 
+		user := users.User{
+			Username: username,
+			Password: password,
+			Email: email,
+		}
+		
+		LdapUserCreateOrUpdate(user)
+	}
+	
 	userList := users.GetUserByUsername(username)
 	if len(userList) == 0 {
 		return users.User{}, errors.New("Not Authorized.")
@@ -103,10 +131,9 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if err != nil {
-		fmt.Println(err.Error())
+		utils.LogMessage("Compare Password Hash Error = " + err.Error(), utils.DebugLogType)
 	}
 	if username == user.Username && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil {
-		
 		return user, nil
 	}
 
