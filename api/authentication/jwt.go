@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"gAPIManagement/api/utils"
-	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"gAPIManagement/api/users"
 	"github.com/dgrijalva/jwt-go"
