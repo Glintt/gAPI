@@ -10,6 +10,6 @@ import (
 func InitAnalyticsAPI(router *routing.Router) {
 	analyticsAPI := router.Group(config.ANALYTICS_GROUP)
 
-	analyticsAPI.Get("/api", authentication.AuthorizationMiddleware, controllers.APIAnalytics)
-	analyticsAPI.Get("/logs", authentication.AuthorizationMiddleware, controllers.Logs)
+	analyticsAPI.Get("/api", authentication.AdminRequiredMiddleware, controllers.APIAnalytics)
+	analyticsAPI.Get("/logs", authentication.AdminRequiredMiddleware, controllers.Logs)
 }
