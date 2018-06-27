@@ -6,11 +6,13 @@ Vue.use(Vuex);
 
 import users from './store/modules/users/index';
 import serviceGroups from './store/modules/services-groups'
+import fullscreen from './store/modules/full-screen'
 
 export default new Vuex.Store({
   modules:{
     users,
-    serviceGroups
+    serviceGroups,
+    fullscreen
   },
   state: {
     isLoggedIn : false,

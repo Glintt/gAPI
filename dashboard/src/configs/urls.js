@@ -1,7 +1,7 @@
 export const config = {
     "API" : {
         "HOST" : process.env.API_HOST || "localhost",
-        "PORT" : process.env.API_PORT || "8080",
+        "PORT" : "8000",
         "SOCKET_HOST" : process.env.SOCKET_HOST ||  "localhost",
         "SOCKET_PORT" : process.env.SOCKET_PORT || "5000",
         "BASE_PATH" : "",
