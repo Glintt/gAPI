@@ -35,8 +35,8 @@ export function requireAdminAuth(to, from, next) {
             path: '/login'
           });
     } else {
-        if (! store.default.state.loggedInUser.IsAdmin) next({path: '/'})
-        next();
+        if (! store.default.state.loggedInUser.IsAdmin) return next({path: '/'})
+        else next();
     }
 }
 
