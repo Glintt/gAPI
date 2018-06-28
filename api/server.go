@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+	"runtime"
 	"gAPIManagement/api/users"
 	"gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
@@ -27,6 +29,13 @@ var server = &fasthttp.Server{}
 var router *routing.Router
 
 func main() {
+	if os.Getenv("GO_MAX_PROCS") != "" {
+		maxProcs, err := strconv.Atoi(os.Getenv("GO_MAX_PROCS"))
+		if err != nil {
+			runtime.GOMAXPROCS(maxProcs)
+		}
+	}
+	
 	config.LoadConfigs()
 	
 	router = routing.New()
