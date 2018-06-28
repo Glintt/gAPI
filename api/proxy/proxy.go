@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"gAPIManagement/api/config"
 	"strconv"
 	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/utils"
@@ -45,7 +46,7 @@ func HandleRequest(c *routing.Context) error {
 		utils.LogMessage("IsReachableFromExternal = " + strconv.FormatBool(cachedRequest.Service.IsReachableFromExternal(sd)), utils.DebugLogType)
 
 		if err != nil || (sd.IsExternalRequest(c) && !cachedRequest.Service.IsReachableFromExternal(sd)) {
-			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME)
+			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME, config.APPLICATION_JSON)
 			return nil
 		}
 
@@ -59,7 +60,7 @@ func HandleRequest(c *routing.Context) error {
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
 		if cachedRequest.Protection.Error != nil {
-			http.Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, cachedRequest.Service.MatchingURI)
+			http.Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, cachedRequest.Service.MatchingURI, config.APPLICATION_JSON)
 			return nil
 		}
 
@@ -78,7 +79,7 @@ func HandleRequest(c *routing.Context) error {
 		utils.LogMessage("RESPONSE FROM CACHE", utils.DebugLogType)
 	}
 
-	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI)
+	http.Response(c, string(cachedRequest.Response.Body), cachedRequest.Response.StatusCode, cachedRequest.Service.MatchingURI, string(cachedRequest.Response.ContentType))
 
 	if cachedRequest.Response.StatusCode < 300 {
 		cache.StoreRequestInfoToCache(c, cachedRequest)

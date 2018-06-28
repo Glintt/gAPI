@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/utils"
 	"gAPIManagement/api/users"
 	"strconv"
@@ -15,13 +16,13 @@ func GetUserHandler(c *routing.Context) error {
 	user := users.GetUserByUsername(c.Param("username"))
 	
 	if len(user) == 0 {
-		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	user[0].Password = ""
 	userJSON, _ := json.Marshal(user[0])
-	http.Response(c, string(userJSON), 200, UsersServiceName())
+	http.Response(c, string(userJSON), 200, UsersServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -35,7 +36,7 @@ func FindUsersHandler(c *routing.Context) error {
 		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
 
 		if err != nil {
-			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, UsersServiceName())
+			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, UsersServiceName(), config.APPLICATION_JSON)
 			return nil
 		}
 	}
@@ -51,7 +52,7 @@ func FindUsersHandler(c *routing.Context) error {
 		userJSON = []byte(`[]`)
 	}
 	
-	http.Response(c, string(userJSON), 200, UsersServiceName())
+	http.Response(c, string(userJSON), 200, UsersServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -60,16 +61,16 @@ func CreateUserHandler(c *routing.Context) error {
 	err := json.Unmarshal(c.Request.Body(), &user)
 	
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "User could not be created."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be created."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	err = users.CreateUser(user)
 	
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "User could not be created."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be created."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 	}else {
-		http.Response(c, `{"error" : false, "msg": "User created successfuly."}`, 201, UsersServiceName())		
+		http.Response(c, `{"error" : false, "msg": "User created successfuly."}`, 201, UsersServiceName(), config.APPLICATION_JSON)		
 	}
 	
 	return nil
@@ -79,7 +80,7 @@ func UpdateUserByAdminHandler(c *routing.Context) error {
 	usersList := users.GetUserByUsername(c.Param("username"))	
 	
 	if len(usersList) == 0 {
-		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	
@@ -89,16 +90,16 @@ func UpdateUserByAdminHandler(c *routing.Context) error {
 	user, err := updateUserUsingUpdateBody(user, c.Request.Body(), allowedToUpdate)
 	
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	err = users.UpdateUser(user)
 	
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 	}else {
-		http.Response(c, `{"error" : false, "msg": "User updated successfuly."}`, 200, UsersServiceName())		
+		http.Response(c, `{"error" : false, "msg": "User updated successfuly."}`, 200, UsersServiceName(), config.APPLICATION_JSON)		
 	}
 	return nil
 }
@@ -107,14 +108,14 @@ func UpdateUserHandler(c *routing.Context) error {
 	requestUser := string(c.Request.Header.Peek("User"))
 
 	if requestUser != c.Param("username") {
-		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	usersList := users.GetUserByUsername(c.Param("username"))	
 	
 	if len(usersList) == 0 {
-		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	
@@ -124,16 +125,16 @@ func UpdateUserHandler(c *routing.Context) error {
 	user, err := updateUserUsingUpdateBody(user, c.Request.Body(), allowedToUpdate)
 	
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	err = users.UpdateUser(user)
 	
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName())
+		http.Response(c, `{"error" : true, "msg": "User could not be updated."}`, 400, UsersServiceName(), config.APPLICATION_JSON)
 	}else {
-		http.Response(c, `{"error" : false, "msg": "User updated successfuly."}`, 200, UsersServiceName())		
+		http.Response(c, `{"error" : false, "msg": "User updated successfuly."}`, 200, UsersServiceName(), config.APPLICATION_JSON)		
 	} 
 	return nil
 }

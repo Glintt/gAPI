@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/authentication"
 	auth "gAPIManagement/api/authentication"
@@ -19,10 +20,10 @@ func GetTokenHandler(c *routing.Context) error {
 	token, err := auth.GenerateToken(tokenRequestObj.Username, tokenRequestObj.Password)
 
 	if err != nil {
-		http.Response(c,`{"error":true, "msg":"` + err.Error() + `"}`, 401, authentication.SERVICE_NAME)
+		http.Response(c,`{"error":true, "msg":"` + err.Error() + `"}`, 401, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
 	}
-	http.Response(c,`{"token":"` + token + `", "expiration_time": ` + strconv.Itoa(auth.EXPIRATION_TIME) +`}`, 200, authentication.SERVICE_NAME)
+	http.Response(c,`{"token":"` + token + `", "expiration_time": ` + strconv.Itoa(auth.EXPIRATION_TIME) +`}`, 200, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 	return nil
 }
 
@@ -33,7 +34,7 @@ func MeHandler(c *routing.Context) error {
 	tokenClaims, err := auth.ValidateToken(string(authorizationToken))
 
 	if err != nil{
-		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 400, authentication.SERVICE_NAME)
+		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 400, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -41,13 +42,13 @@ func MeHandler(c *routing.Context) error {
 	usersList := users.GetUserByUsername(username)
 	
 	if len(usersList) == 0 || len(usersList) > 1 {
-		http.Response(c, `{"error":true, "msg":"User not found."}`, 404, authentication.SERVICE_NAME)
+		http.Response(c, `{"error":true, "msg":"User not found."}`, 404, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
 	}
 
 	usersList[0].Password = ""
 	userJSON,_ := json.Marshal(usersList[0])
-	http.Response(c, string(userJSON), 200, authentication.SERVICE_NAME)
+	http.Response(c, string(userJSON), 200, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 	return nil
 }
 
@@ -58,10 +59,10 @@ func AuthorizeTokenHandler(c *routing.Context) error {
 	_, err := auth.ValidateToken(string(authorizationToken))
 
 	if err != nil{
-		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 401, authentication.SERVICE_NAME)
+		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 401, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
 	}
-	http.Response(c, `{"error":false, "msg":"Token is valid."}`, 200, authentication.SERVICE_NAME)
+	http.Response(c, `{"error":false, "msg":"Token is valid."}`, 200, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 
 	return nil
 }
