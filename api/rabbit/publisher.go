@@ -95,6 +95,9 @@ func DeclareQueue(RabbitChannel *amqp.Channel) error{
 
 
 func WorkerPublishToRabbitMQ(RabbitChannel *amqp.Channel, log []byte) error {
+	
+	utils.LogMessage("Log Worker Publish entered" , utils.DebugLogType)
+
 	err := RabbitChannel.Publish(
 		"",            // exchange
 		Queue(), // routing key
@@ -106,6 +109,8 @@ func WorkerPublishToRabbitMQ(RabbitChannel *amqp.Channel, log []byte) error {
 		})
 
 	if FailOnError(err, "Failed to publish message") != nil {
+		utils.LogMessage("Log Worker Publish error = " + err.Error() , utils.DebugLogType)
+
 		return err
 	}
 	return nil

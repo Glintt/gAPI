@@ -122,6 +122,8 @@ func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
 		indexName = "gapi-api-logs"
 	}
 	
+	utils.LogMessage("Log IndexName = " + indexName, utils.DebugLogType)
+
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))
 	headers, _ := json.Marshal(http.GetHeadersFromRequest(ctx.Request))
