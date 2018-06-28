@@ -84,10 +84,10 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	if _, ok := headers["Content-Type"]; ok {
 		request.Header.SetContentType(headers["Content-Type"])
 	}
-	utils.LogMessage("=============================================================", utils.InfoLogType)
-	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body, utils.InfoLogType)
+	utils.LogMessage("=============================================================", utils.DebugLogType)
+	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body, utils.DebugLogType)
 	utils.LogMessage("             ---- Headers: " + request.Header.String(), utils.DebugLogType)
-	utils.LogMessage("=============================================================", utils.InfoLogType)
+	utils.LogMessage("=============================================================", utils.DebugLogType)
 
 	client := fasthttp.Client{}
 

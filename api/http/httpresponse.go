@@ -14,7 +14,7 @@ type ResponseInfo struct {
 
 func Response(c *routing.Context, response string, statuscode int, service string, contentType string) {
 
-	utils.LogMessage("RESPONSE ==> " + response, utils.InfoLogType)
+	utils.LogMessage("RESPONSE ==> " + response, utils.DebugLogType)
 
 	c.Response.SetBody([]byte(response))
 	c.Response.Header.SetContentType(contentType)
