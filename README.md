@@ -6,7 +6,7 @@ gAPI allows to easily manage all your microservices by providing a simple and in
 It also provides analytics which are useful to take value from request logs.
 
 
-In order to access more documentation, go to [Github Wiki](https://github.com/Glintt/gAPIManagement/wiki) or access [here](https://glintt.github.io/gAPIManagement/).
+In order to access more documentation, go to [Github Wiki](https://github.com/Glintt/gAPIManagement/wiki) or access [here](https://glintt.github.io/gAPI/).
 
 ### Table of Contents
 
