@@ -45,18 +45,20 @@
                     <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
                     <td v-show="isLoggedIn"><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
                     <td style="max-width: 20rem">
-                      <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" class="btn btn-info" 
-                          data-toggle="tooltip" data-placement="top" title="More info">
-                          <i class="fas fa-info-circle"></i> Info
+                      <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" 
+                          data-toggle="tooltip" title="More info" style="margin-right: 1em" >
+                          <i class="fas fa-2x fa-info-circle"></i>
                       </router-link>
-
-                      <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin">
+                      <i class="fas fa-2x fa-desktop text-success" 
+                          data-toggle="tooltip" title="Manage Service" 
+                          style="cursor:pointer" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin"></i>
+                      <!-- <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin">
                         <i class="fas fa-desktop"></i> Manage
-                      </button>
+                      </button> -->
                     
-                      <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" class="btn btn-warning" v-show="isLoggedIn"
-                          data-toggle="tooltip" data-placement="top" title="View service logs">
-                          <i class="fas fa-file"></i> Logs
+                      <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" v-show="isLoggedIn"
+                          data-toggle="tooltip" title="View service logs" style="margin-left: 1em">
+                          <i class="fas fa-2x fa-file text-warning"></i>
                       </router-link>
                     </td>
                 </tr>
