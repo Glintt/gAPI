@@ -17,7 +17,7 @@ func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 	serviceDiscoveryAPIGroup.Get("/services", controllers.ListServicesHandler)
 	serviceDiscoveryAPIGroup.Get("/endpoint", controllers.GetEndpointHandler)
 	serviceDiscoveryAPIGroup.Delete("/delete", authentication.AdminRequiredMiddleware, controllers.DeleteEndpointHandler)
-	serviceDiscoveryAPIGroup.Post("/services/manage", authentication.AdminRequiredMiddleware, controllers.ManageServiceHandler)
+	serviceDiscoveryAPIGroup.Post("/services/manage", authentication.AuthorizationMiddleware, controllers.ManageServiceHandler)
 	serviceDiscoveryAPIGroup.Get("/services/manage/types", controllers.ManageServiceTypesHandler)
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
 		LoadDBSpecificEndpoints(serviceDiscoveryAPIGroup)

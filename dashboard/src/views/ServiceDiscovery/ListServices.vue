@@ -1,18 +1,21 @@
 <template>
     <div class="home">
-        <div class="alert alert-dark col-sm-3" role="alert">
-            <strong>gAPI Base Url:</strong>
-            {{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}<br />
-            <small>Use this URL + gAPIPath to call microservices</small>
-        </div>
+        
         <div class="row">
-          <div class="col-sm-5 form-inline ">
-              <input class="form-control" v-model="searchText"/>
+          <div class="col-sm-4 form-inline ">
+            <form v-on:keyup.13="search" style="width: 100%">
+              <input class="form-control" style="width: 80%" v-model="searchText" placeholder="Search ..." />
               <button class="btn btn-sm btn-info" @click="search">
                 <i class="fas fa-search"></i>
               </button>
+            </form>
           </div>
-          <div class="col-sm-3 offset-sm-4 form-inline">
+          <div class="alert alert-info col-sm-4" role="alert">
+            <strong>gAPI Base Url:</strong>
+            <span>&nbsp;&nbsp;{{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}</span><br />
+            <small>Use this URL + gAPIPath to call microservices</small>
+        </div>
+          <div class="col-sm-3 offset-sm-1 form-inline">
               <button class="btn btn-sm btn-info" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">
                 <i class="fas fa-arrow-left"></i>
               </button>
@@ -22,6 +25,7 @@
               </button>
           </div>
         </div>
+        <br />
         <table class="table">
             <thead>
                 <tr class="table-secondary" >
@@ -102,6 +106,8 @@ export default {
   },
   methods: {
     search: function() {
+        event.preventDefault();
+
       this.currentPage = 1;
       this.updateData();
     },
