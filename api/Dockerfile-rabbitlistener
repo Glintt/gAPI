@@ -1,4 +1,4 @@
-FROM golang:1.8
+FROM golang:1.9
 
 ENV RABBITMQ_HOST localhost
 ENV RABBITMQ_PORT 5672
