@@ -47,9 +47,9 @@
                     <td style="max-width: 20rem">
                       <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" 
                           data-toggle="tooltip" title="More info" style="margin-right: 1em" >
-                          <i class="fas fa-2x fa-info-circle"></i>
+                          <i class="fas fa-info-circle"></i>
                       </router-link>
-                      <i class="fas fa-2x fa-desktop text-success" 
+                      <i class="fas fa-desktop text-success" 
                           data-toggle="tooltip" title="Manage Service" 
                           style="cursor:pointer" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin"></i>
                       <!-- <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin">
@@ -58,7 +58,7 @@
                     
                       <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" v-show="isLoggedIn"
                           data-toggle="tooltip" title="View service logs" style="margin-left: 1em">
-                          <i class="fas fa-2x fa-file text-warning"></i>
+                          <i class="fas fa-file text-warning"></i>
                       </router-link>
                     </td>
                 </tr>
