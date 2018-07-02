@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/streadway/amqp"
 	"strconv"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/logs"
@@ -19,9 +20,10 @@ func main(){
 	workers := 1
 	if os.Getenv("RABBIT_LISTENER_WORKERS") != "" {
 		workers, _ = strconv.Atoi(os.Getenv("RABBIT_LISTENER_WORKERS"))
+		Start(workers)
+	}else{
+		StartListeningToRabbit(1)
 	}
-	Start(workers)
-	// StartListeningToRabbit(1)
 }
 
 
@@ -88,21 +90,22 @@ func StartListeningToRabbit(workerId int) {
 	  
 	forever := make(chan bool)
 	  
-	go func() {
-		for d := range msgs {
-			
-			var reqLogging logs.RequestLogging
-			err := json.Unmarshal(d.Body, &reqLogging)
-			if err == nil{
-				
-				utils.LogMessage("Publish to elasticsearch from #" + strconv.Itoa(workerId) + " - " + string(d.Body), utils.InfoLogType)
-				logs.PublishElastic(&reqLogging)
-			}else{
-				utils.LogMessage("Error logging message: " + string(d.Body), utils.ErrorLogType)
-			}
-		}
-	}()
-	  
+	go ReceiveAndPublish(workerId, msgs)
+	
 	utils.LogMessage(" [*] Waiting for messages. To exit press CTRL+C", utils.InfoLogType)
 	<-forever
+}
+
+
+func ReceiveAndPublish(workerId int, msgs <-chan amqp.Delivery) {
+	for d := range msgs {
+		var reqLogging logs.RequestLogging
+		err := json.Unmarshal(d.Body, &reqLogging)
+		if err == nil{
+			utils.LogMessage("Publish to elasticsearch from #" + strconv.Itoa(workerId) + " - " + string(d.Body), utils.InfoLogType)
+			logs.PublishElastic(&reqLogging)
+		}else{
+			utils.LogMessage("Error logging message: " + string(d.Body), utils.ErrorLogType)
+		}
+	}
 }
