@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/streadway/amqp"
+	"strconv"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/logs"
 	"gAPIManagement/api/utils"
@@ -15,18 +17,26 @@ var ELASTICPORT string
 func main(){
 	config.LoadURLConstants()
 
-	StartListeningToRabbit()
+	workers := 1
+	if os.Getenv("RABBIT_LISTENER_WORKERS") != "" {
+		workers, _ = strconv.Atoi(os.Getenv("RABBIT_LISTENER_WORKERS"))
+		Start(workers)
+	}else{
+		StartListeningToRabbit(1)
+	}
 }
 
 
 func Start(workers int) {
-    if (os.Getenv("ELASTICSEARCH_HOST") != "") {
+    /* if (os.Getenv("ELASTICSEARCH_HOST") != "") {
         ELASTIC_URL = os.Getenv("ELASTICSEARCH_HOST")
-    }
+    } */
 
+	forever := make(chan bool)
 	for i:=0; i < workers; i++ {
-		go StartListeningToRabbit()
+		go StartListeningToRabbit(i)
 	}
+	<-forever
 }
 
 
@@ -40,11 +50,11 @@ func failOnError(err error, msg string) {
 func PreventCrash(){
 	if r := recover(); r != nil {
 		utils.LogMessage("Rabbit Listener Crashed", utils.ErrorLogType)
-		StartListeningToRabbit()
+		StartListeningToRabbit(1)
 	}
 }
 
-func StartListeningToRabbit() {
+func StartListeningToRabbit(workerId int) {
 	defer PreventCrash()
 
 	ELASTIC_URL = os.Getenv("ELASTICSEARCH_HOST")
@@ -80,20 +90,22 @@ func StartListeningToRabbit() {
 	  
 	forever := make(chan bool)
 	  
-	go func() {
-		for d := range msgs {
-			
-			var reqLogging logs.RequestLogging
-			err := json.Unmarshal(d.Body, &reqLogging)
-			if err == nil{				
-				utils.LogMessage("Publish to elasticsearch - " + string(d.Body), utils.InfoLogType)
-				logs.PublishElastic(&reqLogging)
-			}else{
-				utils.LogMessage("Error logging message: " + string(d.Body), utils.ErrorLogType)
-			}
-		}
-	}()
-	  
+	go ReceiveAndPublish(workerId, msgs)
+	
 	utils.LogMessage(" [*] Waiting for messages. To exit press CTRL+C", utils.InfoLogType)
 	<-forever
+}
+
+
+func ReceiveAndPublish(workerId int, msgs <-chan amqp.Delivery) {
+	for d := range msgs {
+		var reqLogging logs.RequestLogging
+		err := json.Unmarshal(d.Body, &reqLogging)
+		if err == nil{
+			utils.LogMessage("Publish to elasticsearch from #" + strconv.Itoa(workerId) + " - " + string(d.Body), utils.InfoLogType)
+			logs.PublishElastic(&reqLogging)
+		}else{
+			utils.LogMessage("Error logging message: " + string(d.Body), utils.ErrorLogType)
+		}
+	}
 }

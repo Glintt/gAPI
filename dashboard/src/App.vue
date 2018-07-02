@@ -7,6 +7,12 @@
     </div>
   </div>
 </template>
+<style>
+small, strong, p, body,span {
+ font-family: 'Montserrat', sans-serif;
+}
+</style>
+
 <script>
 import NavBar from "@/components/NavBar.vue";
 import { mapGetters } from 'vuex'

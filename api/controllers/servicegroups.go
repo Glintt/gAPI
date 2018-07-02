@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gAPIManagement/api/config"
 	"fmt"
 	"gopkg.in/mgo.v2"
 	"gAPIManagement/api/servicediscovery"
@@ -16,12 +17,12 @@ func ListServiceGroupsHandler(c *routing.Context) error {
 	sg, err := ServiceDiscovery().GetListOfServicesGroup()
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	json, _ := json.Marshal(sg)
-	http.Response(c, string(json), 200, ServiceDiscoveryServiceName())
+	http.Response(c, string(json), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -29,7 +30,7 @@ func RegisterServiceGroupHandler(c *routing.Context) error {
 	
 	servicegroup, err := servicediscovery.ValidateServiceGroupBody(c)
 	if err != nil {
-		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName())
+		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -51,10 +52,10 @@ func RegisterServiceGroupHandler(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	http.Response(c, `{"error" : false, "msg": "Service created successfuly."}`, 201, ServiceDiscoveryServiceName())
+	http.Response(c, `{"error" : false, "msg": "Service created successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -65,15 +66,15 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 	err := json.Unmarshal(c.Request.Body(), &bodyMap)
 
 	if err != nil {
-		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName())
+		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	if _, ok := bodyMap["service_id"]; !ok {
-		http.Response(c, `{"error": "Invalid body. Missing service_id."}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error": "Invalid body. Missing service_id."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	if serviceGroupId == "null" || bodyMap["service_id"] == "null" || bodyMap["service_id"] == "" {
-		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -99,7 +100,7 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 	if err != nil {
 		database.MongoDBPool.Close(session)
 
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -107,10 +108,10 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	http.Response(c, `{"error" : false, "msg": "Service added to group successfuly."}`, 201, ServiceDiscoveryServiceName())
+	http.Response(c, `{"error" : false, "msg": "Service added to group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -119,7 +120,7 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 	serviceId := c.Param("service_id")
 	
 	if serviceGroupId == "null" || serviceId == "null" || serviceId == "" {
-		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -136,7 +137,7 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 	if err != nil {
 		database.MongoDBPool.Close(session)
 
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -145,10 +146,10 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": "` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	http.Response(c, `{"error" : false, "msg": "Service deassociated from group successfuly."}`, 201, ServiceDiscoveryServiceName())
+	http.Response(c, `{"error" : false, "msg": "Service deassociated from group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -166,12 +167,12 @@ func UpdateServiceGroup(c *routing.Context) error {
 	if err != nil {
 		database.MongoDBPool.Close(session)
 		
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	database.MongoDBPool.Close(session)
-	http.Response(c, `{"error" : false, "msg": "Service group update successfuly."}`, 200, ServiceDiscoveryServiceName())
+	http.Response(c, `{"error" : false, "msg": "Service group update successfuly."}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -187,11 +188,11 @@ func RemoveServiceGroup(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
-	http.Response(c, `{"error" : false, "msg": "Service group removed successfuly."}`, 200, ServiceDiscoveryServiceName())
+	http.Response(c, `{"error" : false, "msg": "Service group removed successfuly."}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
@@ -212,11 +213,11 @@ func GetServiceGroupHandler(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName())
+		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	sgByte, _ := json.Marshal(sg)
-	http.Response(c, string(sgByte), 200, ServiceDiscoveryServiceName())
+	http.Response(c, string(sgByte), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }

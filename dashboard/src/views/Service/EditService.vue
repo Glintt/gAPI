@@ -49,10 +49,15 @@
 
                             <div class="form-group col-sm">
                                 <label for="serviceName">URL:</label>
-                                <input type="text"
-                                    :disabled="true"
-                                    :value="'http://' + $config.API.HOST + ':' + $config.API.PORT + service.MatchingURI" 
-                                    class="form-control" id="gapiBasePath" aria-describedby="nameHelp" placeholder="Enter name">
+                                <div class="input-group mb-2">
+                                  <input type="text"
+                                      :disabled="true"
+                                      :value="'http://' + $config.API.HOST + ':' + $config.API.PORT + service.MatchingURI" 
+                                      class="form-control" id="gapiBasePath" aria-describedby="nameHelp" placeholder="Enter name">
+                                  <button class="btn btn-success" @click="copyURL">
+                                    <i class="fas fa-clipboard"></i> Copy
+                                  </button>
+                                 </div>
                                 <small id="nameHelp" class="form-text text-primary">Base Path to call microservice.</small>
                             </div>
                         </div>
@@ -137,6 +142,18 @@ export default {
     };
   },
   methods: {
+    serviceURL: function() {
+      return 'http://' + this.$config.API.HOST + ':' + this.$config.API.PORT + this.service.MatchingURI
+    },
+    copyURL: function() {
+      var tempInput = document.createElement("input");
+      tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+      tempInput.value = this.serviceURL()
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+    },
     addEndpointExclude: function(endpointToExclude) {
       this.service.ProtectedExclude[endpointToExclude.endpoint] = endpointToExclude.methods
     },

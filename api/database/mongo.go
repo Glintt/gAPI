@@ -1,6 +1,8 @@
 package database
 
 import (
+	"strconv"
+	"os"
 	"gAPIManagement/api/utils"
 	"gopkg.in/mgo.v2"
 )
@@ -24,6 +26,9 @@ func GetSessionAndDB(db string) (*mgo.Session, *mgo.Database) {
 func (mp *MongoPool) New() error {
 	var err error
 	maxPool := 50
+	if os.Getenv("MONGO_DB_CONN_POOL") != "" {
+		maxPool, _ = strconv.Atoi(os.Getenv("MONGO_DB_CONN_POOL")) 
+	}
 	mp.Queue = make(chan int, maxPool)
 	for i := 0; i < maxPool; i = i + 1 {
 		mp.Queue <- 1

@@ -11,6 +11,7 @@ var DELETE = "DELETE"
 var PUT = "PUT"
 var PATCH = "PATCH"
 
+var APPLICATION_JSON="application/json"
 
 func LoadConfigs(){
 	LoadGApiConfig()

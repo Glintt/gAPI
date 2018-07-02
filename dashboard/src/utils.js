@@ -1,3 +1,6 @@
+
+let $ = require('jquery')
+
 export function timeRound(value){
     return Math.round(value * 100) / 100
 }
@@ -21,4 +24,10 @@ export function convertMillisToTime(millis){
     minutes = minutes < 10 ? '0' + minutes : minutes;
     seconds = seconds < 10 ? '0' + seconds : seconds;
     return hours + 'h'+ delim + minutes + 'm' + delim + seconds + 's';
+}
+
+export function enableTooltip() {   
+    $(document).ready(function() {
+        $("body").tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
+    });
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+	"runtime"
 	"gAPIManagement/api/users"
 	"gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
@@ -27,6 +29,13 @@ var server = &fasthttp.Server{}
 var router *routing.Router
 
 func main() {
+	if os.Getenv("GO_MAX_PROCS") != "" {
+		maxProcs, err := strconv.Atoi(os.Getenv("GO_MAX_PROCS"))
+		if err != nil {
+			runtime.GOMAXPROCS(maxProcs)
+		}
+	}
+	
 	config.LoadConfigs()
 	
 	router = routing.New()
@@ -122,6 +131,8 @@ func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
 		indexName = "gapi-api-logs"
 	}
 	
+	utils.LogMessage("Log IndexName = " + indexName, utils.DebugLogType)
+
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))
 	headers, _ := json.Marshal(http.GetHeadersFromRequest(ctx.Request))

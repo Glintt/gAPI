@@ -1,6 +1,11 @@
 package cache
 
 import (
+	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/http"
+	"github.com/qiangxue/fasthttp-routing"
+	"strings"
+	"gAPIManagement/api/config"
 	"time"
 
 	"github.com/allegro/bigcache"
@@ -10,6 +15,7 @@ type Cache struct {
 	ServiceDiscovery *bigcache.BigCache
 	Apis             *bigcache.BigCache
 	OAuth            *bigcache.BigCache
+	gAPIApi			 *bigcache.BigCache
 }
 
 var GatewayCache Cache
@@ -47,15 +53,34 @@ func InitCachingService() {
 		OnRemove:           RemoveCache,
 	}
 	GatewayCache.OAuth, _ = bigcache.NewBigCache(oauthCacheConfig)
+
+	if config.GApiConfiguration.Cache.Enabled {
+		gAPIApiConfig := bigcache.Config{
+			Shards:             1024,
+			LifeWindow:         2 * time.Second,
+			CleanWindow:        2 * time.Second,
+			MaxEntriesInWindow: 1000 * 10 * 60,
+			Verbose:            true,
+			HardMaxCacheSize:   8192,
+			OnRemove:           RemoveCache,
+		}
+		GatewayCache.gAPIApi, _ = bigcache.NewBigCache(gAPIApiConfig)
+	}
 }
 func InvalidateCache() {
 	GatewayCache.ServiceDiscovery.Reset()
 	GatewayCache.Apis.Reset()
 	GatewayCache.OAuth.Reset()
+	GatewayCache.gAPIApi.Reset()
 }
 func RemoveCache(key string, value []byte) {
 
 }
+
+func GApiCacheStore(key string, value []byte) {
+	GatewayCache.gAPIApi.Set(key, value)
+}
+
 func ServiceDiscoveryCacheStore(key string, value []byte) {
 	GatewayCache.ServiceDiscovery.Set(key, value)
 }
@@ -78,4 +103,38 @@ func ApisCacheGet(key string) ([]byte, error) {
 
 func OAuthCacheGet(key string) ([]byte, error) {
 	return GatewayCache.OAuth.Get(key)
+}
+
+func GApiCacheGet(key string) ([]byte, error) {
+	return GatewayCache.gAPIApi.Get(key)
+}
+
+
+func GApiCacheKey(c *routing.Context) string {
+	return string(c.Method()) + "-" + c.URI().String() + c.Request.Header.String()
+}
+
+func StoreCacheGApi(c *routing.Context) error {
+
+	if config.GApiConfiguration.Cache.Enabled && strings.ToLower(string(c.Method())) == "get" {
+		GApiCacheStore(GApiCacheKey(c), c.Response.Body())
+	}
+	return nil
+}
+
+func ResponseCacheGApi(c *routing.Context) error {
+	
+	if ! config.GApiConfiguration.Cache.Enabled {
+		return nil
+	}
+
+	resp, err := GApiCacheGet(GApiCacheKey(c))
+
+	if err != nil {
+		return nil
+	}
+
+	http.Response(c, string(resp), 200, servicediscovery.SERVICE_NAME, config.APPLICATION_JSON)
+	c.Abort()
+	return nil
 }

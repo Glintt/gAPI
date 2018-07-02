@@ -60,7 +60,9 @@ func addHeadersToRequest(request *fasthttp.Request, headers map[string]string) {
 		return
 	}
 	for key, value := range headers {
-		request.Header.Set(key, value)
+		if key != "N/a" {
+			request.Header.Set(key, value)
+		}
 	}
 }
 
@@ -71,10 +73,6 @@ func addQueryParamsToRequest(request *fasthttp.Request, queryParams map[string]s
 }
 
 func MakeRequest(method string, url string, body string, headers map[string]string) *fasthttp.Response {
-	utils.LogMessage("=============================================================", utils.InfoLogType)
-	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body, utils.InfoLogType)
-	utils.LogMessage("=============================================================", utils.InfoLogType)
-
 	request := fasthttp.AcquireRequest()
 	request.SetRequestURI(url)
 	request.Header.SetMethod(method)
@@ -83,6 +81,13 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	request.SetBody([]byte(body))
 
 	addHeadersToRequest(request, headers)
+	if _, ok := headers["Content-Type"]; ok {
+		request.Header.SetContentType(headers["Content-Type"])
+	}
+	utils.LogMessage("=============================================================", utils.DebugLogType)
+	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body, utils.DebugLogType)
+	utils.LogMessage("             ---- Headers: " + request.Header.String(), utils.DebugLogType)
+	utils.LogMessage("=============================================================", utils.DebugLogType)
 
 	client := fasthttp.Client{}
 

@@ -55,7 +55,7 @@ func RateLimiting(c *routing.Context) error {
 	rateStatus := RateLimitingStatusForRequest(currentRequestMetricName)
 
 	if IsRateLimitExceeded(rateStatus, service) {
-		http.Response(c, `{"error":true, "msg": "Rate limiting exceeded."}`, 429, c.Request.URI().String())
+		http.Response(c, `{"error":true, "msg": "Rate limiting exceeded."}`, 429, c.Request.URI().String(), config.APPLICATION_JSON)
 		c.Abort()
 		return nil
 	}

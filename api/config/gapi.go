@@ -17,6 +17,7 @@ type GApiConfig struct {
 	Notifications 	 GApiNotificationsConfig
 	ManagementTypes  map[string]map[string]string
 	RateLimiting 	GApiRateLimitingConfig
+	Cache 	GApiCacheConfig
 }
 
 type GApiAuthenticationConfig struct {
@@ -25,6 +26,10 @@ type GApiAuthenticationConfig struct {
 	TokenExpirationTime int
 	TokenSigningKey string
 	LDAP LDAPConfig
+}
+
+type GApiCacheConfig struct {
+	Enabled bool
 }
 
 type LDAPConfig struct {
