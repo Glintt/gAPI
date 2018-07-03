@@ -18,6 +18,7 @@ const Endpoints = {
   "remove_group": "/service-groups/<group_id>",
 
   "store_application_group": "/apps-groups",
+  "get_application_group_by_id": "/apps-groups/<group_id>",
   "list_application_group": "/apps-groups",
   "update_application_group": "/apps-groups/<group_id>",
   "delete_application_group": "/apps-groups/<group_id>",
@@ -192,3 +193,14 @@ export function AppsGroupForService(serviceId, cb) {
     HTTP.handleError(response, cb)
   });
 }
+
+
+
+export function applicationGroupById(groupId, cb) {
+  HTTP.GET(HTTP.PathToCall(Endpoints.get_application_group_by_id).replace('<group_id>', groupId), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+

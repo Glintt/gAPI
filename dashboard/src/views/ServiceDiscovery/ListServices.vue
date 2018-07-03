@@ -19,8 +19,8 @@
           </div>
         </div>
         <br />
-        
-        <table class="table">
+        <ListServices :services="services" :isLoggedIn="isLoggedIn" :loggedInUser="loggedInUser" v-on:showManageModal="showManageModal"/>
+        <!-- <table class="table">
             <thead>
                 <tr class="table-secondary" >
                     <th scope="col">Name</th>
@@ -32,7 +32,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="service in services" v-bind:key="service.Id" v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || loggedInUser">
+                <tr v-for="service in services" v-bind:key="service.Id" v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || services">
                     <td>{{ service.Name }}</td>
                     <td>{{ service.MatchingURI }}</td>
                     <td>{{ service.APIDocumentation }}</td>
@@ -46,9 +46,9 @@
                       <i class="fas fa-desktop text-success" 
                           data-toggle="tooltip" title="Manage Service" 
                           style="cursor:pointer" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin"></i>
-                      <!-- <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin">
+                      <button class="btn btn-success" @click="showManageModal(service)" v-show="isLoggedIn && loggedInUser.IsAdmin">
                         <i class="fas fa-desktop"></i> Manage
-                      </button> -->
+                      </button> 
                     
                       <router-link :to="'/service-discovery/service/logs?uri='+service.MatchingURI" v-show="isLoggedIn"
                           data-toggle="tooltip" title="View service logs" style="margin-left: 1em">
@@ -57,7 +57,7 @@
                     </td>
                 </tr>
             </tbody>
-        </table>
+        </table> -->
 
         <div class="row">
           <div class="col-sm-2 offset-sm-5 text-center">
@@ -79,6 +79,7 @@
             </nav>
           </div>
         </div>
+
           <!-- <div class="col-sm-3 offset-sm-1 form-inline">
               <button class="btn btn-sm btn-info">
                 <i class="fas fa-arrow-left"></i>
@@ -99,6 +100,7 @@
 var serviceDiscoveryAPI = require("@/api/service-discovery");
 import DataTable from "@/components/DataTable";
 import ServiceManagementModal from "@/components/modals/ServiceManagementModal";
+import ListServices from "@/components/service-discovery/ListServices";
 import { mapGetters } from 'vuex'
 
 export default {
@@ -111,7 +113,7 @@ export default {
       this.updateData();
     }
   },
-   computed: {
+  computed: {
     isLoggedIn() {
       return this.$oauthUtils.vmA.isLoggedIn();
     },
@@ -132,7 +134,7 @@ export default {
   },
   methods: {
     search: function() {
-        event.preventDefault();
+      event.preventDefault();
 
       this.currentPage = 1;
       this.updateData();
@@ -160,7 +162,8 @@ export default {
   },
   components: {
     ServiceManagementModal,
-    DataTable
+    DataTable,
+    ListServices
   }
 };
 </script>

@@ -2,12 +2,13 @@
 <div >
    <router-link to="/service-discovery/apps-groups/create" 
                             v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin"
-                             class="btn btn-default" href="#"><i class="fas fa-plus text-danger"></i> Add Application Group</router-link>
+                            class="btn btn-default" href="#"><i class="fas fa-plus text-danger"></i> Add Application Group</router-link>
                         
-<table class="table">
+    <table class="table">
         <thead>
             <tr class="table-secondary" >
                 <th scope="col">Name</th>
+                <th scope="col"># APIs</th>
                 <th scope="col" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">Actions</th>
             </tr>
         </thead>
@@ -17,15 +18,28 @@
                     {{ sg.Name }}
                     <input class="form-control" v-model="sg.Name" v-show="editing == sg.Id"  />
                 </td>
+                 <td>
+                    {{ sg.Services.length }}
+                </td>
                 <td v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
                     <button class="btn btn-sm btn-success" @click="editing = editing == sg.Id ? false : sg.Id">Edit</button>
                     <button class="btn btn-sm btn-primary" @click="updateGroup(sg)">Save</button>
                     <button class="btn btn-sm btn-danger" @click="deleteGroup(sg)">Delete</button>
+                    <button class="btn btn-sm btn-info" @click="showAPIs(sg)">Show APIs</button>
                     
                 </td>
             </tr>
         </tbody>
     </table>
+
+    <div class="row" v-if="services != null">
+        <div class="col-sm-12">
+            <h4>{{ selectedGroup.Name }} - APIs</h4>
+            <hr/>
+            <ListServices :services="services" :isLoggedIn="isLoggedIn" :loggedInUser="loggedInUser"/>
+
+        </div>
+    </div>
 
 </div>
     
@@ -33,6 +47,7 @@
 
 <script>
 import {mapActions, mapGetters} from 'vuex'
+import ListServices from "@/components/service-discovery/ListServices"
 
 export default {
     mounted() {
@@ -49,7 +64,9 @@ export default {
     },
     data() {
         return {
-            editing: false
+            editing: false,
+            services: null,
+            selectedGroup: null
         }
     },
     methods: {
@@ -57,7 +74,16 @@ export default {
             'fetchGroups',
             'updateGroup',
             'deleteGroup'
-        ])
+        ]),
+        showAPIs: function(appGroup) {
+            this.$api.serviceDiscovery.applicationGroupById(appGroup.Id, response => {
+                this.selectedGroup = response.body
+                this.services = response.body.Services
+            })
+        }
+    },
+    components: {
+        ListServices
     }
 }
 </script>

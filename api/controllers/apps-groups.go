@@ -122,6 +122,9 @@ func GetAppGroupById(c *routing.Context) error {
 	var group servicediscovery.ApplicationGroup
 	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).FindId(appGroupIdHex).One(&group)
 
+	var servicesList []servicediscovery.Service
+	err = db.C(servicediscovery.SERVICES_COLLECTION).Find(bson.M{"_id": bson.M{"$in": group.Services}}).All(&servicesList)
+
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
@@ -129,7 +132,18 @@ func GetAppGroupById(c *routing.Context) error {
 		return nil
 	}
 
-	gjson,_ := json.Marshal(group)
+	var responseMap map[string]interface{}
+	responseMap = make(map[string]interface{})
+	responseMap["Name"] = group.Name
+	responseMap["Id"] = group.Id
+	responseMap["Services"] = servicesList
+
+	if len(servicesList) == 0 {
+		responseMap["Services"] = []string{}
+	}
+
+	gjson,_ := json.Marshal(responseMap)
+
 	http.Response(c, string(gjson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
