@@ -70,10 +70,11 @@ func GetAppGroups(c *routing.Context) error {
 	}
 	skips := servicediscovery.PAGE_LENGTH * (page - 1)
 
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
 	// Get list of application groups
 	var appGroups []servicediscovery.ApplicationGroup
+	
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
 	db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).Find(bson.M{"name": bson.RegEx{nameFilter+".*", ""}}).Sort("name").Skip(skips).Limit(servicediscovery.PAGE_LENGTH).All(&appGroups)
 
 	database.MongoDBPool.Close(session)
@@ -89,7 +90,10 @@ func GetAppGroups(c *routing.Context) error {
 
 func DeleteAppGroup(c *routing.Context) error {	
 	appGroupId := bson.ObjectIdHex(c.Param("group_id"))
-
+	if ! bson.IsObjectIdHex(string(appGroupId)) {
+		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).RemoveId(appGroupId)
@@ -107,7 +111,10 @@ func DeleteAppGroup(c *routing.Context) error {
 
 func GetAppGroupById(c *routing.Context) error {
 	appGroupId := bson.ObjectIdHex(c.Param("group_id"))
-
+	if ! bson.IsObjectIdHex(string(appGroupId)) {
+		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var group servicediscovery.ApplicationGroup
@@ -127,7 +134,10 @@ func GetAppGroupById(c *routing.Context) error {
 
 func UpdateAppGroup(c *routing.Context) error {	
 	appGroupId := bson.ObjectIdHex(c.Param("group_id"))
-
+	if ! bson.IsObjectIdHex(string(appGroupId)) {
+		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
 	var aGroup servicediscovery.ApplicationGroup
 	sgNew := c.Request.Body()
 	json.Unmarshal(sgNew, &aGroup)
@@ -152,7 +162,10 @@ func UpdateAppGroup(c *routing.Context) error {
 func DeassociateServiceFromApplicationGroup(c *routing.Context) error {	
 	appGroupId := c.Param("group_id")
 	serviceId := c.Param("service_id")
-
+	if ! bson.IsObjectIdHex(string(serviceId)) || ! bson.IsObjectIdHex(string(appGroupId)) {
+		http.Response(c, `{"error" : true, "msg": "Service/Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
 	serviceGroupIdHex := bson.ObjectIdHex(appGroupId)
 	serviceIdHx := bson.ObjectIdHex(serviceId)
 
@@ -182,7 +195,10 @@ func DeassociateServiceFromApplicationGroup(c *routing.Context) error {
 func AssociateServiceToAppGroup(c *routing.Context) error {	
 	appGroupId := c.Param("group_id")
 	serviceId := c.Param("service_id")
-	
+	if ! bson.IsObjectIdHex(string(serviceId)) || ! bson.IsObjectIdHex(string(appGroupId)) {
+		http.Response(c, `{"error" : true, "msg": "Service/Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
 	serviceGroupIdHex := bson.ObjectIdHex(appGroupId)
 	serviceIdHx := bson.ObjectIdHex(serviceId)
 
@@ -208,5 +224,32 @@ func AssociateServiceToAppGroup(c *routing.Context) error {
 		return nil
 	}
 	http.Response(c, `{"error" : false, "msg": "Service added to group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+	return nil
+}
+
+func FindAppGroupForService(c *routing.Context) error {
+	serviceId := c.Param("service_id")
+	if ! bson.IsObjectIdHex(string(serviceId)) {
+		http.Response(c, `{"error" : true, "msg": "Service id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	serviceIdHx := bson.ObjectIdHex(serviceId)
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	var appGroup servicediscovery.ApplicationGroup
+
+	query := bson.M{"services": serviceIdHx}
+	db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).Find(query).One(&appGroup)
+	
+	database.MongoDBPool.Close(session)
+
+	if appGroup.Name == "" {
+		http.Response(c, `{"error" : true, "msg": "Service is not associated to an application group."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	jsonAppGroup, _ := json.Marshal(appGroup)
+
+	http.Response(c, string(jsonAppGroup), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }

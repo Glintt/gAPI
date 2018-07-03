@@ -9,6 +9,7 @@ import (
 func InitAppsGroupsApi(router *routing.Router) {
 	router.Get("/apps-groups", controllers.GetAppGroups)
 	router.Post("/apps-groups", controllers.CreateAppGroup)
+	router.Get("/apps-groups/search/<service_id>", controllers.FindAppGroupForService)
 	router.Put("/apps-groups/<group_id>", controllers.UpdateAppGroup)
 	router.Get("/apps-groups/<group_id>", controllers.GetAppGroupById)	
 	router.Delete("/apps-groups/<group_id>", controllers.DeleteAppGroup)
