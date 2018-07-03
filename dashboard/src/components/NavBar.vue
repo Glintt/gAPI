@@ -9,16 +9,30 @@
                     <a href="" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Service Discovery</a>
                    
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <router-link to="/service-discovery/services" class="dropdown-item" href="#"><i class="fas fa-server text-primary"></i> APIs</router-link>
+
                         <router-link to="/service-discovery/services/new" class="dropdown-item"
                             v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin"><i class="fas fa-plus text-danger"></i> Register New API</router-link>
-                        <router-link to="/service-discovery/groups/create" 
-                            v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin" class="dropdown-item" href="#"><i class="fas fa-plus text-danger"></i> Add Service Layers</router-link>
-                        <router-link to="/service-discovery/apps-groups/create" class="dropdown-item" href="#"><i class="fas fa-plus text-danger"></i> Add Service Group</router-link>
+                    </div>
+                </li>
+                <li class="nav-item dropdown" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
+                    <a href="" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Apps</a>
+                   
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <router-link to="/service-discovery/apps-groups" class="dropdown-item" href="#"><i class="fas fa-server text-primary"></i> Applications</router-link>
 
-                        <router-link to="/service-discovery/services" class="dropdown-item" href="#"><i class="fas fa-server text-primary"></i> List APIs</router-link>
-                        <router-link to="/service-discovery/apps-groups" class="dropdown-item" href="#"><i class="fas fa-server text-primary"></i> List Service Groups</router-link>
+                        <router-link to="/service-discovery/apps-groups/create" class="dropdown-item" href="#"><i class="fas fa-plus text-danger"></i> Create Application</router-link>                        
+                    </div>
+                </li>
+                
+                <li class="nav-item dropdown" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
+                    <a href="" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Layers</a>
+
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <router-link to="/service-discovery/groups" 
                             v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin" class="dropdown-item" href="#"><i class="fas fa-server text-info"></i> Service Layers</router-link>
+                        <router-link to="/service-discovery/groups/create" 
+                            v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin" class="dropdown-item" href="#"><i class="fas fa-plus text-danger"></i> Add Service Layers</router-link>
                     </div>
                 </li>
                 <li class="nav-item dropdown" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
