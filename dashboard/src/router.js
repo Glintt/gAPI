@@ -13,6 +13,9 @@ import EditUser from "./views/Users/EditUser.vue";
 import NewUser from "./views/Users/NewUser.vue";
 import NewServiceGroup from "./views/ServiceDiscovery/NewServiceGroup.vue";
 import ListServicesGroup from "./views/ServiceDiscovery/ListServicesGroup.vue";
+import NewApplicationGroup from "./views/ServiceDiscovery/NewApplicationGroup.vue";
+import ListApplicationsGroup from "./views/ServiceDiscovery/ListApplicationsGroup.vue";
+
 
 var OAuthValidator = require("@/auth");
 Vue.use(Router);
@@ -74,6 +77,18 @@ export default new Router({
       path: "/service-discovery/groups/create",
       name: "service-groups-create",
       component: NewServiceGroup,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/service-discovery/apps-groups/create",
+      name: "service-apps-groups-create",
+      component: NewApplicationGroup,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/service-discovery/apps-groups",
+      name: "service-apps-groups-list",
+      component: ListApplicationsGroup,
       beforeEnter: OAuthValidator.requireAdminAuth
     },
     {

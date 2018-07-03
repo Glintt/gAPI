@@ -6,12 +6,14 @@ Vue.use(Vuex);
 
 import users from './store/modules/users/index';
 import serviceGroups from './store/modules/services-groups'
+import appsGroups from './store/modules/apps-groups'
 import fullscreen from './store/modules/full-screen'
 
 export default new Vuex.Store({
   modules:{
     users,
     serviceGroups,
+    appsGroups,
     fullscreen
   },
   state: {

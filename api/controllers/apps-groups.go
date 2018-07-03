@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"gopkg.in/mgo.v2"
@@ -89,14 +88,16 @@ func GetAppGroups(c *routing.Context) error {
 }
 
 func DeleteAppGroup(c *routing.Context) error {	
-	appGroupId := bson.ObjectIdHex(c.Param("group_id"))
+	appGroupId := c.Param("group_id")
 	if ! bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
+	appGroupIdHex := bson.ObjectIdHex(appGroupId)
+
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).RemoveId(appGroupId)
+	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).RemoveId(appGroupIdHex)
 
 	database.MongoDBPool.Close(session)
 
@@ -110,15 +111,16 @@ func DeleteAppGroup(c *routing.Context) error {
 }
 
 func GetAppGroupById(c *routing.Context) error {
-	appGroupId := bson.ObjectIdHex(c.Param("group_id"))
+	appGroupId := c.Param("group_id")
 	if ! bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
+	appGroupIdHex := bson.ObjectIdHex(appGroupId)
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var group servicediscovery.ApplicationGroup
-	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).FindId(appGroupId).One(&group)
+	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).FindId(appGroupIdHex).One(&group)
 
 	database.MongoDBPool.Close(session)
 
@@ -133,20 +135,21 @@ func GetAppGroupById(c *routing.Context) error {
 }
 
 func UpdateAppGroup(c *routing.Context) error {	
-	appGroupId := bson.ObjectIdHex(c.Param("group_id"))
+	appGroupId := c.Param("group_id")
 	if ! bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
+	appGroupIdHex := bson.ObjectIdHex(appGroupId)
+
 	var aGroup servicediscovery.ApplicationGroup
 	sgNew := c.Request.Body()
 	json.Unmarshal(sgNew, &aGroup)
 
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	fmt.Println(appGroupId.Hex())
 	updateGroupQuery := bson.M{"$set": bson.M{"name": aGroup.Name }}
-	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(appGroupId, updateGroupQuery)
+	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(appGroupIdHex, updateGroupQuery)
 
 	database.MongoDBPool.Close(session)
 
