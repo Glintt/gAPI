@@ -109,6 +109,7 @@ export default {
       pageType: 'ServiceDiscovery.EditService',
       serviceFetched: false,
       service: {
+        Id: "",
         Name: "",
         Hosts: [],
         MatchingURI: "",

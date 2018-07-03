@@ -13,12 +13,10 @@ export const updateGroup = (state, obj) => {
 
 export const groupDeleted = (state, g) => {
     let newGroups = state.groups
-    console.log(newGroups)
     
     newGroups = newGroups.filter(obj => {
         return obj.Id !== g.Id;
     })
-    console.log(newGroups)
-
+    
     state.groups = newGroups
 }

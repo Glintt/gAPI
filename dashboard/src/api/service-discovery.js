@@ -20,7 +20,10 @@ const Endpoints = {
   "store_application_group": "/apps-groups",
   "list_application_group": "/apps-groups",
   "update_application_group": "/apps-groups/<group_id>",
-  "delete_application_group": "/apps-groups/<group_id>"
+  "delete_application_group": "/apps-groups/<group_id>",
+  "associate_to_application_group": "/apps-groups/<group_id>/<service_id>",
+  "deassociate_from_application_group": "/apps-groups/<group_id>/<service_id>",
+  "application_group_for_service": "/apps-groups/search/<service_id>" 
 };
 
 export const CustomManagementActions = ["logs"]
@@ -159,6 +162,31 @@ export function updateAppsGroup(group, cb){
 }
 export function deleteAppsGroup(groupId, cb){
   HTTP.DELETE(HTTP.PathToCall(Endpoints.delete_application_group.replace('<group_id>', groupId)), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function addServiceToAppsGroup(groupId, serviceId, cb){
+  let obj = {service_id: serviceId}
+  HTTP.POST(HTTP.PathToCall( Endpoints.associate_to_application_group.replace('<group_id>', groupId).replace('<service_id>', serviceId)), obj , {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function deassociateServiceFromAppsGroup(groupId, serviceId, cb){
+  HTTP.DELETE(HTTP.PathToCall(Endpoints.deassociate_from_application_group.replace('<group_id>', groupId).replace('<service_id>', serviceId)),  {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function AppsGroupForService(serviceId, cb) {
+  HTTP.GET(HTTP.PathToCall(Endpoints.application_group_for_service).replace('<service_id>', serviceId), {}).then(response => {
     cb(response);
   }, response => {
     HTTP.handleError(response, cb)

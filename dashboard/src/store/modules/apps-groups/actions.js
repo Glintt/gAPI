@@ -18,3 +18,17 @@ export const deleteGroup = ({commit}, group) => {
         if (response.status == 200) commit('groupDeleted', group)
     })
 }
+
+export const associateServiceToAppGroup = ({commit}, payload) => {
+    // TODO
+    serviceDiscoveryAPI.addServiceToAppsGroup(payload.GroupId, payload.ServiceId, response => {
+        // if (response.status == 200) commit('groupDeleted', group)
+    })
+}
+
+export const deassociateServiceFromAppGroup = ({commit}, payload) => {
+    // TODO
+    serviceDiscoveryAPI.deassociateServiceFromAppsGroup(payload.GroupId, payload.ServiceId, response => {
+        // if (response.status == 200) commit('groupDeleted', group)
+    })
+}

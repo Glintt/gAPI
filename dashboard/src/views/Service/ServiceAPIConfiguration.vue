@@ -20,6 +20,23 @@
                         <option v-for="group in groups" :value="group.Id" :key="group.Id">{{ group.Name }}</option>
                     </select>
                 </div>
+
+                <div class="form-group col-sm-6" v-if="isAdmin">
+                    Associated Application Group
+                    <select class="form-control" v-model="selectedAppGroup" @change="changedAppGroup = selectedAppGroup == service.GroupId ? false : true">
+                        <option :value="null"></option>                        
+                        <option v-for="group in appsGroups" :value="group.Id" :key="group.Id">{{ group.Name }}</option>
+                    </select>
+                    <button class="btn btn-sm btn-success" v-if="selectedAppGroup != null && changedAppGroup" @click="associateServiceToAppGroup({GroupId: selectedAppGroup, ServiceId: service.Id })">Associate</button>
+                    <button class="btn btn-sm btn-danger" v-if="selectedAppGroup != null" @click="deassociateServiceFromAppGroup({GroupId: selectedAppGroup, ServiceId: service.Id })">Deassociate</button>
+                </div>
+                <div class="form-group col-sm-6" v-if="!isAdmin">
+                    Associated Application Group
+                    <select class="form-control" v-model="selectedAppGroup" disabled="true">
+                        <option :value="null"></option>                        
+                        <option v-for="group in appsGroups" :value="group.Id" :key="group.Id">{{ group.Name }}</option>
+                    </select>
+                </div>
             </div>
             <div class="row col-sm">
                 <div class="form-group col-sm-6">
@@ -117,7 +134,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters,mapActions } from 'vuex'
 
 export default {
   name: "service-api-configuration",
@@ -127,7 +144,9 @@ export default {
       hostToAdd: "",
       groups: [],
       selectedGroup: null,
+      selectedAppGroup: null,
       changed : false,
+      changedAppGroup : false,
       endpointExclude:{
           endpoint: "",
           methods:""
@@ -138,19 +157,34 @@ export default {
     ...mapGetters({
       isAdmin: 'isAdmin',
       loggedInUser: 'loggedInUser'
-    })
+    }),
+    
+    ...mapGetters('appsGroups', {appsGroups:'groups'})
   },
   mounted() {
     this.$api.serviceDiscovery.listServiceGroups(response => {
         this.groups = response.body;
-    });
+    });    
+    this.fetchGroups()
   },
   watch:{
-      service: function() {
-          this.selectedGroup = this.service.GroupId == "" ? null : this.service.GroupId
+        service: function() {
+            this.selectedGroup = this.service.GroupId == "" ? null : this.service.GroupId
+            
+            if (this.selectedAppGroup == null) {
+                this.$api.serviceDiscovery.AppsGroupForService(this.service.Id, response => {
+                    this.selectedAppGroup = response.body.Id
+                });
+            }
+            
       }
   },
   methods: {
+    ...mapActions('appsGroups', [
+        'fetchGroups',
+        'associateServiceToAppGroup',
+        'deassociateServiceFromAppGroup'
+    ]),
     associateToGroup: function() {
         this.$api.serviceDiscovery.addServiceToServiceGroup(this.selectedGroup, this.service.Id, response => {
             if (response.status == 201) {

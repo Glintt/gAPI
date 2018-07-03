@@ -212,7 +212,7 @@ func AssociateServiceToAppGroup(c *routing.Context) error {
 	
 	_,err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
 	err = db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
-
+	
 	if err != nil {
 		database.MongoDBPool.Close(session)
 
