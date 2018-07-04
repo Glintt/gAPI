@@ -285,7 +285,7 @@ func AppGroupsMatches(c *routing.Context) error {
 	query := []bson.M{
 		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
 		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"} }}},
-		{"$match": bson.M{"zeroAppGroups":true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "(/\\w*)?", ""}}},
+		{"$match": bson.M{"zeroAppGroups":true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/(v1/)?" + groupName + "(/\\w*)?", "i"}}},
 	}
 	// query := bson.M{"matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "/\\w+", ""}}
 

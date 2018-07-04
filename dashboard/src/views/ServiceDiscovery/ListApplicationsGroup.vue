@@ -41,6 +41,38 @@
         </tbody>
     </table>
 
+    <div class="row" v-if="services != null && showing=='ungrouped'">
+        <div class="col-sm-12">
+            <h4>{{ selectedGroup.Name }} - APIs</h4>
+            <hr/>
+
+            <table class="table">
+                <thead>
+                    <tr class="table-secondary" >
+                        <th scope="col">Name</th>
+                        <th scope="col">gAPI Path</th>
+                        <th scope="col">API Documentation</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="service in services" v-bind:key="service.Id" v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || loggedInUser">
+                        <td>{{ service.Name }}</td>
+                        <td>{{ service.MatchingURI }}</td>
+                        <td>{{ service.APIDocumentation }}</td>
+                        <td style="max-width: 20rem">
+                        <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" 
+                            data-toggle="tooltip" title="More info" style="margin-right: 1em" >
+                            <i class="fas fa-info-circle"></i>
+                        </router-link>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+           <!--  <ListServices :services="" :isLoggedIn="isLoggedIn" :loggedInUser="loggedInUser"/> -->
+        </div>
+    </div>
+
     <div class="row" v-if="services != null && showing=='apis'">
         <div class="col-sm-12">
             <h4>{{ selectedGroup.Name }} - APIs</h4>
@@ -166,7 +198,7 @@ export default {
             }
 
             this.services = this.ungroupedApplications
-            this.showing='apis'
+            this.showing='ungrouped'
         },
         findMatches: function(appGroup) {
             this.selectedGroup = appGroup
