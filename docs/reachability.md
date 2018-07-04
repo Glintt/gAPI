@@ -4,11 +4,11 @@ gAPI enables services to be reachable or not reachable from external services.
 
 When a service is not reachable, only other services can communicate with it.
 
-## Services Groups
+## Services Layers
 
-In order to facilitate the management of reachability, there is the option to create groups of services.
+In order to facilitate the management of reachability, there is the option to create layers.
 
-With these groups, all services inside the group will share the same state in terms of reachability.
+With these layers, all services inside the layer will share the same state in terms of reachability.
 
 ## Configuration
 
