@@ -15,8 +15,18 @@ const Endpoints = {
   "list_groups": "/service-groups",
   "store_group": "/service-groups",
   "update_group": "/service-groups/<group_id>",
-  "remove_group": "/service-groups/<group_id>"
+  "remove_group": "/service-groups/<group_id>",
 
+  "store_application_group": "/apps-groups",
+  "get_application_group_by_id": "/apps-groups/<group_id>",
+  "list_application_group": "/apps-groups",
+  "update_application_group": "/apps-groups/<group_id>",
+  "delete_application_group": "/apps-groups/<group_id>",
+  "associate_to_application_group": "/apps-groups/<group_id>/<service_id>",
+  "deassociate_from_application_group": "/apps-groups/<group_id>/<service_id>",
+  "application_group_for_service": "/apps-groups/search/<service_id>",
+  "list_ungrouped_applications": "/apps-groups/ungrouped",
+  "find_possible_group_matches": "/apps-groups/matches?group_name=<group_name>",
 };
 
 export const CustomManagementActions = ["logs"]
@@ -125,3 +135,92 @@ export function manageServiceTypes(cb){
     HTTP.handleError(response, cb)
   });
 }
+
+
+
+export function storeApplicationGroup(group, cb){
+  HTTP.POST(HTTP.PathToCall(Endpoints.store_application_group), group, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
+
+export function listAppsGroups(cb){
+  HTTP.GET(HTTP.PathToCall(Endpoints.list_application_group), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function updateAppsGroup(group, cb){
+  HTTP.PUT(HTTP.PathToCall(Endpoints.update_application_group.replace('<group_id>', group.Id)), group, {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+export function deleteAppsGroup(groupId, cb){
+  HTTP.DELETE(HTTP.PathToCall(Endpoints.delete_application_group.replace('<group_id>', groupId)), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function addServiceToAppsGroup(groupId, serviceId, cb){
+  let obj = {service_id: serviceId}
+  HTTP.POST(HTTP.PathToCall( Endpoints.associate_to_application_group.replace('<group_id>', groupId).replace('<service_id>', serviceId)), obj , {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function deassociateServiceFromAppsGroup(groupId, serviceId, cb){
+  HTTP.DELETE(HTTP.PathToCall(Endpoints.deassociate_from_application_group.replace('<group_id>', groupId).replace('<service_id>', serviceId)),  {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+export function AppsGroupForService(serviceId, cb) {
+  HTTP.GET(HTTP.PathToCall(Endpoints.application_group_for_service).replace('<service_id>', serviceId), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
+
+export function listUngroupedApps(cb){
+  HTTP.GET(HTTP.PathToCall(Endpoints.list_ungrouped_applications), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
+export function findPossibleMatches(name, cb){
+  HTTP.GET(HTTP.PathToCall(Endpoints.find_possible_group_matches).replace("<group_name>", name), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
+export function applicationGroupById(groupId, cb) {
+  HTTP.GET(HTTP.PathToCall(Endpoints.get_application_group_by_id).replace('<group_id>', groupId), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+

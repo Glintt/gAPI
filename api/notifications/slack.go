@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"gAPIManagement/api/utils"
 	"gAPIManagement/api/config"
 	"bytes"
 	"net/http"
@@ -8,6 +9,8 @@ import (
 
 
 func SlackNotification(msg string){
+	defer utils.PreventCrash()
+	
 	json := []byte(`{"text":"` + msg + `"}`)
 
 	webHookApi := config.GApiConfiguration.Notifications.Slack.WebhookUrl

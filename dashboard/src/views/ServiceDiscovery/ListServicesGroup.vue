@@ -1,5 +1,10 @@
 <template>
-    <table class="table">
+<div >
+   <router-link to="/service-discovery/groups/create" 
+                            v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin"
+                             class="btn btn-default" href="#"><i class="fas fa-plus text-danger"></i> Add Service Layer</router-link>
+                        
+<table class="table">
         <thead>
             <tr class="table-secondary" >
                 <th scope="col">Name</th>
@@ -26,6 +31,9 @@
             </tr>
         </tbody>
     </table>
+
+</div>
+    
 </template>
 
 <script>
