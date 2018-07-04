@@ -11,6 +11,10 @@
 small, strong, p, body,span {
  font-family: 'Montserrat', sans-serif;
 }
+.btn {
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+}
 </style>
 
 <script>

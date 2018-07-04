@@ -19,4 +19,14 @@ export const groupDeleted = (state, g) => {
     })
     
     state.groups = newGroups
-}
+};
+
+
+export const ungroupedApplications = (state, g) => {
+    state.ungrouped_applications = g
+};
+
+export const possibleMatches = (state, g) => {
+    state.possibleMatches = g
+};
+

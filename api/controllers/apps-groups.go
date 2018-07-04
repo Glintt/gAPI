@@ -270,3 +270,54 @@ func FindAppGroupForService(c *routing.Context) error {
 	http.Response(c, string(jsonAppGroup), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
+
+func AppGroupsMatches(c *routing.Context) error {
+	groupName := string(c.QueryArgs().Peek("group_name"))
+	if groupName == "" {
+		http.Response(c, `{"error":true, "msg": "Invalid group name"}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	var servicesThatMatch []servicediscovery.Service
+
+	query := []bson.M{
+		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
+		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"} }}},
+		{"$match": bson.M{"zeroAppGroups":true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "/\\w+", ""}}},
+	}
+	// query := bson.M{"matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "/\\w+", ""}}
+
+	db.C(servicediscovery.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
+	
+	database.MongoDBPool.Close(session)
+
+	if len(servicesThatMatch) == 0 {
+		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	servicesThatMatchJson , _ := json.Marshal(servicesThatMatch)
+	http.Response(c, string(servicesThatMatchJson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+	return nil
+}
+
+func UngroupedApps(c *routing.Context) error {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	var servicesThatMatch []servicediscovery.Service
+
+	query := []bson.M{
+		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
+		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"} }}},
+		{"$match": bson.M{"zeroAppGroups":true}},
+	}
+
+	db.C(servicediscovery.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
+	
+	database.MongoDBPool.Close(session)
+
+	servicesThatMatchJson , _ := json.Marshal(servicesThatMatch)
+	http.Response(c, string(servicesThatMatchJson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+	return nil
+}

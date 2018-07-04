@@ -3,7 +3,9 @@ import * as getters from './getters';
 import * as mutations from './mutations';
 
 const state = {
-    groups: []
+    groups: [],
+    ungrouped_applications: [],
+    possibleMatches: []
 };
 
 const namespaced = true;

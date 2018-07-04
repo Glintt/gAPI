@@ -1,15 +1,15 @@
 <template>
 <div >
-   <router-link to="/service-discovery/apps-groups/create" 
+    <router-link to="/service-discovery/apps-groups/create" 
                             v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin"
                             class="btn btn-default" href="#"><i class="fas fa-plus text-danger"></i> Add Application Group</router-link>
-                        
+
     <table class="table">
         <thead>
             <tr class="table-secondary" >
                 <th scope="col">Name</th>
                 <th scope="col"># APIs</th>
-                <th scope="col" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">Actions</th>
+                <th scope="col" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin" style="width: 25%">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -26,7 +26,16 @@
                     <button class="btn btn-sm btn-primary" @click="updateGroup(sg)">Save</button>
                     <button class="btn btn-sm btn-danger" @click="deleteGroup(sg)">Delete</button>
                     <button class="btn btn-sm btn-info" @click="showAPIs(sg)">Show APIs</button>
-                    
+                    <button class="btn btn-sm btn-warning" @click="findMatches(sg)">Find Matches</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Ungrouped APIs</td>
+                <td>
+                    {{ ungroupedApplications.length }}
+                </td>
+                <td v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
+                    <button class="btn btn-sm btn-info" @click="showUngroupedAPIs">Show APIs</button>
                 </td>
             </tr>
         </tbody>
@@ -41,6 +50,14 @@
         </div>
     </div>
 
+    <div class="row" v-if="possibleMatches.length > 0">
+        <div class="col-sm-12">
+            <h4>{{ selectedGroup.Name }} - Possible Matches APIs</h4>
+            <hr/>
+            <ListServices :services="possibleMatches" :isLoggedIn="isLoggedIn" :loggedInUser="loggedInUser"/>
+        </div>
+    </div>
+
 </div>
     
 </template>
@@ -52,6 +69,7 @@ import ListServices from "@/components/service-discovery/ListServices"
 export default {
     mounted() {
         this.fetchGroups()
+        this.listUngroupedApplications()
     },
     computed: {
         isLoggedIn() {
@@ -60,7 +78,7 @@ export default {
         ...mapGetters({
             loggedInUser: 'loggedInUser'
         }),
-        ...mapGetters('appsGroups', ['groups'])
+        ...mapGetters('appsGroups', ['groups', 'ungroupedApplications', 'possibleMatches'])
     },
     data() {
         return {
@@ -73,13 +91,26 @@ export default {
         ...mapActions('appsGroups', [
             'fetchGroups',
             'updateGroup',
-            'deleteGroup'
+            'deleteGroup',
+            'listUngroupedApplications',
+            'findPossibleMatches'
         ]),
         showAPIs: function(appGroup) {
             this.$api.serviceDiscovery.applicationGroupById(appGroup.Id, response => {
                 this.selectedGroup = response.body
                 this.services = response.body.Services
             })
+        },
+        showUngroupedAPIs: function() {
+            this.selectedGroup = {
+                Name: "Ungrouped applications"
+            }
+
+            this.services = this.ungroupedApplications
+        },
+        findMatches: function(appGroup) {
+            this.selectedGroup = appGroup
+            this.findPossibleMatches(appGroup)
         }
     },
     components: {

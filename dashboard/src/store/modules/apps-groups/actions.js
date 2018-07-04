@@ -32,3 +32,17 @@ export const deassociateServiceFromAppGroup = ({commit}, payload) => {
         // if (response.status == 200) commit('groupDeleted', group)
     })
 }
+
+export const listUngroupedApplications = ({commit}) => {
+    // TODO
+    serviceDiscoveryAPI.listUngroupedApps(response => {
+        if (response.status == 200) commit('ungroupedApplications', response.body)
+    })
+}
+
+export const findPossibleMatches = ({commit}, sg) => {
+    // TODO
+    serviceDiscoveryAPI.findPossibleMatches(sg.Name, response => {
+        if (response.status == 200) commit('possibleMatches', response.body)
+    })
+}

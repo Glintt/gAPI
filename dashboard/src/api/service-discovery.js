@@ -24,7 +24,9 @@ const Endpoints = {
   "delete_application_group": "/apps-groups/<group_id>",
   "associate_to_application_group": "/apps-groups/<group_id>/<service_id>",
   "deassociate_from_application_group": "/apps-groups/<group_id>/<service_id>",
-  "application_group_for_service": "/apps-groups/search/<service_id>" 
+  "application_group_for_service": "/apps-groups/search/<service_id>",
+  "list_ungrouped_applications": "/apps-groups/ungrouped",
+  "find_possible_group_matches": "/apps-groups/matches?group_name=<group_name>",
 };
 
 export const CustomManagementActions = ["logs"]
@@ -194,6 +196,24 @@ export function AppsGroupForService(serviceId, cb) {
   });
 }
 
+
+
+export function listUngroupedApps(cb){
+  HTTP.GET(HTTP.PathToCall(Endpoints.list_ungrouped_applications), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
+
+
+export function findPossibleMatches(name, cb){
+  HTTP.GET(HTTP.PathToCall(Endpoints.find_possible_group_matches).replace("<group_name>", name), {}).then(response => {
+    cb(response);
+  }, response => {
+    HTTP.handleError(response, cb)
+  });
+}
 
 
 export function applicationGroupById(groupId, cb) {
