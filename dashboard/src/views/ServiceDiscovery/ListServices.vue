@@ -66,6 +66,9 @@
                 <li :class="'page-item' + ((currentPage == 1) ? ' disabled' : '')">
                   <a class="page-link" href="#" tabindex="-1" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">Previous</a>
                 </li>
+                <li class="page-item" v-if="currentPage > 1">
+                  <a class="page-link" href="#" @click="currentPage -= 1" >{{ currentPage - 1}}</a>
+                </li>
                 <li class="page-item active">
                   <a class="page-link" href="#">{{ currentPage }} <span class="sr-only">(current)</span></a>
                 </li>
