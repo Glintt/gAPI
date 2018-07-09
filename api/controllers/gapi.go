@@ -37,6 +37,9 @@ func ProfileGApiUsage(c *routing.Context) error {
 
 	profileStats["OS"] = runtime.GOOS
 	
+	// Go Routines
+	profileStats["GoRoutines"] = runtime.NumGoroutine()
+	
 	// Memory Stats
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
