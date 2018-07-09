@@ -11,6 +11,7 @@ import (
 )
 
 var sd *servicediscovery.ServiceDiscovery
+var services []servicediscovery.Service
 
 var TickerTime = 30
 var TimeoutDuration = 2
@@ -39,19 +40,18 @@ func InitHealthCheck() {
 	}()
 }
 
-func ServicesList() []servicediscovery.Service {
-	services, _ := sd.GetAllServices()
-	return services
+func UpdateServicesList() {
+	services, _ = sd.GetAllServices()
 }
 
 func CheckServicesHealth() {
 	utils.LogMessage("##### HEALTH CHECK #####", utils.DebugLogType)
 
-	for _, s := range ServicesList() {
-		healthcheckURL := s.HealthcheckUrl
-		// healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
+	UpdateServicesList()
 
-		utils.LogMessage("-----> " + healthcheckURL, utils.DebugLogType)
+	for _, s := range services {
+		// healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
+		utils.LogMessage("-----> " + s.HealthcheckUrl, utils.DebugLogType)
 		
 		go func(healthcheckURL string, s servicediscovery.Service){
 			resp, err := http.Get(healthcheckURL)
@@ -68,7 +68,9 @@ func CheckServicesHealth() {
 			}
 
 			sd.UpdateService(s)
-		}(healthcheckURL, s)
+			resp.Body.Close()
+			return
+		}(s.HealthcheckUrl, s)
 	}
 	utils.LogMessage("### HEALTH CHECK ENDED ###", utils.DebugLogType)
 }
