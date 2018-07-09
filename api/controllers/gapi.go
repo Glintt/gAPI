@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"gAPIManagement/bin/api/http"
+	"gAPIManagement/api/http"
 	"encoding/json"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/cpu"
