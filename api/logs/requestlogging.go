@@ -39,14 +39,27 @@ var LoggingType = map[string]interface{}{
 	"Elastic": PublishElastic}
 
 func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte, currentDate string, elapsedTime int64, serviceName string, indexName string) RequestLogging {
+	remoteAddress := string(c.Request.Header.Peek("X-Real-IP"))
+	remoteIpAddress := string(c.Request.Header.Peek("X-Real-IP"))
+
+	if remoteAddress == "" {
+		remoteAddress = c.RemoteAddr().String()
+		remoteIpAddress = c.RemoteIP().String()
+	}
+
+	remoteHost := string(c.Request.Header.Peek("Host"))
+	if remoteHost == "" {
+		remoteHost = string(c.Request.Host())
+	}
+	
 	return RequestLogging{string(
 		c.Method()),
 		string(c.Request.RequestURI()),
 		string(c.Request.Body()),
-		string(c.Request.Host()),
+		remoteHost,
 		string(c.UserAgent()),
-		c.RemoteAddr().String(),
-		c.RemoteIP().String(),
+		remoteAddress,
+		remoteIpAddress,
 		string(headers),
 		string(queryArgs),
 		currentDate,
@@ -65,6 +78,7 @@ func PublishLog(reqLogging *RequestLogging) {
 	defer utils.PreventCrash()
 
 	LoggingType[config.GApiConfiguration.Logs.Type].(func(*RequestLogging))(reqLogging)
+	return
 }
 
 func PublishElastic(reqLogging *RequestLogging) {
