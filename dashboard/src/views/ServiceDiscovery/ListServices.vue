@@ -136,7 +136,7 @@ export default {
     };
   },
   methods: {
-    search: function() {
+    search: function(event) {
       event.preventDefault();
 
       this.currentPage = 1;
