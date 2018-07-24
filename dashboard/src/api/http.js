@@ -4,7 +4,7 @@ const OAuthAPI = require("@/api/auth");
 const API_CONFIG = require("@/configs/urls").config.API;
 
 export function PathToCall(path) {
-  return "http://" + API_CONFIG.HOST + ":" + API_CONFIG.PORT + API_CONFIG.BASE_PATH + path
+  return `${API_CONFIG.PROTOCOL}://${API_CONFIG.HOST}:${API_CONFIG.PORT}${API_CONFIG.BASE_PATH}${path}`
 }
 
 function AddAuthorizationToHeader(config){

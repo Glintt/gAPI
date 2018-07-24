@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
+	"strings"
 )
 
 var GAPI_CONFIG_FILE = "gAPI.json"
@@ -91,5 +93,15 @@ func LoadGApiConfig() {
 	}
 
 	json.Unmarshal(gapiJSON, &GApiConfiguration)
+
+	apiProtocol := os.Getenv("API_PROTOCOL")
+	if strings.ToLower(apiProtocol) == "https" {
+		GApiConfiguration.Protocol.Https = true
+	}
+
+	if GApiConfiguration.Protocol.CertificateFile == "" || GApiConfiguration.Protocol.CertificateKey == "" {
+		GApiConfiguration.Protocol.Https = false
+	}
+
 	return
 }

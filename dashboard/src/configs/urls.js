@@ -1,5 +1,6 @@
 export const config = {
     "API" : {
+        "PROTOCOL": process.env.API_PROTOCOL || "http",
         "HOST" : process.env.API_HOST || "10.250.39.103",
         "PORT" : process.env.API_PORT || "8084",
         "SOCKET_HOST" : process.env.SOCKET_HOST ||  "localhost",

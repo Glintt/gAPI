@@ -1,6 +1,5 @@
 package config
 
-
 import (
 	"os"
 )
@@ -17,7 +16,7 @@ type UrlsConstants struct {
 	ANALYTICS_GROUP         string `json:ANALYTICS_GROUP`
 }
 
-/* 
+/*
 func LoadURLConstants() {
 	urlsJSON, err := ioutil.ReadFile(CONFIGS_LOCATION + URLS_CONFIG_FILE)
 
@@ -32,17 +31,17 @@ func LoadURLConstants() {
 	SERVICE_DISCOVERY_GROUP = sc.SERVICE_DISCOVERY_GROUP
 	ANALYTICS_GROUP = sc.ANALYTICS_GROUP
 	ELASTICSEARCH_URL = "http://" + os.Getenv("ELASTICSEARCH_HOST") + ":" + os.Getenv("ELASTICSEARCH_PORT")
-	
+
 	return
 }
- */
+*/
 
- func LoadURLConstants(){
-	SERVICE_DISCOVERY_URL = "http://" + os.Getenv("SERVICEDISCOVERY_HOST") + ":" + os.Getenv("SERVICEDISCOVERY_PORT")
+func LoadURLConstants() {
+	SERVICE_DISCOVERY_URL = os.Getenv("API_PROTOCOL") + "://" + os.Getenv("SERVICEDISCOVERY_HOST") + ":" + os.Getenv("SERVICEDISCOVERY_PORT")
 	SERVICE_DISCOVERY_GROUP = GApiConfiguration.Urls.SERVICE_DISCOVERY_GROUP
 	ANALYTICS_GROUP = GApiConfiguration.Urls.ANALYTICS_GROUP
 	ELASTICSEARCH_URL = "http://" + os.Getenv("ELASTICSEARCH_HOST") + ":" + os.Getenv("ELASTICSEARCH_PORT")
 	if os.Getenv("ELASTICSEARCH_LOGS_INDEX") != "" {
 		ELASTICSEARCH_LOGS_INDEX = os.Getenv("ELASTICSEARCH_LOGS_INDEX")
 	}
- }
+}

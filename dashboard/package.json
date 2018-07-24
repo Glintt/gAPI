@@ -55,7 +55,8 @@
             "API_HOST",
             "API_PORT",
             "SOCKET_HOST",
-            "SOCKET_PORT"
+            "SOCKET_PORT",
+            "API_PROTOCOL"
           ]
         }
       ]

@@ -4,7 +4,7 @@
         <div class="row">
           <div class="alert alert-info col-sm-4 offset-sm-4" role="alert">
             <strong>gAPI Base Url:</strong>
-            <span>&nbsp;&nbsp;{{ 'http://' + $config.API.HOST + ':' + $config.API.PORT }}</span><br />
+            <span>&nbsp;&nbsp;{{ `${$config.API_PROTOCOL}://${$config.API.HOST}:${$config.API.PORT}` }}</span><br />
             <small>Use this URL + gAPIPath to call microservices</small>
           </div>
         </div>
