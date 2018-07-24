@@ -1,13 +1,13 @@
 package main
 
 import (
-	"strconv"
-	"runtime"
-	"gAPIManagement/api/users"
+	"encoding/json"
 	"gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
-	"encoding/json"
-	
+	"gAPIManagement/api/users"
+	"runtime"
+	"strconv"
+
 	"gAPIManagement/api/authentication"
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
@@ -35,17 +35,17 @@ func main() {
 			runtime.GOMAXPROCS(maxProcs)
 		}
 	}
-	
+
 	config.LoadConfigs()
-	
+
 	router = routing.New()
-	
+
 	InitServices()
-	
+
 	InitAPIs()
 
 	InitSocketServices()
-	
+
 	listenAPI(router)
 }
 
@@ -54,11 +54,10 @@ func InitSocketServices() {
 	sockets.StartRequestsCounterSender()
 }
 
-
 func InitAPIs() {
 	routes.InitAPIRoutes(router)
 
-	proxy.StartProxy(router)	
+	proxy.StartProxy(router)
 }
 
 func InitServices() {
@@ -78,8 +77,14 @@ func listenAPI(router *routing.Router) {
 		listeningPort = "8080"
 	}
 
-	utils.LogMessage("Listening on port: " + listeningPort, utils.InfoLogType)
-	panic(fasthttp.ListenAndServe(":"+listeningPort, CORSHandle))
+	utils.LogMessage("Listening on port: "+listeningPort, utils.InfoLogType)
+	utils.LogMessage("Using HTTPS: "+strconv.FormatBool(config.GApiConfiguration.Protocol.Https), utils.InfoLogType)
+
+	if config.GApiConfiguration.Protocol.Https {
+		panic(fasthttp.ListenAndServeTLS(":"+listeningPort, config.GApiConfiguration.Protocol.CertificateFile, config.GApiConfiguration.Protocol.CertificateKey, CORSHandle))
+	} else {
+		panic(fasthttp.ListenAndServe(":"+listeningPort, CORSHandle))
+	}
 }
 
 var (
@@ -101,7 +106,7 @@ func CORSHandle(ctx *fasthttp.RequestCtx) {
 
 	RequestCounterSocket(service)
 	LogRequest(ctx, service, beginTime)
-	
+
 	if string(ctx.Request.Header.Peek("Connection")) != "keep-alive" {
 		defer ctx.Response.SetConnectionClose()
 	}
@@ -113,7 +118,7 @@ func RequestCounterSocket(service []byte) {
 
 func IsGApiService(service []byte) bool {
 	serviceString := string(service)
-	
+
 	if serviceString == servicediscovery.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME {
 		return true
 	}
@@ -130,8 +135,8 @@ func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
 	if IsGApiService(service) {
 		indexName = "gapi-api-logs"
 	}
-	
-	utils.LogMessage("Log IndexName = " + indexName, utils.DebugLogType)
+
+	utils.LogMessage("Log IndexName = "+indexName, utils.DebugLogType)
 
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))

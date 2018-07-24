@@ -50,5 +50,10 @@
             "background": "info",
             "description": "Restart service"
         }
+    },
+    "Protocol": {
+        "Https": false,
+        "CertificateFile": "certificates/certificate.crt",
+        "CertificateKey": "certificates/privatekey.key"
     }
 }

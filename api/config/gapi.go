@@ -14,18 +14,25 @@ type GApiConfig struct {
 	ServiceDiscovery GApiServiceDiscoveryConfig
 	Urls             UrlsConstants
 	Healthcheck      GApiHealthCheckConfig
-	Notifications 	 GApiNotificationsConfig
+	Notifications    GApiNotificationsConfig
 	ManagementTypes  map[string]map[string]string
-	RateLimiting 	GApiRateLimitingConfig
-	Cache 	GApiCacheConfig
+	RateLimiting     GApiRateLimitingConfig
+	Cache            GApiCacheConfig
+	Protocol         ProtocolConfig
+}
+
+type ProtocolConfig struct {
+	Https           bool
+	CertificateFile string
+	CertificateKey  string
 }
 
 type GApiAuthenticationConfig struct {
-	Username string
-	Password string
+	Username            string
+	Password            string
 	TokenExpirationTime int
-	TokenSigningKey string
-	LDAP LDAPConfig
+	TokenSigningKey     string
+	LDAP                LDAPConfig
 }
 
 type GApiCacheConfig struct {
@@ -35,7 +42,7 @@ type GApiCacheConfig struct {
 type LDAPConfig struct {
 	Active bool
 	Domain string
-	Port string
+	Port   string
 }
 
 type GApiLogsConfig struct {
@@ -53,13 +60,13 @@ type GApiServiceDiscoveryConfig struct {
 }
 
 type GApiHealthCheckConfig struct {
-	Active    bool
-	Frequency int
+	Active       bool
+	Frequency    int
 	Notification bool
 }
 
 type GApiNotificationsConfig struct {
-	Type    string
+	Type  string
 	Slack GApiSlackNotificationsConfig
 }
 
@@ -68,9 +75,9 @@ type GApiSlackNotificationsConfig struct {
 }
 
 type GApiRateLimitingConfig struct {
-	Active bool
-	Limit int
-	Period int64
+	Active  bool
+	Limit   int
+	Period  int64
 	Metrics []string
 }
 

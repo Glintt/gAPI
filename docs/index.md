@@ -9,6 +9,7 @@ It also provides analytics which are useful to take value from request logs.
 
 1. [Requirements](requirements)
 1. [Installation](installation)
+1. [HTTPS](https)
 1. [Architecture](architecture)
 1. [Load Balancing](load-balancing)
 1. [Rate Limiting](rate-limiting)

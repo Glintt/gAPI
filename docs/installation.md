@@ -33,6 +33,11 @@ Configuration files explanation:
             * Slack
         * Slack - Slack notifications configuration.
             * WebhookUrl - URL to POST notifications to
+    * **Protocol**
+        * Https - boolean to active or deactivate HTTPS
+        * CertificateFile - certificate file location
+        * CertificateKey - certificate key file location
+        
 4. ***users.json*** - Users registered on the system to access dashboard
 
 
