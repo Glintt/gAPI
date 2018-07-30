@@ -1,13 +1,13 @@
 package routes
 
 import (
-	"gAPIManagement/api/cache"
-	"gAPIManagement/api/controllers"
 	"gAPIManagement/api/authentication"
+	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/controllers"
+
 	"github.com/qiangxue/fasthttp-routing"
 )
-
 
 func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 	serviceDiscoveryAPIGroup := router.Group(config.SERVICE_DISCOVERY_GROUP)
@@ -15,8 +15,8 @@ func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 	serviceDiscoveryAPIGroup.Post("/register", authentication.AdminRequiredMiddleware, controllers.RegisterHandler)
 	serviceDiscoveryAPIGroup.Post("/admin/normalize", authentication.AdminRequiredMiddleware, controllers.NormalizeServices)
 	serviceDiscoveryAPIGroup.Post("/update", authentication.AdminRequiredMiddleware, controllers.UpdateHandler)
-	serviceDiscoveryAPIGroup.Get("/services", cache.ResponseCacheGApi, controllers.ListServicesHandler, cache.StoreCacheGApi)
-	serviceDiscoveryAPIGroup.Get("/endpoint", cache.ResponseCacheGApi, controllers.GetEndpointHandler, cache.StoreCacheGApi)
+	serviceDiscoveryAPIGroup.Get("/services", authentication.CheckUserMiddleware, cache.ResponseCacheGApi, controllers.ListServicesHandler, cache.StoreCacheGApi)
+	serviceDiscoveryAPIGroup.Get("/endpoint", cache.ResponseCacheGApi, authentication.CheckUserMiddleware, controllers.GetEndpointHandler, cache.StoreCacheGApi)
 	serviceDiscoveryAPIGroup.Delete("/delete", authentication.AdminRequiredMiddleware, controllers.DeleteEndpointHandler)
 	serviceDiscoveryAPIGroup.Post("/services/manage", authentication.AuthorizationMiddleware, controllers.ManageServiceHandler)
 	serviceDiscoveryAPIGroup.Get("/services/manage/types", controllers.ManageServiceTypesHandler)

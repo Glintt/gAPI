@@ -1,23 +1,23 @@
 package servicediscovery
 
 import (
-	"gAPIManagement/api/database"
 	"errors"
+	"gAPIManagement/api/database"
 	"regexp"
 	"strings"
+
 	"gopkg.in/mgo.v2/bson"
 )
 
 const (
-	SERVICES_COLLECTION = "services"
-	SERVICE_GROUP_COLLECTION = "services_groups"
+	SERVICES_COLLECTION           = "services"
+	SERVICE_GROUP_COLLECTION      = "services_groups"
 	SERVICE_APPS_GROUP_COLLECTION = "services_apps_groups"
 )
 
-
 func UpdateMongo(service Service, serviceExists Service) (string, int) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
-	
+
 	err := db.C(SERVICES_COLLECTION).UpdateId(service.Id, &service)
 
 	database.MongoDBPool.Close(session)
@@ -42,22 +42,40 @@ func CreateServiceMongo(s Service) (string, int) {
 	return `{"error" : false, "msg": "Service created successfuly."}`, 201
 }
 
-func ListServicesMongo(page int, filterQuery string) []Service {
+func ListServicesMongo(page int, filterQuery string, viewAllPermission bool) []Service {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var services []Service
 	skips := PAGE_LENGTH * (page - 1)
-	
+
+	andQuery := []bson.M{
+		bson.M{
+			"$or": []bson.M{
+				bson.M{"name": bson.RegEx{filterQuery + ".*", ""}},
+				bson.M{"matchinguri": bson.RegEx{filterQuery + ".*", ""}}}},
+	}
+
+	if !viewAllPermission {
+		visibilityQuery := bson.M{
+			"$or": []bson.M{
+				bson.M{"isreachable": true},
+				bson.M{
+					"$and": []bson.M{
+						bson.M{"groupvisibility": true},
+						bson.M{"usegroupattributes": true},
+					},
+				},
+			}}
+		andQuery = append(andQuery, visibilityQuery)
+	}
+	query := bson.M{
+		"$and": andQuery,
+	}
+
 	if page == -1 {
-		db.C(SERVICES_COLLECTION).Find(bson.M{
-			"$or": []bson.M{ 
-				bson.M{"name": bson.RegEx{filterQuery+".*", ""}},
-				bson.M{"matchinguri":bson.RegEx{filterQuery+".*", ""}}}}).Sort("matchinguri").All(&services)
-	}else {
-		db.C(SERVICES_COLLECTION).Find(bson.M{
-			"$or": []bson.M{ 
-				bson.M{"name": bson.RegEx{filterQuery+".*", ""}},
-				bson.M{"matchinguri":bson.RegEx{filterQuery+".*", ""}}}}).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
+		db.C(SERVICES_COLLECTION).Find(query).Sort("matchinguri").All(&services)
+	} else {
+		db.C(SERVICES_COLLECTION).Find(query).Sort("matchinguri").Skip(skips).Limit(PAGE_LENGTH).All(&services)
 	}
 
 	database.MongoDBPool.Close(session)
@@ -72,7 +90,7 @@ func DeleteServiceMongo(s Service) (string, int) {
 
 	if err != nil {
 		database.MongoDBPool.Close(session)
-		
+
 		return `{"error": true, "msg": "Not found"}`, 404
 	}
 
@@ -102,13 +120,13 @@ func FindMongo(s Service) (Service, error) {
 	if len(uriParts) == 0 {
 		uriParts = append(uriParts, "")
 	}
-	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}},bson.M{"_id": s.Id}}}
+	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}}, bson.M{"_id": s.Id}}}
 	db.C(SERVICES_COLLECTION).Find(query).All(&services)
-	
+
 	database.MongoDBPool.Close(session)
 
 	for _, rs := range services {
-		if (rs.MatchingURIRegex == "") {
+		if rs.MatchingURIRegex == "" {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
@@ -126,7 +144,7 @@ func ListAllAvailableHosts() ([]string, error) {
 	var hosts []string
 
 	db.C(SERVICES_COLLECTION).Find(nil).Distinct("hosts", &hosts)
-	
+
 	database.MongoDBPool.Close(session)
 
 	return hosts, nil
@@ -139,11 +157,11 @@ func NormalizeServicesMongo() error {
 	db.C(SERVICES_COLLECTION).Find(bson.M{}).All(&services)
 
 	database.MongoDBPool.Close(session)
-	
+
 	for _, rs := range services {
 		rs.NormalizeService()
 
 		db.C(SERVICES_COLLECTION).UpdateId(rs.Id, &rs)
-	}	
+	}
 	return nil
 }

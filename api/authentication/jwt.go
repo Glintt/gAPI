@@ -1,15 +1,16 @@
 package authentication
 
 import (
-	"gAPIManagement/api/utils"
-	"golang.org/x/crypto/bcrypt"
-	"gAPIManagement/api/users"
-	"github.com/dgrijalva/jwt-go"
-	routing "github.com/qiangxue/fasthttp-routing"
-	"gAPIManagement/api/config"
 	"errors"
+	"gAPIManagement/api/config"
+	"gAPIManagement/api/users"
+	"gAPIManagement/api/utils"
 	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	routing "github.com/qiangxue/fasthttp-routing"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var MinSizeSigningKey = 10
@@ -19,26 +20,24 @@ var SIGNING_KEY = "AllYourBase"
 var EXPIRATION_TIME = MinExpirationTime
 var SERVICE_NAME = "authentication"
 
-type TokenRequestObj struct{
+type TokenRequestObj struct {
 	Username string `json:username`
 	Password string `json:password`
 }
 
 type TokenCustomClaims struct {
 	Username string `json:"Username"`
-    jwt.StandardClaims
+	jwt.StandardClaims
 }
 
-
-func InitGAPIAuthenticationServer(){
+func InitGAPIAuthenticationServer() {
 	if config.GApiConfiguration.Authentication.TokenExpirationTime > MinExpirationTime {
-		EXPIRATION_TIME = config.GApiConfiguration.Authentication.TokenExpirationTime 
+		EXPIRATION_TIME = config.GApiConfiguration.Authentication.TokenExpirationTime
 	}
 	if len(config.GApiConfiguration.Authentication.TokenSigningKey) > MinSizeSigningKey {
 		SIGNING_KEY = config.GApiConfiguration.Authentication.TokenSigningKey
 	}
 }
-
 
 func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
@@ -51,7 +50,7 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 		return nil, errors.New("Not Authorized.")
 	}
 	claims := tokenParsed.Claims.(jwt.MapClaims)
-	
+
 	if err == nil && tokenParsed.Valid {
 		return claims, nil
 	}
@@ -59,9 +58,9 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	return nil, errors.New("Not Authorized.")
 }
 
-func GenerateToken(username string, password string) (string, error){
+func GenerateToken(username string, password string) (string, error) {
 	user, err := ValidateUserCredentials(username, password)
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 
@@ -77,14 +76,14 @@ func GenerateToken(username string, password string) (string, error){
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString(mySigningKey)
-	
+
 	return ss, nil
 }
 
 func LdapUserCreateOrUpdate(user users.User) {
 	err := users.CreateUser(user)
 	if err != nil {
-		utils.LogMessage("Create user error = " + err.Error(), utils.DebugLogType)
+		utils.LogMessage("Create user error = "+err.Error(), utils.DebugLogType)
 
 		userList := users.GetUserByUsername(user.Username)
 		if len(userList) == 0 {
@@ -93,14 +92,14 @@ func LdapUserCreateOrUpdate(user users.User) {
 
 		if bcrypt.CompareHashAndPassword([]byte(userList[0].Password), []byte(user.Password)) != nil {
 			user.Id = userList[0].Id
-			user.IsAdmin = userList[0].IsAdmin			
+			user.IsAdmin = userList[0].IsAdmin
 
 			hashedPwd, _ := users.GeneratePassword(user.Password)
 			user.Password = string(hashedPwd)
 
 			err = users.UpdateUser(user)
 			if err != nil {
-				utils.LogMessage("Update user error = " + err.Error(), utils.DebugLogType)
+				utils.LogMessage("Update user error = "+err.Error(), utils.DebugLogType)
 			}
 		}
 	}
@@ -115,12 +114,12 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 		user := users.User{
 			Username: username,
 			Password: password,
-			Email: email,
+			Email:    email,
 		}
-		
+
 		LdapUserCreateOrUpdate(user)
 	}
-	
+
 	userList := users.GetUserByUsername(username)
 	if len(userList) == 0 {
 		return users.User{}, errors.New("Not Authorized.")
@@ -130,7 +129,7 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if err != nil {
-		utils.LogMessage("Compare Password Hash Error = " + err.Error(), utils.DebugLogType)
+		utils.LogMessage("Compare Password Hash Error = "+err.Error(), utils.DebugLogType)
 	}
 	if username == user.Username && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil {
 		return user, nil
@@ -139,7 +138,6 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 	return users.User{}, errors.New("Not Authorized.")
 }
 
-
 func NotAuthorized(c *routing.Context) error {
 	c.Response.SetBody([]byte(`{"error":true, "msg": "Not authorized."}`))
 	c.Response.SetStatusCode(401)
@@ -147,10 +145,24 @@ func NotAuthorized(c *routing.Context) error {
 	return errors.New("Not allowed")
 }
 
-func AuthorizationMiddleware(c *routing.Context) error {
+func GetUserFromToken(c *routing.Context) (jwt.MapClaims, error) {
 	token := c.Request.Header.Peek("Authorization")
 
-	userClaims, validate := ValidateToken(string(token))
+	return ValidateToken(string(token))
+}
+
+func CheckUserMiddleware(c *routing.Context) error {
+	userClaims, validate := GetUserFromToken(c)
+
+	if validate == nil {
+		c.Request.Header.Add("User", userClaims["Username"].(string))
+	}
+
+	return nil
+}
+
+func AuthorizationMiddleware(c *routing.Context) error {
+	userClaims, validate := GetUserFromToken(c)
 
 	if validate != nil {
 		NotAuthorized(c)
@@ -188,7 +200,7 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 		c.Abort()
 		return nil
 	}
-	
+
 	c.Request.Header.Add("User", username)
 	return nil
 }

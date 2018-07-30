@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/config"
 	"encoding/json"
-	"strconv"
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
+	"gAPIManagement/api/servicediscovery"
+	"strconv"
+
 	"github.com/qiangxue/fasthttp-routing"
 )
 
@@ -27,7 +28,7 @@ func ServiceNotFound(c *routing.Context) error {
 }
 
 func NormalizeServices(c *routing.Context) error {
-	err := Methods()["normalize"].(func() (error))()
+	err := Methods()["normalize"].(func() error)()
 	if err != nil {
 		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return err
@@ -51,12 +52,11 @@ func UpdateHandler(c *routing.Context) error {
 		return nil
 	}
 
-	resp, status :=  Methods()["update"].(func(servicediscovery.Service, servicediscovery.Service) (string, int))(service, serviceExists)
+	resp, status := Methods()["update"].(func(servicediscovery.Service, servicediscovery.Service) (string, int))(service, serviceExists)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
-
 
 func RegisterHandler(c *routing.Context) error {
 	service, err := servicediscovery.ValidateServiceBody(c)
@@ -84,6 +84,8 @@ func RegisterHandler(c *routing.Context) error {
 func ListServicesHandler(c *routing.Context) error {
 	page := 1
 	searchQuery := ""
+	user := string(c.Request.Header.Peek("User"))
+
 	if c.QueryArgs().Has("page") {
 		var err error
 		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
@@ -96,8 +98,13 @@ func ListServicesHandler(c *routing.Context) error {
 	if c.QueryArgs().Has("q") {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
-	
-	services := Methods()["list"].(func(int, string) []servicediscovery.Service)(page, searchQuery)
+
+	permissions := false
+	if user != "" {
+		permissions = true
+	}
+
+	services := Methods()["list"].(func(int, string, bool) []servicediscovery.Service)(page, searchQuery, permissions)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -121,14 +128,13 @@ func GetEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
 	service, err := ServiceDiscovery().GetEndpointForUri(string(matchingURI))
-	
+
 	group, getGroupErr := service.GetGroup()
 	if getGroupErr != nil {
 		service.GroupVisibility = service.IsReachable
-	}else {
+	} else {
 		service.GroupVisibility = group.IsReachable
 	}
-	
 
 	serviceJSON, err1 := json.Marshal(service)
 
@@ -150,7 +156,6 @@ func DeleteEndpointHandler(c *routing.Context) error {
 	return nil
 }
 
-
 func ManageServiceHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("service")
 	managementType := string(c.QueryArgs().Peek("action"))
@@ -159,12 +164,12 @@ func ManageServiceHandler(c *routing.Context) error {
 
 	if err == nil {
 		success, callResponse := service.ServiceManagementCall(managementType)
-		
+
 		if success {
-			http.Response(c, `{"error": false, "msg": "Service ` + managementType + ` successfuly.", "service_response": ` + strconv.Quote(callResponse) + `}` , 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+			http.Response(c, `{"error": false, "msg": "Service `+managementType+` successfuly.", "service_response": `+strconv.Quote(callResponse)+`}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 			return nil
 		}
-		http.Response(c, `{"error": true, "msg": "Service could not be ` + managementType + `."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error": true, "msg": "Service could not be `+managementType+`."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -173,14 +178,14 @@ func ManageServiceHandler(c *routing.Context) error {
 
 func ManageServiceTypesHandler(c *routing.Context) error {
 	managementTypesJson, err := json.Marshal(config.GApiConfiguration.ManagementTypes)
-	
+
 	response := string(managementTypesJson)
 	statusCode := 200
-	if err != nil {	
+	if err != nil {
 		response = `{"error": true, "msg": "Not found"}`
 		statusCode = 404
 	}
-	
+
 	http.Response(c, response, statusCode, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }

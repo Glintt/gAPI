@@ -58,7 +58,7 @@
                 </tr>
             </tbody>
         </table> -->
-
+        
         <div class="row">
           <div class="col-sm-2 offset-sm-5 text-center">
             <nav aria-label="...">
@@ -76,7 +76,7 @@
                   <a class="page-link" href="#" @click="currentPage += 1" >{{ currentPage + 1}}</a>
                 </li>
                 <li class="page-item">
-                  <a class="page-link" @click="currentPage += 1" href="#">Next</a>
+                  <a class="page-link"  v-if="services.length == 10" @click="currentPage += 1" href="#">Next</a>
                 </li>
               </ul>
             </nav>
