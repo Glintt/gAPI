@@ -45,7 +45,7 @@ func GetURIWithParams(c *routing.Context) string {
 	queryParams := GetQueryParamsFromRequest(c)
 
 	uri := string(c.Request.RequestURI())
-	uri = strings.Trim(uri, " %20")
+	uri = strings.Trim(uri, " ")
 
 	for pKey, pValue := range queryParams {
 		if pValue == "" {
