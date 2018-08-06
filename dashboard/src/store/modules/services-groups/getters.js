@@ -1,5 +1,3 @@
-
-
 export const groups = state => {
-    return state.groups
-}
+  return state.groups;
+};

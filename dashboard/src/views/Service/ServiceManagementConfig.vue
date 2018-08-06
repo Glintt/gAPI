@@ -37,7 +37,7 @@
 
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 export default {
   name: "service-management-config",
   props: ["service", "showing"],
@@ -48,8 +48,8 @@ export default {
   },
   computed: {
     ...mapGetters({
-      isAdmin: 'isAdmin',
-      loggedInUser: 'loggedInUser'
+      isAdmin: "isAdmin",
+      loggedInUser: "loggedInUser"
     })
   },
   data() {

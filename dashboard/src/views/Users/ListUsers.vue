@@ -14,61 +14,54 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
-import DataTable from '@/components/DataTable'
-import EditUser from './EditUser'
+import { mapActions, mapGetters } from "vuex";
+import DataTable from "@/components/DataTable";
+import EditUser from "./EditUser";
 
 export default {
-    computed:{
-        ...mapGetters('users', [
-            'usersList',
-            'user'
-        ])
-    },
-    mounted() {
-        this.updateList()
-        this.changeUser(null)
-    },
-    data() {
-        return {
-            headers: ['Id', 'Username', 'Email', 'IsAdmin'],
-            actions: {
-                edit: {
-                    name: "Edit",
-                    event: "editUser"
-                }
-            },
-            searchQuery: '',
-            page: 1
+  computed: {
+    ...mapGetters("users", ["usersList", "user"])
+  },
+  mounted() {
+    this.updateList();
+    this.changeUser(null);
+  },
+  data() {
+    return {
+      headers: ["Id", "Username", "Email", "IsAdmin"],
+      actions: {
+        edit: {
+          name: "Edit",
+          event: "editUser"
         }
+      },
+      searchQuery: "",
+      page: 1
+    };
+  },
+  methods: {
+    ...mapActions("users", ["updateList", "changeUser"]),
+    editUser: function(user) {
+      this.changeUser(user);
     },
-    methods: {
-        ...mapActions('users', [
-            'updateList',
-            'changeUser'
-        ]),
-        editUser: function (user) {
-            this.changeUser(user)
-        },
-        closeEditing: function (user) {
-            this.changeUser(null)
-        },
-        changePage: function(page) {
-            this.page = page
-            this.updateList({query: this.searchQuery, page: this.page})
-        },
-        search: function(searchQuery) {
-            this.searchQuery = searchQuery
-            this.updateList({query: this.searchQuery, page: this.page})
-        }
+    closeEditing: function() {
+      this.changeUser(null);
     },
-    components: {
-        DataTable,
-        EditUser
+    changePage: function(page) {
+      this.page = page;
+      this.updateList({ query: this.searchQuery, page: this.page });
+    },
+    search: function(searchQuery) {
+      this.searchQuery = searchQuery;
+      this.updateList({ query: this.searchQuery, page: this.page });
     }
-}
+  },
+  components: {
+    DataTable,
+    EditUser
+  }
+};
 </script>
 
 <style>
-
 </style>

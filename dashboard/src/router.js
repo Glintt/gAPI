@@ -16,12 +16,11 @@ import ListServicesGroup from "./views/ServiceDiscovery/ListServicesGroup.vue";
 import NewApplicationGroup from "./views/ServiceDiscovery/NewApplicationGroup.vue";
 import ListApplicationsGroup from "./views/ServiceDiscovery/ListApplicationsGroup.vue";
 
-
 var OAuthValidator = require("@/auth");
 Vue.use(Router);
 
 export default new Router({
-  mode: 'history',
+  mode: "history",
   routes: [
     {
       path: "/",

@@ -20,13 +20,13 @@
                     <div class="card mb-12">
                         <div class="card-header text-white bg-primary" @click="toggleCard('basic')">
                             <div class="row">
-                                <div :class="service.LastActiveTime != 0 ? 'col-sm-10' : 'col-sm-11'">
+                                <div :class="service.LastActiveTime !== 0 ? 'col-sm-10' : 'col-sm-11'">
                                     Basic Information
                                 </div>
-                                <div :class="service.LastActiveTime != 0 ? 'col-sm-2' : 'col-sm-1'">
+                                <div :class="service.LastActiveTime !== 0 ? 'col-sm-2' : 'col-sm-1'">
                                     <span>Health: </span>
                                     <i class="fas fa-heartbeat fa-lg" :class="isActiveClass"></i>
-                                    <small v-if="service.LastActiveTime != 0"><br />Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }} </small>
+                                    <small v-if="service.LastActiveTime !== 0"><br />Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }} </small>
                                 </div>
                             </div>
                         </div>
@@ -73,11 +73,11 @@
 </template>
 
 <script>
-var serviceDiscoveryAPI = require("@/api/service-discovery");
 import InformationPanel from "@/components/InformationPanel";
 import ServiceAPIConfiguration from "@/views/Service/ServiceAPIConfiguration";
 import ServiceManagementConfig from "@/views/Service/ServiceManagementConfig";
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
+var serviceDiscoveryAPI = require("@/api/service-discovery");
 
 export default {
   name: "view-service",
@@ -86,16 +86,17 @@ export default {
       return this.$oauthUtils.vmA.isLoggedIn();
     },
     ...mapGetters({
-      isAdmin: 'isAdmin',
-      loggedInUser: 'loggedInUser'
+      isAdmin: "isAdmin",
+      loggedInUser: "loggedInUser"
     })
   },
   mounted() {
     serviceDiscoveryAPI.getServices(this.$route.query.uri, response => {
       this.service = response.body;
-      if (this.service.ServiceManagementEndpoints == null)
+      if (this.service.ServiceManagementEndpoints === null) {
         this.service.ServiceManagementEndpoints = {};
-      if (this.service.Hosts == null) this.service.Hosts = [];
+      }
+      if (this.service.Hosts === null) this.service.Hosts = [];
       this.serviceUpdated();
       this.isActiveClass = this.service.IsActive
         ? "text-success"
@@ -104,9 +105,8 @@ export default {
     });
   },
   data() {
-
     return {
-      pageType: 'ServiceDiscovery.EditService',
+      pageType: "ServiceDiscovery.EditService",
       serviceFetched: false,
       service: {
         Id: "",
@@ -121,7 +121,7 @@ export default {
         ServiceManagementHost: "",
         ServiceManagementPort: "",
         ServiceManagementEndpoints: {},
-        ProtectedExclude:{}
+        ProtectedExclude: {}
       },
       isActiveClass: "text-success",
       informationStatus: {
@@ -144,24 +144,31 @@ export default {
   },
   methods: {
     serviceURL: function() {
-      return 'http://' + this.$config.API.HOST + ':' + this.$config.API.PORT + this.service.MatchingURI
+      return (
+        "http://" +
+        this.$config.API.HOST +
+        ":" +
+        this.$config.API.PORT +
+        this.service.MatchingURI
+      );
     },
     copyURL: function() {
       var tempInput = document.createElement("input");
       tempInput.style = "position: absolute; left: -1000px; top: -1000px";
-      tempInput.value = this.serviceURL()
+      tempInput.value = this.serviceURL();
       document.body.appendChild(tempInput);
       tempInput.select();
       document.execCommand("copy");
       document.body.removeChild(tempInput);
     },
     addEndpointExclude: function(endpointToExclude) {
-      this.service.ProtectedExclude[endpointToExclude.endpoint] = endpointToExclude.methods
+      this.service.ProtectedExclude[endpointToExclude.endpoint] =
+        endpointToExclude.methods;
     },
     removeEndpointExclude: function(endpointToExclude) {
-      var protect = Object.assign({},this.service.ProtectedExclude)
-      delete protect[endpointToExclude]
-      this.service.ProtectedExclude = protect
+      var protect = Object.assign({}, this.service.ProtectedExclude);
+      delete protect[endpointToExclude];
+      this.service.ProtectedExclude = protect;
     },
     addHost: function(hostToAdd) {
       this.service.Hosts.push(hostToAdd);
@@ -172,14 +179,13 @@ export default {
       this.service.Hosts.splice(index, 1);
     },
     toggleCard: function(cardName) {
-        console.log(cardName)
       this.cards[cardName].showing = !this.cards[cardName].showing;
     },
     store: function() {
       serviceDiscoveryAPI.updateService(this.service, response => {
         this.informationStatus.isActive = true;
 
-        if (response.status != 201) {
+        if (response.status !== 201) {
           this.informationStatus.msg = response.body.msg;
           this.informationStatus.className = "alert-danger";
         } else {
@@ -193,7 +199,7 @@ export default {
     deleteService: function() {
       serviceDiscoveryAPI.deleteService(this.service.MatchingURI, response => {
         this.informationStatus.isActive = true;
-        if (response.status == 200) {
+        if (response.status === 200) {
           this.informationStatus.msg = "Resource removed successfully.";
           this.informationStatus.className = "alert-success";
 

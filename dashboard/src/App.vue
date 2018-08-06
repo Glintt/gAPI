@@ -8,8 +8,12 @@
   </div>
 </template>
 <style>
-small, strong, p, body,span {
- font-family: 'Montserrat', sans-serif;
+small,
+strong,
+p,
+body,
+span {
+  font-family: "Montserrat", sans-serif;
 }
 .btn {
   margin-left: 0.2em;
@@ -19,12 +23,12 @@ small, strong, p, body,span {
 
 <script>
 import NavBar from "@/components/NavBar.vue";
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 
 export default {
   computed: {
-    ...mapGetters('fullscreen', {
-      isFullscreen: 'isFullscreen'
+    ...mapGetters("fullscreen", {
+      isFullscreen: "isFullscreen"
     })
   },
   components: {

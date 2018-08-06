@@ -1,18 +1,17 @@
-import * as actions from './actions';
-import * as getters from './getters';
-import * as mutations from './mutations';
+import * as actions from "./actions";
+import * as getters from "./getters";
+import * as mutations from "./mutations";
 
 const state = {
-    isFullscreen: false
+  isFullscreen: false
 };
 
 const namespaced = true;
 
-
 export default {
-    namespaced,
-    state,
-    actions,
-    getters,
-    mutations
+  namespaced,
+  state,
+  actions,
+  getters,
+  mutations
 };

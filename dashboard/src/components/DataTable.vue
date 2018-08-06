@@ -22,13 +22,13 @@
 <table class="table">
   <thead>
     <tr>
-      <th scope="col" v-for="colName in headers">{{ colName }} </th>
+      <th scope="col" v-for="colName in headers" v-bind:key="colName">{{ colName }} </th>
       <th scope="col" v-if="Object.keys(actions).length > 0">Actions </th>
     </tr>
   </thead>
   <tbody>
-    <tr v-for="row in data">
-      <th scope="row" v-for="(item, index)  in row">
+    <tr v-for="(row, index) in data" v-bind:key="index">
+      <th scope="row" v-for="(item, index)  in row" v-bind:key="index">
         <span>{{ simplifyString(item) }}</span>
         <br />
         <span class="text-info" v-if="item !== undefined && (item.length > maxLength || isJSON(item))" @click="showMore(item, index)" data-toggle="modal" data-target="#showMoreModal">
@@ -36,11 +36,9 @@
         </span>
       </th>
       <th scope="row" v-if="Object.keys(actions).length > 0">
-        <button v-for="action in actions" :class="'btn btn-' + (action.className||'primary')"
+        <button v-for="action in actions" :class="'btn btn-' + (action.className||'primary')" v-bind:key="action.name"
           @click="actionEmit(action.event, row)">{{ action.name }}</button>
       </th>
-    </tr>
-      
     </tr>
   </tbody>
 </table>
@@ -81,7 +79,7 @@ export default {
         index: null,
         item: null
       },
-      searchText: '',
+      searchText: "",
       currentPage: 1
     };
   },
@@ -108,7 +106,7 @@ export default {
         Math.min(jsonStr.length, this.maxLength)
       );
 
-      if (upToNCharacters == jsonStr) {
+      if (upToNCharacters === jsonStr) {
         return jsonStr;
       }
       return upToNCharacters + "...";
@@ -126,12 +124,12 @@ export default {
     },
 
     search: function() {
-      this.$emit('search', this.searchText);
+      this.$emit("search", this.searchText);
     },
 
     changePage: function(value) {
-      this.currentPage = value
-      this.$emit('changePage', this.currentPage);
+      this.currentPage = value;
+      this.$emit("changePage", this.currentPage);
     }
   }
 };

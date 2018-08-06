@@ -7,13 +7,12 @@
 </template>
 
 <script>
+import LiveRequests from "@/views/Analytics/Live/LiveRequests";
+export default {
+  name: "analytics-realtime",
 
-    import LiveRequests from "@/views/Analytics/Live/LiveRequests"
-    export default {
-        name: "analytics-realtime",
-        
-        components: {
-            LiveRequests
-        }
-    }
+  components: {
+    LiveRequests
+  }
+};
 </script>

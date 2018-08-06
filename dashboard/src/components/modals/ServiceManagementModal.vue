@@ -71,7 +71,7 @@ export default {
   },
   watch: {
     showing: function() {
-      if (this.showing == true) this.openModal();
+      if (this.showing === true) this.openModal();
     }
   },
   methods: {
@@ -91,7 +91,7 @@ export default {
       this.management.action = action;
     },
     managementConfirmationReceived: function(answer) {
-      if (answer == false) return;
+      if (answer === false) return;
 
       this.$api.serviceDiscovery.manageService(
         this.management.service.MatchingURI,
@@ -99,9 +99,9 @@ export default {
         response => {
           this.statusMessage.msg = response.body.msg;
           this.statusMessage.isError = false;
-          if (response.status != 200) {
+          if (response.status !== 200) {
             this.statusMessage.isError = true;
-            if (response.body.service_response != undefined) {
+            if (response.body.service_response !== undefined) {
               this.statusMessage.msg = response.body.service_response;
             }
           }
