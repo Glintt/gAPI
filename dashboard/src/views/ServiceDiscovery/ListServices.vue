@@ -100,73 +100,73 @@
 </template>
 
 <script>
-import DataTable from '@/components/DataTable'
-import ServiceManagementModal from '@/components/modals/ServiceManagementModal'
-import ListServices from '@/components/service-discovery/ListServices'
-import { mapGetters } from 'vuex'
-var serviceDiscoveryAPI = require('@/api/service-discovery')
+import DataTable from "@/components/DataTable";
+import ServiceManagementModal from "@/components/modals/ServiceManagementModal";
+import ListServices from "@/components/service-discovery/ListServices";
+import { mapGetters } from "vuex";
+var serviceDiscoveryAPI = require("@/api/service-discovery");
 
 export default {
-	name: 'list-services',
-	mounted () {
-		this.updateData()
-	},
-	watch: {
-		currentPage: function () {
-			this.updateData()
-		}
-	},
-	computed: {
-		isLoggedIn () {
-			return this.$oauthUtils.vmA.isLoggedIn()
-		},
-		...mapGetters({
-			loggedInUser: 'loggedInUser'
-		})
-	},
-	data () {
-		return {
-			services: [],
-			currentPage: 1,
-			searchText: '',
-			manageModal: {
-				showing: false,
-				service: {}
-			}
-		}
-	},
-	methods: {
-		search: function (event) {
-			event.preventDefault()
+  name: "list-services",
+  mounted() {
+    this.updateData();
+  },
+  watch: {
+    currentPage: function() {
+      this.updateData();
+    }
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$oauthUtils.vmA.isLoggedIn();
+    },
+    ...mapGetters({
+      loggedInUser: "loggedInUser"
+    })
+  },
+  data() {
+    return {
+      services: [],
+      currentPage: 1,
+      searchText: "",
+      manageModal: {
+        showing: false,
+        service: {}
+      }
+    };
+  },
+  methods: {
+    search: function(event) {
+      event.preventDefault();
 
-			this.currentPage = 1
-			this.updateData()
-		},
-		updateData: function () {
-			serviceDiscoveryAPI.listServices(
-				this.currentPage,
-				this.searchText,
-				response => {
-					if (response.status !== 200) {
-						this.services = []
-						return
-					}
-					this.services = response.body
-				}
-			)
-		},
-		showManageModal: function (service) {
-			this.manageModal.service = service
-			this.toggleManageModal()
-		},
-		toggleManageModal: function () {
-			this.manageModal.showing = !this.manageModal.showing
-		}
-	},
-	components: {
-		ServiceManagementModal,
-		DataTable,
-		ListServices
-	}
-}
+      this.currentPage = 1;
+      this.updateData();
+    },
+    updateData: function() {
+      serviceDiscoveryAPI.listServices(
+        this.currentPage,
+        this.searchText,
+        response => {
+          if (response.status !== 200) {
+            this.services = [];
+            return;
+          }
+          this.services = response.body;
+        }
+      );
+    },
+    showManageModal: function(service) {
+      this.manageModal.service = service;
+      this.toggleManageModal();
+    },
+    toggleManageModal: function() {
+      this.manageModal.showing = !this.manageModal.showing;
+    }
+  },
+  components: {
+    ServiceManagementModal,
+    DataTable,
+    ListServices
+  }
+};
 </script>

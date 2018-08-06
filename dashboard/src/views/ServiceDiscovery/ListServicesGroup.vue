@@ -37,36 +37,35 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from 'vuex'
+import { mapActions, mapGetters } from "vuex";
 
 export default {
-	mounted () {
-		this.fetchGroups()
-	},
-	computed: {
-		isLoggedIn () {
-			return this.$oauthUtils.vmA.isLoggedIn()
-		},
-		...mapGetters({
-			loggedInUser: 'loggedInUser'
-		}),
-		...mapGetters('serviceGroups', ['groups'])
-	},
-	data () {
-		return {
-			editing: false
-		}
-	},
-	methods: {
-		...mapActions('serviceGroups', [
-			'fetchGroups',
-			'updateGroup',
-			'deleteGroup'
-		])
-	}
-}
+  mounted() {
+    this.fetchGroups();
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$oauthUtils.vmA.isLoggedIn();
+    },
+    ...mapGetters({
+      loggedInUser: "loggedInUser"
+    }),
+    ...mapGetters("serviceGroups", ["groups"])
+  },
+  data() {
+    return {
+      editing: false
+    };
+  },
+  methods: {
+    ...mapActions("serviceGroups", [
+      "fetchGroups",
+      "updateGroup",
+      "deleteGroup"
+    ])
+  }
+};
 </script>
 
 <style>
-
 </style>

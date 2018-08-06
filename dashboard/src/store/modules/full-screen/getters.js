@@ -1,4 +1,3 @@
-
 export const isFullscreen = state => {
-	return state.isFullscreen
-}
+  return state.isFullscreen;
+};

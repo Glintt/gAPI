@@ -12,8 +12,7 @@
 </template>
 
 <script>
-
 export default {
-	name: 'service-group-list'
-}
+  name: "service-group-list"
+};
 </script>

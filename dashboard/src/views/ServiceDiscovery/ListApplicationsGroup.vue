@@ -149,85 +149,92 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from 'vuex'
-import ListServices from '@/components/service-discovery/ListServices'
+import { mapActions, mapGetters } from "vuex";
+import ListServices from "@/components/service-discovery/ListServices";
 
 export default {
-	mounted () {
-		this.getData()
-	},
-	computed: {
-		isLoggedIn () {
-			return this.$oauthUtils.vmA.isLoggedIn()
-		},
-		...mapGetters({
-			loggedInUser: 'loggedInUser'
-		}),
-		...mapGetters('appsGroups', ['groups', 'ungroupedApplications', 'possibleMatches'])
-	},
-	data () {
-		return {
-			editing: false,
-			services: null,
-			selectedGroup: null,
-			showing: null
-		}
-	},
-	methods: {
-		getData () {
-			this.fetchGroups()
-			this.listUngroupedApplications()
-		},
-		...mapActions('appsGroups', [
-			'fetchGroups',
-			'updateGroup',
-			'deleteGroup',
-			'listUngroupedApplications',
-			'findPossibleMatches'
-		]),
-		showAPIs: function (appGroup) {
-			this.$api.serviceDiscovery.applicationGroupById(appGroup.Id, response => {
-				this.selectedGroup = response.body
-				this.services = response.body.Services
-				this.showing = 'apis'
-			})
-		},
-		showUngroupedAPIs: function () {
-			this.selectedGroup = {
-				Name: 'Ungrouped applications'
-			}
+  mounted() {
+    this.getData();
+  },
+  computed: {
+    isLoggedIn() {
+      return this.$oauthUtils.vmA.isLoggedIn();
+    },
+    ...mapGetters({
+      loggedInUser: "loggedInUser"
+    }),
+    ...mapGetters("appsGroups", [
+      "groups",
+      "ungroupedApplications",
+      "possibleMatches"
+    ])
+  },
+  data() {
+    return {
+      editing: false,
+      services: null,
+      selectedGroup: null,
+      showing: null
+    };
+  },
+  methods: {
+    getData() {
+      this.fetchGroups();
+      this.listUngroupedApplications();
+    },
+    ...mapActions("appsGroups", [
+      "fetchGroups",
+      "updateGroup",
+      "deleteGroup",
+      "listUngroupedApplications",
+      "findPossibleMatches"
+    ]),
+    showAPIs: function(appGroup) {
+      this.$api.serviceDiscovery.applicationGroupById(appGroup.Id, response => {
+        this.selectedGroup = response.body;
+        this.services = response.body.Services;
+        this.showing = "apis";
+      });
+    },
+    showUngroupedAPIs: function() {
+      this.selectedGroup = {
+        Name: "Ungrouped applications"
+      };
 
-			this.services = this.ungroupedApplications
-			this.showing = 'ungrouped'
-		},
-		findMatches: function (appGroup) {
-			this.selectedGroup = appGroup
-			this.findPossibleMatches(appGroup)
-			this.showing = 'possibleMatches'
-		},
-		associate: function (s, g) {
-			this.$api.serviceDiscovery.addServiceToAppsGroup(g.Id, s.Id, response => {
-				if (response.status === 201) {
-					this.findPossibleMatches(g)
-					this.getData()
-				}
-			})
-		},
-		deassociate (s, g) {
-			this.$api.serviceDiscovery.deassociateServiceFromAppsGroup(g.Id, s.Id, response => {
-				if (response.status === 201) {
-					this.getData()
-					this.showAPIs(g)
-				}
-			})
-		}
-	},
-	components: {
-		ListServices
-	}
-}
+      this.services = this.ungroupedApplications;
+      this.showing = "ungrouped";
+    },
+    findMatches: function(appGroup) {
+      this.selectedGroup = appGroup;
+      this.findPossibleMatches(appGroup);
+      this.showing = "possibleMatches";
+    },
+    associate: function(s, g) {
+      this.$api.serviceDiscovery.addServiceToAppsGroup(g.Id, s.Id, response => {
+        if (response.status === 201) {
+          this.findPossibleMatches(g);
+          this.getData();
+        }
+      });
+    },
+    deassociate(s, g) {
+      this.$api.serviceDiscovery.deassociateServiceFromAppsGroup(
+        g.Id,
+        s.Id,
+        response => {
+          if (response.status === 201) {
+            this.getData();
+            this.showAPIs(g);
+          }
+        }
+      );
+    }
+  },
+  components: {
+    ListServices
+  }
+};
 </script>
 
 <style>
-
 </style>

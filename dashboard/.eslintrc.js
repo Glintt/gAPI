@@ -1,20 +1,17 @@
 module.exports = {
   root: true,
-  parser: 'babel-eslint',
-  parserOptions: {
-    sourceType: 'module'
-  },
   env: {
-    browser: true,
     node: true
   },
-  plugins: [
-    "html"
+  'extends': [
+    'plugin:vue/essential',
+    '@vue/prettier'
   ],
-  extends: 'standard',
   rules: {
-    "no-debugger": process.env.NODE_ENV === 'production' ? 2 : 0,
-    "indent": [2, "tab"],
-    "no-tabs": 0
+    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
+  },
+  parserOptions: {
+    parser: 'babel-eslint'
   }
- }
+}

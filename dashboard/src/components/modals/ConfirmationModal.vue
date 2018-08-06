@@ -24,25 +24,27 @@
 </div>
 </template>
 <script>
-    export default {
-    	name: 'home',
-    	props: ['id', 'title', 'msg', 'showing'],
-    	watch: {
-    		showing: function () {
-    			if (this.showing === true) { this.openModal() }
-    		}
-    	},
-    	methods: {
-    		submitAnswer: function (answer) {
-    			this.$emit('answerReceived', answer)
-    			this.closeModal()
-    		},
-    		closeModal: function () {
-    			this.$emit('modalClosed')
-    		},
-    		openModal: function () {
-    			document.getElementById('openConfirmationModal' + this.id).click()
-    		}
-    	}
+export default {
+  name: "home",
+  props: ["id", "title", "msg", "showing"],
+  watch: {
+    showing: function() {
+      if (this.showing === true) {
+        this.openModal();
+      }
     }
+  },
+  methods: {
+    submitAnswer: function(answer) {
+      this.$emit("answerReceived", answer);
+      this.closeModal();
+    },
+    closeModal: function() {
+      this.$emit("modalClosed");
+    },
+    openModal: function() {
+      document.getElementById("openConfirmationModal" + this.id).click();
+    }
+  }
+};
 </script>

@@ -20,45 +20,45 @@
 </template>
 
 <script>
-    import Logs from '@/components/analytics/Logs'
-import ByAPI from '@/components/analytics/ByAPI'
+import Logs from "@/components/analytics/Logs";
+import ByAPI from "@/components/analytics/ByAPI";
 
-var analyticsAPI = require('@/api/analytics')
+var analyticsAPI = require("@/api/analytics");
 
 export default {
-    	name: 'analytics-by-api',
-    	mounted () {
-    		analyticsAPI.byApi({}, (response) => {
-    			this.fullAnalytics = response.body.aggregations.api.buckets
-    			this.apisList = this.ApisList()
-    		})
-	},
-    	data () {
-    		return {
-    			fullAnalytics: {},
-    			selectedAPI: null,
-    			apisList: []
-    		}
-    	},
-    	methods: {
-    		RemoveFilter: function () {
-    			analyticsAPI.byApi({}, (response) => {
-    				this.fullAnalytics = response.body.aggregations.api.buckets
-    				this.selectedAPI = null
-    				this.UpdateTableData()
-    			})
-    		},
-    		ApisList: function () {
-    			var apis = []
-    			for (var i = 0; i < this.fullAnalytics.length; i++) {
-    				apis.push(this.fullAnalytics[i].key)
-    			}
-    			return apis
-    		}
-    	},
-    	components: {
-    		Logs,
-    		ByAPI
-    	}
+  name: "analytics-by-api",
+  mounted() {
+    analyticsAPI.byApi({}, response => {
+      this.fullAnalytics = response.body.aggregations.api.buckets;
+      this.apisList = this.ApisList();
+    });
+  },
+  data() {
+    return {
+      fullAnalytics: {},
+      selectedAPI: null,
+      apisList: []
+    };
+  },
+  methods: {
+    RemoveFilter: function() {
+      analyticsAPI.byApi({}, response => {
+        this.fullAnalytics = response.body.aggregations.api.buckets;
+        this.selectedAPI = null;
+        this.UpdateTableData();
+      });
+    },
+    ApisList: function() {
+      var apis = [];
+      for (var i = 0; i < this.fullAnalytics.length; i++) {
+        apis.push(this.fullAnalytics[i].key);
+      }
+      return apis;
     }
+  },
+  components: {
+    Logs,
+    ByAPI
+  }
+};
 </script>

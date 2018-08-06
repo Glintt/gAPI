@@ -37,30 +37,30 @@
 
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from "vuex";
 export default {
-	name: 'service-management-config',
-	props: ['service', 'showing'],
-	mounted () {
-		this.$api.serviceDiscovery.manageServiceTypes(response => {
-			this.managementTypes = response.body
-		})
-	},
-	computed: {
-		...mapGetters({
-			isAdmin: 'isAdmin',
-			loggedInUser: 'loggedInUser'
-		})
-	},
-	data () {
-		return {
-			managementTypes: {}
-		}
-	},
-	methods: {
-		toggleCard: function (cardName) {
-			this.$emit('toggleCard', cardName)
-		}
-	}
-}
+  name: "service-management-config",
+  props: ["service", "showing"],
+  mounted() {
+    this.$api.serviceDiscovery.manageServiceTypes(response => {
+      this.managementTypes = response.body;
+    });
+  },
+  computed: {
+    ...mapGetters({
+      isAdmin: "isAdmin",
+      loggedInUser: "loggedInUser"
+    })
+  },
+  data() {
+    return {
+      managementTypes: {}
+    };
+  },
+  methods: {
+    toggleCard: function(cardName) {
+      this.$emit("toggleCard", cardName);
+    }
+  }
+};
 </script>

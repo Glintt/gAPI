@@ -38,90 +38,90 @@
 </div>
 </template>
 <script>
-import ConfirmationModal from '@/components/modals/ConfirmationModal'
-import ErrorMessage from '@/components/modals/ErrorMessage'
-import SuccessModal from '@/components/modals/SuccessModal'
+import ConfirmationModal from "@/components/modals/ConfirmationModal";
+import ErrorMessage from "@/components/modals/ErrorMessage";
+import SuccessModal from "@/components/modals/SuccessModal";
 
 export default {
-	name: 'service-management-modal',
-	props: ['id', 'title', 'error', 'showing', 'service'],
-	created () {
-		this.$api.serviceDiscovery.manageServiceTypes(response => {
-			this.managementTypes = response.body
-		})
-	},
-	data () {
-		return {
-			managementTypes: {},
-			statusMessage: {
-				msg: '',
-				showing: false,
-				isError: false
-			},
-			management: {
-				action: '',
-				service: this.service
-			},
-			confirmation: {
-				showing: false,
-				title: '',
-				msg: ''
-			}
-		}
-	},
-	watch: {
-		showing: function () {
-			if (this.showing === true) this.openModal()
-		}
-	},
-	methods: {
-		closeModal: function () {
-			this.$emit('modalClosed')
-		},
-		openModal: function () {
-			document.getElementById('openModal' + this.id).click()
-		},
+  name: "service-management-modal",
+  props: ["id", "title", "error", "showing", "service"],
+  created() {
+    this.$api.serviceDiscovery.manageServiceTypes(response => {
+      this.managementTypes = response.body;
+    });
+  },
+  data() {
+    return {
+      managementTypes: {},
+      statusMessage: {
+        msg: "",
+        showing: false,
+        isError: false
+      },
+      management: {
+        action: "",
+        service: this.service
+      },
+      confirmation: {
+        showing: false,
+        title: "",
+        msg: ""
+      }
+    };
+  },
+  watch: {
+    showing: function() {
+      if (this.showing === true) this.openModal();
+    }
+  },
+  methods: {
+    closeModal: function() {
+      this.$emit("modalClosed");
+    },
+    openModal: function() {
+      document.getElementById("openModal" + this.id).click();
+    },
 
-		manageService: function (service, action) {
-			this.confirmation.showing = true
-			this.confirmation.title = 'Confirm - ' + action
-			this.confirmation.msg =
-        'Are you sure you want to ' + action + ' service ' + service.Name + '?'
-			this.management.service = service
-			this.management.action = action
-		},
-		managementConfirmationReceived: function (answer) {
-			if (answer === false) return
+    manageService: function(service, action) {
+      this.confirmation.showing = true;
+      this.confirmation.title = "Confirm - " + action;
+      this.confirmation.msg =
+        "Are you sure you want to " + action + " service " + service.Name + "?";
+      this.management.service = service;
+      this.management.action = action;
+    },
+    managementConfirmationReceived: function(answer) {
+      if (answer === false) return;
 
-			this.$api.serviceDiscovery.manageService(
-				this.management.service.MatchingURI,
-				this.management.action,
-				response => {
-					this.statusMessage.msg = response.body.msg
-					this.statusMessage.isError = false
-					if (response.status !== 200) {
-						this.statusMessage.isError = true
-						if (response.body.service_response !== undefined) {
-							this.statusMessage.msg = response.body.service_response
-						}
-					}
-					this.statusMessage.showing = true
-				}
-			)
-		},
-		confirmationClosed: function () {
-			this.confirmation.showing = false
-			this.confirmation.msg = ''
-		},
-		statusModalClosed: function () {
-			this.statusMessage.showing = false
-			this.statusMessage.msg = ''
-		}
-	},
-	components: {
-		ConfirmationModal,
-		ErrorMessage,
-		SuccessModal
-	}
-}
+      this.$api.serviceDiscovery.manageService(
+        this.management.service.MatchingURI,
+        this.management.action,
+        response => {
+          this.statusMessage.msg = response.body.msg;
+          this.statusMessage.isError = false;
+          if (response.status !== 200) {
+            this.statusMessage.isError = true;
+            if (response.body.service_response !== undefined) {
+              this.statusMessage.msg = response.body.service_response;
+            }
+          }
+          this.statusMessage.showing = true;
+        }
+      );
+    },
+    confirmationClosed: function() {
+      this.confirmation.showing = false;
+      this.confirmation.msg = "";
+    },
+    statusModalClosed: function() {
+      this.statusMessage.showing = false;
+      this.statusMessage.msg = "";
+    }
+  },
+  components: {
+    ConfirmationModal,
+    ErrorMessage,
+    SuccessModal
+  }
+};
 </script>

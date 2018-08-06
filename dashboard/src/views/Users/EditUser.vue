@@ -46,38 +46,32 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters } from "vuex";
 
 export default {
-	props: ['showingUser'],
-	computed: {
-		...mapGetters('users', [
-			'user',
-			'alert'
-		]),
-		...mapGetters([
-			'loggedInUser'
-		])
-	},
-	mounted () {
-		if (!this.showingUser) this.changeUser(this.loggedInUser)
-		else this.changeUser(this.showingUser)
-		this.closeAlert()
-	},
-	methods: {
-		...mapActions('users', [
-			'updateUser',
-			'changeUser',
-			'closeAlert',
-			'updateUserWithAdmin'
-		]),
-		toggleAdmin: function () {
-			this.user.IsAdmin = !this.user.IsAdmin
-		}
-	}
-}
+  props: ["showingUser"],
+  computed: {
+    ...mapGetters("users", ["user", "alert"]),
+    ...mapGetters(["loggedInUser"])
+  },
+  mounted() {
+    if (!this.showingUser) this.changeUser(this.loggedInUser);
+    else this.changeUser(this.showingUser);
+    this.closeAlert();
+  },
+  methods: {
+    ...mapActions("users", [
+      "updateUser",
+      "changeUser",
+      "closeAlert",
+      "updateUserWithAdmin"
+    ]),
+    toggleAdmin: function() {
+      this.user.IsAdmin = !this.user.IsAdmin;
+    }
+  }
+};
 </script>
 
 <style>
-
 </style>

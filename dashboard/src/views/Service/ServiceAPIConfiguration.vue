@@ -134,110 +134,122 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from "vuex";
 
 export default {
-	name: 'service-api-configuration',
-	props: ['iLoggedIn', 'service', 'showing'],
-	data () {
-		return {
-			hostToAdd: '',
-			groups: [],
-			selectedGroup: null,
-			selectedAppGroup: null,
-			changed: false,
-			changedAppGroup: false,
-			endpointExclude: {
-				endpoint: '',
-				methods: ''
-			}
-		}
-	},
-	computed: {
-		...mapGetters({
-			isAdmin: 'isAdmin',
-			loggedInUser: 'loggedInUser'
-		}),
+  name: "service-api-configuration",
+  props: ["iLoggedIn", "service", "showing"],
+  data() {
+    return {
+      hostToAdd: "",
+      groups: [],
+      selectedGroup: null,
+      selectedAppGroup: null,
+      changed: false,
+      changedAppGroup: false,
+      endpointExclude: {
+        endpoint: "",
+        methods: ""
+      }
+    };
+  },
+  computed: {
+    ...mapGetters({
+      isAdmin: "isAdmin",
+      loggedInUser: "loggedInUser"
+    }),
 
-		...mapGetters('appsGroups', {appsGroups: 'groups'})
-	},
-	mounted () {
-		this.$api.serviceDiscovery.listServiceGroups(response => {
-			this.groups = response.body
-		})
-		this.fetchGroups()
-	},
-	watch: {
-		service: function () {
-			this.selectedGroup = this.service.GroupId === '' ? null : this.service.GroupId
+    ...mapGetters("appsGroups", { appsGroups: "groups" })
+  },
+  mounted() {
+    this.$api.serviceDiscovery.listServiceGroups(response => {
+      this.groups = response.body;
+    });
+    this.fetchGroups();
+  },
+  watch: {
+    service: function() {
+      this.selectedGroup =
+        this.service.GroupId === "" ? null : this.service.GroupId;
 
-			if (this.selectedAppGroup === null) {
-				this.$api.serviceDiscovery.AppsGroupForService(this.service.Id, response => {
-					this.selectedAppGroup = response.body.Id
-				})
-			}
-		}
-	},
-	methods: {
-		...mapActions('appsGroups', [
-			'fetchGroups',
-			'associateServiceToAppGroup',
-			'deassociateServiceFromAppGroup'
-		]),
-		associateToGroup: function () {
-			this.$api.serviceDiscovery.addServiceToServiceGroup(this.selectedGroup, this.service.Id, response => {
-				if (response.status === 201) {
-					this.service.GroupId = this.selectedGroup
-					if (!this.service.UseGroupAttributes) return
-					this.service.GroupVisibility = this.groups.find(element => {
-						return element.Id === this.selectedGroup
-					}).IsReachable
-				}
-			})
-		},
-		deassociateFromGroup: function () {
-			this.$api.serviceDiscovery.deassociateServiceFromServiceGroup(this.selectedGroup, this.service.Id, response => {
-				if (response.status === 201) {
-					this.selectedGroup = null
-					this.service.GroupId = null
-					this.service.GroupVisibility = this.service.IsReachable
-				}
-			})
-		},
-		removeHost: function (hostToRemove) {
-			this.$emit('removeHost', hostToRemove)
-		},
-		addHost: function () {
-			this.$emit('addHost', this.hostToAdd)
-			this.hostToAdd = ''
-		},
-		addEndpointExclude: function () {
-			this.$emit('addEndpointExclude', this.endpointExclude)
-			this.endpointExclude.endpoint = ''
-			this.endpointExclude.methods = ''
-		},
-		removeEndpointExclude: function (endpoint) {
-			this.$emit('removeEndpointExclude', endpoint)
-		},
-		toggleCard: function (cardName) {
-			this.$emit('toggleCard', cardName)
-		},
-		toggleCaching: function () {
-			if (!this.isAdmin) return
-			this.service.IsCachingActive = !this.service.IsCachingActive
-		},
-		toggleProtection: function () {
-			if (!this.isAdmin) return
-			this.service.Protected = !this.service.Protected
-		},
-		toggleReachable: function () {
-			if (!this.isAdmin) return
-			this.service.IsReachable = !this.service.IsReachable
-		},
-		toggleUseGroup: function () {
-			if (!this.isAdmin) return
-			this.service.UseGroupAttributes = !this.service.UseGroupAttributes
-		}
-	}
-}
+      if (this.selectedAppGroup === null) {
+        this.$api.serviceDiscovery.AppsGroupForService(
+          this.service.Id,
+          response => {
+            this.selectedAppGroup = response.body.Id;
+          }
+        );
+      }
+    }
+  },
+  methods: {
+    ...mapActions("appsGroups", [
+      "fetchGroups",
+      "associateServiceToAppGroup",
+      "deassociateServiceFromAppGroup"
+    ]),
+    associateToGroup: function() {
+      this.$api.serviceDiscovery.addServiceToServiceGroup(
+        this.selectedGroup,
+        this.service.Id,
+        response => {
+          if (response.status === 201) {
+            this.service.GroupId = this.selectedGroup;
+            if (!this.service.UseGroupAttributes) return;
+            this.service.GroupVisibility = this.groups.find(element => {
+              return element.Id === this.selectedGroup;
+            }).IsReachable;
+          }
+        }
+      );
+    },
+    deassociateFromGroup: function() {
+      this.$api.serviceDiscovery.deassociateServiceFromServiceGroup(
+        this.selectedGroup,
+        this.service.Id,
+        response => {
+          if (response.status === 201) {
+            this.selectedGroup = null;
+            this.service.GroupId = null;
+            this.service.GroupVisibility = this.service.IsReachable;
+          }
+        }
+      );
+    },
+    removeHost: function(hostToRemove) {
+      this.$emit("removeHost", hostToRemove);
+    },
+    addHost: function() {
+      this.$emit("addHost", this.hostToAdd);
+      this.hostToAdd = "";
+    },
+    addEndpointExclude: function() {
+      this.$emit("addEndpointExclude", this.endpointExclude);
+      this.endpointExclude.endpoint = "";
+      this.endpointExclude.methods = "";
+    },
+    removeEndpointExclude: function(endpoint) {
+      this.$emit("removeEndpointExclude", endpoint);
+    },
+    toggleCard: function(cardName) {
+      this.$emit("toggleCard", cardName);
+    },
+    toggleCaching: function() {
+      if (!this.isAdmin) return;
+      this.service.IsCachingActive = !this.service.IsCachingActive;
+    },
+    toggleProtection: function() {
+      if (!this.isAdmin) return;
+      this.service.Protected = !this.service.Protected;
+    },
+    toggleReachable: function() {
+      if (!this.isAdmin) return;
+      this.service.IsReachable = !this.service.IsReachable;
+    },
+    toggleUseGroup: function() {
+      if (!this.isAdmin) return;
+      this.service.UseGroupAttributes = !this.service.UseGroupAttributes;
+    }
+  }
+};
 </script>
