@@ -18,17 +18,17 @@ small, strong, p, body,span {
 </style>
 
 <script>
-import NavBar from "@/components/NavBar.vue";
+import NavBar from '@/components/NavBar.vue'
 import { mapGetters } from 'vuex'
 
 export default {
-  computed: {
-    ...mapGetters('fullscreen', {
-      isFullscreen: 'isFullscreen'
-    })
-  },
-  components: {
-    NavBar
-  }
-};
+	computed: {
+		...mapGetters('fullscreen', {
+			isFullscreen: 'isFullscreen'
+		})
+	},
+	components: {
+		NavBar
+	}
+}
 </script>

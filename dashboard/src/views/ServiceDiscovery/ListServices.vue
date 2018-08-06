@@ -63,7 +63,7 @@
           <div class="col-sm-2 offset-sm-5 text-center">
             <nav aria-label="...">
               <ul class="pagination">
-                <li :class="'page-item' + ((currentPage == 1) ? ' disabled' : '')">
+                <li :class="'page-item' + ((currentPage === 1) ? ' disabled' : '')">
                   <a class="page-link" href="#" tabindex="-1" @click="currentPage - 1 < 1 ? currentPage = 1 : currentPage -= 1">Previous</a>
                 </li>
                 <li class="page-item" v-if="currentPage > 1">
@@ -72,11 +72,11 @@
                 <li class="page-item active">
                   <a class="page-link" href="#">{{ currentPage }} <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="page-item" v-if="services.length == 10">
+                <li class="page-item" v-if="services.length === 10">
                   <a class="page-link" href="#" @click="currentPage += 1" >{{ currentPage + 1}}</a>
                 </li>
                 <li class="page-item">
-                  <a class="page-link"  v-if="services.length == 10" @click="currentPage += 1" href="#">Next</a>
+                  <a class="page-link"  v-if="services.length === 10" @click="currentPage += 1" href="#">Next</a>
                 </li>
               </ul>
             </nav>
@@ -100,73 +100,73 @@
 </template>
 
 <script>
-var serviceDiscoveryAPI = require("@/api/service-discovery");
-import DataTable from "@/components/DataTable";
-import ServiceManagementModal from "@/components/modals/ServiceManagementModal";
-import ListServices from "@/components/service-discovery/ListServices";
+import DataTable from '@/components/DataTable'
+import ServiceManagementModal from '@/components/modals/ServiceManagementModal'
+import ListServices from '@/components/service-discovery/ListServices'
 import { mapGetters } from 'vuex'
+var serviceDiscoveryAPI = require('@/api/service-discovery')
 
 export default {
-  name: "list-services",
-  mounted() {
-    this.updateData();
-  },
-  watch: {
-    currentPage: function() {
-      this.updateData();
-    }
-  },
-  computed: {
-    isLoggedIn() {
-      return this.$oauthUtils.vmA.isLoggedIn();
-    },
-    ...mapGetters({
-      loggedInUser: 'loggedInUser'
-    })
-  },
-  data() {
-    return {
-      services: [],
-      currentPage: 1,
-      searchText: "",
-      manageModal: {
-        showing: false,
-        service: {}
-      }
-    };
-  },
-  methods: {
-    search: function(event) {
-      event.preventDefault();
+	name: 'list-services',
+	mounted () {
+		this.updateData()
+	},
+	watch: {
+		currentPage: function () {
+			this.updateData()
+		}
+	},
+	computed: {
+		isLoggedIn () {
+			return this.$oauthUtils.vmA.isLoggedIn()
+		},
+		...mapGetters({
+			loggedInUser: 'loggedInUser'
+		})
+	},
+	data () {
+		return {
+			services: [],
+			currentPage: 1,
+			searchText: '',
+			manageModal: {
+				showing: false,
+				service: {}
+			}
+		}
+	},
+	methods: {
+		search: function (event) {
+			event.preventDefault()
 
-      this.currentPage = 1;
-      this.updateData();
-    },
-    updateData: function() {
-      serviceDiscoveryAPI.listServices(
-        this.currentPage,
-        this.searchText,
-        response => {
-          if (response.status != 200) {
-            this.services = [];
-            return;
-          }
-          this.services = response.body;
-        }
-      );
-    },
-    showManageModal: function(service) {
-      this.manageModal.service = service;
-      this.toggleManageModal();
-    },
-    toggleManageModal: function() {
-      this.manageModal.showing = !this.manageModal.showing;
-    }
-  },
-  components: {
-    ServiceManagementModal,
-    DataTable,
-    ListServices
-  }
-};
+			this.currentPage = 1
+			this.updateData()
+		},
+		updateData: function () {
+			serviceDiscoveryAPI.listServices(
+				this.currentPage,
+				this.searchText,
+				response => {
+					if (response.status !== 200) {
+						this.services = []
+						return
+					}
+					this.services = response.body
+				}
+			)
+		},
+		showManageModal: function (service) {
+			this.manageModal.service = service
+			this.toggleManageModal()
+		},
+		toggleManageModal: function () {
+			this.manageModal.showing = !this.manageModal.showing
+		}
+	},
+	components: {
+		ServiceManagementModal,
+		DataTable,
+		ListServices
+	}
+}
 </script>

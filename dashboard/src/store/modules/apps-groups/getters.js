@@ -1,13 +1,12 @@
 
-
 export const groups = state => {
-    return state.groups
+	return state.groups
 }
 
 export const ungroupedApplications = state => {
-    return state.ungrouped_applications
+	return state.ungrouped_applications
 }
 
 export const possibleMatches = state => {
-    return state.possibleMatches
+	return state.possibleMatches
 }

@@ -43,44 +43,44 @@
 </template>
 
 <script>
-    import InformationPanel from "@/components/InformationPanel"
-    var OAuthAPI = require("@/api/auth")
+    import InformationPanel from '@/components/InformationPanel'
+    // var OAuthAPI = require('@/api/auth')
     export default {
-        name: "login",
-        data(){
-            return {
-                user:{
-                    username:"",
-                    password:""
-                },
-                loginMessage:{
-                    alertClass: "alert alert-success",
-                    alertText:"",
-                    showing: false
-                }
-            }
-        },
-        methods:{
-            authenticate : function() {
-                this.$oauthUtils.vmA.authenticate(this.user, (response) => {
-                    this.loginMessage.showing = true;
+    	name: 'login',
+    	data () {
+    		return {
+    			user: {
+    				username: '',
+    				password: ''
+    			},
+    			loginMessage: {
+    				alertClass: 'alert alert-success',
+    				alertText: '',
+    				showing: false
+    			}
+    		}
+    	},
+    	methods: {
+    		authenticate: function () {
+    			this.$oauthUtils.vmA.authenticate(this.user, (response) => {
+    				this.loginMessage.showing = true
 
-                    if(response.status != 200) {
-                        this.loginMessage.alertText = "Invalid login.";
-                        this.loginMessage.alertClass = "alert alert-danger";
-                        return ;
-                    }
-                    this.loginMessage.alertText = "Login successful";
-                    this.loginMessage.alertClass = "alert alert-success";
+    				if (response.status !== 200) {
+    					this.loginMessage.alertText = 'Invalid login.'
+					this.loginMessage.alertClass = 'alert alert-danger'
+					return
+				}
+    				this.loginMessage.alertText = 'Login successful'
+				this.loginMessage.alertClass = 'alert alert-success'
 
-                    setTimeout(() => {
-                        window.location = "/";
-                    }, 500);
-                });
-            }
-        },
-        components: {  
-            InformationPanel    
-        }    
-    };
+				setTimeout(() => {
+    					window.location = '/'
+				}, 500)
+    			})
+		}
+    	},
+    	components: {
+    		InformationPanel
+    	}
+    }
 </script>

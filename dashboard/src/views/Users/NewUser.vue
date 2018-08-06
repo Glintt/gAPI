@@ -48,26 +48,26 @@
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
-    computed: {
-        ...mapGetters('users', [
-            'user',
-            'alert'
-        ])
-    },
-    mounted() {
-        this.emptyUser()
-        this.closeAlert()
-    },
-    methods: {
-        ...mapActions('users', [
-            'createUser', 
-            'emptyUser',
-            'closeAlert'
-        ]),
-        toggleAdmin: function() {
-            this.user.IsAdmin = ! this.user.IsAdmin
-        }
-    }
+	computed: {
+		...mapGetters('users', [
+			'user',
+			'alert'
+		])
+	},
+	mounted () {
+		this.emptyUser()
+		this.closeAlert()
+	},
+	methods: {
+		...mapActions('users', [
+			'createUser',
+			'emptyUser',
+			'closeAlert'
+		]),
+		toggleAdmin: function () {
+			this.user.IsAdmin = !this.user.IsAdmin
+		}
+	}
 }
 </script>
 

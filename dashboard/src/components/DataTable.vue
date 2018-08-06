@@ -36,7 +36,7 @@
         </span>
       </th>
       <th scope="row" v-if="Object.keys(actions).length > 0">
-        <button v-for="action in actions" :class="'btn btn-' + (action.className||'primary')"
+        <button v-for="action in actions" :class="'btn btn-' + (action.className||'primary')" v-bind:key="action.name"
           @click="actionEmit(action.event, row)">{{ action.name }}</button>
       </th>
     </tr>
@@ -72,67 +72,67 @@
 
 <script>
 export default {
-  name: "datatable",
-  props: ["headers", "data", "actions", "searchable"],
-  data() {
-    return {
-      maxLength: 25,
-      showingMore: {
-        index: null,
-        item: null
-      },
-      searchText: '',
-      currentPage: 1
-    };
-  },
-  methods: {
-    isJSON: function(jsonStr) {
-      try {
-        JSON.parse(jsonStr);
-      } catch (e) {
-        return false;
-      }
-      return true;
-    },
+	name: 'datatable',
+	props: ['headers', 'data', 'actions', 'searchable'],
+	data () {
+		return {
+			maxLength: 25,
+			showingMore: {
+				index: null,
+				item: null
+			},
+			searchText: '',
+			currentPage: 1
+		}
+	},
+	methods: {
+		isJSON: function (jsonStr) {
+			try {
+				JSON.parse(jsonStr)
+			} catch (e) {
+				return false
+			}
+			return true
+		},
 
-    showMore: function(item, index) {
-      this.showingMore.index = index;
-      this.showingMore.item = item;
-    },
-    simplifyString: function(jsonStr) {
-      if (jsonStr === undefined || this.isJSON(jsonStr)) {
-        return "";
-      }
-      var upToNCharacters = jsonStr.substring(
-        0,
-        Math.min(jsonStr.length, this.maxLength)
-      );
+		showMore: function (item, index) {
+			this.showingMore.index = index
+			this.showingMore.item = item
+		},
+		simplifyString: function (jsonStr) {
+			if (jsonStr === undefined || this.isJSON(jsonStr)) {
+				return ''
+			}
+			var upToNCharacters = jsonStr.substring(
+				0,
+				Math.min(jsonStr.length, this.maxLength)
+			)
 
-      if (upToNCharacters == jsonStr) {
-        return jsonStr;
-      }
-      return upToNCharacters + "...";
-    },
+			if (upToNCharacters === jsonStr) {
+				return jsonStr
+			}
+			return upToNCharacters + '...'
+		},
 
-    beautifyString: function(str) {
-      if (this.isJSON(str)) {
-        return JSON.parse(str);
-      }
-      return str;
-    },
+		beautifyString: function (str) {
+			if (this.isJSON(str)) {
+				return JSON.parse(str)
+			}
+			return str
+		},
 
-    actionEmit: function(event, row) {
-      this.$emit(event, row);
-    },
+		actionEmit: function (event, row) {
+			this.$emit(event, row)
+		},
 
-    search: function() {
-      this.$emit('search', this.searchText);
-    },
+		search: function () {
+			this.$emit('search', this.searchText)
+		},
 
-    changePage: function(value) {
-      this.currentPage = value
-      this.$emit('changePage', this.currentPage);
-    }
-  }
-};
+		changePage: function (value) {
+			this.currentPage = value
+			this.$emit('changePage', this.currentPage)
+		}
+	}
+}
 </script>

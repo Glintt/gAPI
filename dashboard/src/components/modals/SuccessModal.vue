@@ -25,21 +25,20 @@
 
 <script>
 export default {
-    name: "SuccessModal",
-    props: ["id","title", "msg", "showing"],
-    watch:{
-        showing: function(){
-        if (this.showing == true)
-            this.openModal();
-        }
-    },
-    methods:{
-        closeModal:function(){
-        this.$emit("modalClosed")
-        },
-        openModal: function(){
-        document.getElementById("openSuccessModal"+this.id).click();
-        }
-    }
+	name: 'SuccessModal',
+	props: ['id', 'title', 'msg', 'showing'],
+	watch: {
+		showing: function () {
+			if (this.showing === true) { this.openModal() }
+		}
+	},
+	methods: {
+		closeModal: function () {
+			this.$emit('modalClosed')
+		},
+		openModal: function () {
+			document.getElementById('openSuccessModal' + this.id).click()
+		}
+	}
 }
 </script>

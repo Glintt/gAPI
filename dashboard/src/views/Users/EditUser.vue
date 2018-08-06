@@ -32,7 +32,7 @@
                 <small id="nameHelp" class="form-text text-primary">User password.</small>
             </div>
 
-            <div class="form-group row col-sm" v-if="loggedInUser.IsAdmin && user.Username != loggedInUser.Username">
+            <div class="form-group row col-sm" v-if="loggedInUser.IsAdmin && user.Username !== loggedInUser.Username">
                 <i class="fas " :class="user.IsAdmin ? 'fa-lock text-success' : 'fa-unlock text-danger'" @click="toggleAdmin" />
                 <label class="form-check-label" for="userIsAdmin">&nbsp;&nbsp;Is Admin?</label>
             </div>
@@ -49,32 +49,32 @@
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
-    props: ['showingUser'],
-    computed: {
-        ...mapGetters('users', [
-            'user',
-            'alert'
-        ]),
-        ...mapGetters([
-            'loggedInUser'
-        ])
-    },
-    mounted() {
-        if (!this.showingUser) this.changeUser(this.loggedInUser)
-        else this.changeUser(this.showingUser)
-        this.closeAlert()
-    },
-    methods: {
-        ...mapActions('users', [
-            'updateUser',
-            'changeUser',
-            'closeAlert',
-            'updateUserWithAdmin'
-        ]),
-        toggleAdmin: function() {
-            this.user.IsAdmin = ! this.user.IsAdmin
-        }
-    }
+	props: ['showingUser'],
+	computed: {
+		...mapGetters('users', [
+			'user',
+			'alert'
+		]),
+		...mapGetters([
+			'loggedInUser'
+		])
+	},
+	mounted () {
+		if (!this.showingUser) this.changeUser(this.loggedInUser)
+		else this.changeUser(this.showingUser)
+		this.closeAlert()
+	},
+	methods: {
+		...mapActions('users', [
+			'updateUser',
+			'changeUser',
+			'closeAlert',
+			'updateUserWithAdmin'
+		]),
+		toggleAdmin: function () {
+			this.user.IsAdmin = !this.user.IsAdmin
+		}
+	}
 }
 </script>
 

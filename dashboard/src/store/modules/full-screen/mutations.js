@@ -1,10 +1,8 @@
 
-
 export const openFullScreen = (state) => {
-    state.isFullscreen = true
+	state.isFullscreen = true
 }
 
 export const closeFullScreen = (state) => {
-    state.isFullscreen = false
+	state.isFullscreen = false
 }
-

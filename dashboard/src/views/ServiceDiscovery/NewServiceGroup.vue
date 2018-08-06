@@ -32,54 +32,52 @@
 </template>
 
 <script>
-import InformationPanel from "@/components/InformationPanel";
+import InformationPanel from '@/components/InformationPanel'
 import { mapGetters } from 'vuex'
 
-
 export default {
-    name: "new-group",
-    data() {
-        return {
-            group: {
-                Name: "",
-                IsReachable: false,
-                Services: []
-            },
-            informationStatus:{
-                isActive : false,
-                className: 'alert-success',
-                msg : ""
-            }
-        }
-    },
-    computed: {
-        ...mapGetters({
-            isAdmin: 'isAdmin'
-        })
-    },
-    methods: {
-        store : function(){
-            this.$api.serviceDiscovery.storeServiceGroup(this.group, (response) => {
-                if(response.status != 201)
-                {
-                    this.informationStatus.msg = response.body.msg;
-                    this.informationStatus.isActive = true;
-                    this.informationStatus.className = 'alert-danger';
-                }else{
-                    this.informationStatus.msg = "Resource added successfully.";
-                    this.informationStatus.isActive = true;
-                    this.informationStatus.className = 'alert-success';
-                }
-            })
-        },
-        toggleReachable: function() {
-            if (! this.isAdmin) return
-            this.group.IsReachable = !this.group.IsReachable
-        }
-    },
-    components: {
-        InformationPanel
-    }
+	name: 'new-group',
+	data () {
+		return {
+			group: {
+				Name: '',
+				IsReachable: false,
+				Services: []
+			},
+			informationStatus: {
+				isActive: false,
+				className: 'alert-success',
+				msg: ''
+			}
+		}
+	},
+	computed: {
+		...mapGetters({
+			isAdmin: 'isAdmin'
+		})
+	},
+	methods: {
+		store: function () {
+			this.$api.serviceDiscovery.storeServiceGroup(this.group, (response) => {
+				if (response.status !== 201) {
+					this.informationStatus.msg = response.body.msg
+					this.informationStatus.isActive = true
+					this.informationStatus.className = 'alert-danger'
+				} else {
+					this.informationStatus.msg = 'Resource added successfully.'
+					this.informationStatus.isActive = true
+					this.informationStatus.className = 'alert-success'
+				}
+			})
+		},
+		toggleReachable: function () {
+			if (!this.isAdmin) return
+			this.group.IsReachable = !this.group.IsReachable
+		}
+	},
+	components: {
+		InformationPanel
+	}
 }
 </script>
 

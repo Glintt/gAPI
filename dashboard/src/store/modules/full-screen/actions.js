@@ -1,9 +1,8 @@
 
 export const openFullScreen = ({commit}) => {
-    commit('openFullScreen')
+	commit('openFullScreen')
 }
 
 export const closeFullScreen = ({commit}) => {
-    commit('closeFullScreen')
+	commit('closeFullScreen')
 }
-

@@ -5,9 +5,8 @@
 </template>
 
 <script>
-
     export default {
-        name: "information-panel",
-        props : ["msg", "className"]
+    	name: 'information-panel',
+    	props: ['msg', 'className']
     }
 </script>

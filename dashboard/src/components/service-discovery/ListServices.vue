@@ -41,13 +41,13 @@
 
 <script>
 export default {
-    name: 'list-services',
-    props: ['services', 'isLoggedIn', 'loggedInUser'],
-    methods: {
-        showManageModal: function(service) {
-            this.$emit('showManageModal', service)
-        }
-    }
+	name: 'list-services',
+	props: ['services', 'isLoggedIn', 'loggedInUser'],
+	methods: {
+		showManageModal: function (service) {
+			this.$emit('showManageModal', service)
+		}
+	}
 }
 </script>
 

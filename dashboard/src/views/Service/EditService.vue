@@ -20,13 +20,13 @@
                     <div class="card mb-12">
                         <div class="card-header text-white bg-primary" @click="toggleCard('basic')">
                             <div class="row">
-                                <div :class="service.LastActiveTime != 0 ? 'col-sm-10' : 'col-sm-11'">
+                                <div :class="service.LastActiveTime !== 0 ? 'col-sm-10' : 'col-sm-11'">
                                     Basic Information
                                 </div>
-                                <div :class="service.LastActiveTime != 0 ? 'col-sm-2' : 'col-sm-1'">
+                                <div :class="service.LastActiveTime !== 0 ? 'col-sm-2' : 'col-sm-1'">
                                     <span>Health: </span>
                                     <i class="fas fa-heartbeat fa-lg" :class="isActiveClass"></i>
-                                    <small v-if="service.LastActiveTime != 0"><br />Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }} </small>
+                                    <small v-if="service.LastActiveTime !== 0"><br />Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }} </small>
                                 </div>
                             </div>
                         </div>
@@ -73,148 +73,146 @@
 </template>
 
 <script>
-var serviceDiscoveryAPI = require("@/api/service-discovery");
-import InformationPanel from "@/components/InformationPanel";
-import ServiceAPIConfiguration from "@/views/Service/ServiceAPIConfiguration";
-import ServiceManagementConfig from "@/views/Service/ServiceManagementConfig";
+import InformationPanel from '@/components/InformationPanel'
+import ServiceAPIConfiguration from '@/views/Service/ServiceAPIConfiguration'
+import ServiceManagementConfig from '@/views/Service/ServiceManagementConfig'
 import { mapGetters } from 'vuex'
+var serviceDiscoveryAPI = require('@/api/service-discovery')
 
 export default {
-  name: "view-service",
-  computed: {
-    isLoggedIn() {
-      return this.$oauthUtils.vmA.isLoggedIn();
-    },
-    ...mapGetters({
-      isAdmin: 'isAdmin',
-      loggedInUser: 'loggedInUser'
-    })
-  },
-  mounted() {
-    serviceDiscoveryAPI.getServices(this.$route.query.uri, response => {
-      this.service = response.body;
-      if (this.service.ServiceManagementEndpoints == null)
-        this.service.ServiceManagementEndpoints = {};
-      if (this.service.Hosts == null) this.service.Hosts = [];
-      this.serviceUpdated();
-      this.isActiveClass = this.service.IsActive
-        ? "text-success"
-        : "text-danger";
-      this.serviceFetched = true;
-    });
-  },
-  data() {
+	name: 'view-service',
+	computed: {
+		isLoggedIn () {
+			return this.$oauthUtils.vmA.isLoggedIn()
+		},
+		...mapGetters({
+			isAdmin: 'isAdmin',
+			loggedInUser: 'loggedInUser'
+		})
+	},
+	mounted () {
+		serviceDiscoveryAPI.getServices(this.$route.query.uri, response => {
+			this.service = response.body
+			if (this.service.ServiceManagementEndpoints === null) { this.service.ServiceManagementEndpoints = {} }
+			if (this.service.Hosts === null) this.service.Hosts = []
+			this.serviceUpdated()
+			this.isActiveClass = this.service.IsActive
+				? 'text-success'
+				: 'text-danger'
+			this.serviceFetched = true
+		})
+	},
+	data () {
+		return {
+			pageType: 'ServiceDiscovery.EditService',
+			serviceFetched: false,
+			service: {
+				Id: '',
+				Name: '',
+				Hosts: [],
+				MatchingURI: '',
+				ToURI: '',
+				Protected: false,
+				APIDocumentation: '',
+				IsActive: true,
+				HealthcheckUrl: '',
+				ServiceManagementHost: '',
+				ServiceManagementPort: '',
+				ServiceManagementEndpoints: {},
+				ProtectedExclude: {}
+			},
+			isActiveClass: 'text-success',
+			informationStatus: {
+				isActive: false,
+				className: 'alert-success',
+				msg: ''
+			},
+			cards: {
+				basic: {
+					showing: true
+				},
+				api_config: {
+					showing: false
+				},
+				management_config: {
+					showing: false
+				}
+			}
+		}
+	},
+	methods: {
+		serviceURL: function () {
+			return 'http://' + this.$config.API.HOST + ':' + this.$config.API.PORT + this.service.MatchingURI
+		},
+		copyURL: function () {
+			var tempInput = document.createElement('input')
+			tempInput.style = 'position: absolute; left: -1000px; top: -1000px'
+			tempInput.value = this.serviceURL()
+			document.body.appendChild(tempInput)
+			tempInput.select()
+			document.execCommand('copy')
+			document.body.removeChild(tempInput)
+		},
+		addEndpointExclude: function (endpointToExclude) {
+			this.service.ProtectedExclude[endpointToExclude.endpoint] = endpointToExclude.methods
+		},
+		removeEndpointExclude: function (endpointToExclude) {
+			var protect = Object.assign({}, this.service.ProtectedExclude)
+			delete protect[endpointToExclude]
+			this.service.ProtectedExclude = protect
+		},
+		addHost: function (hostToAdd) {
+			this.service.Hosts.push(hostToAdd)
+			hostToAdd = ''
+		},
+		removeHost: function (hostToRemove) {
+			var index = this.service.Hosts.indexOf(hostToRemove)
+			this.service.Hosts.splice(index, 1)
+		},
+		toggleCard: function (cardName) {
+			console.log(cardName)
+			this.cards[cardName].showing = !this.cards[cardName].showing
+		},
+		store: function () {
+			serviceDiscoveryAPI.updateService(this.service, response => {
+				this.informationStatus.isActive = true
 
-    return {
-      pageType: 'ServiceDiscovery.EditService',
-      serviceFetched: false,
-      service: {
-        Id: "",
-        Name: "",
-        Hosts: [],
-        MatchingURI: "",
-        ToURI: "",
-        Protected: false,
-        APIDocumentation: "",
-        IsActive: true,
-        HealthcheckUrl: "",
-        ServiceManagementHost: "",
-        ServiceManagementPort: "",
-        ServiceManagementEndpoints: {},
-        ProtectedExclude:{}
-      },
-      isActiveClass: "text-success",
-      informationStatus: {
-        isActive: false,
-        className: "alert-success",
-        msg: ""
-      },
-      cards: {
-        basic: {
-          showing: true
-        },
-        api_config: {
-          showing: false
-        },
-        management_config: {
-          showing: false
-        }
-      }
-    };
-  },
-  methods: {
-    serviceURL: function() {
-      return 'http://' + this.$config.API.HOST + ':' + this.$config.API.PORT + this.service.MatchingURI
-    },
-    copyURL: function() {
-      var tempInput = document.createElement("input");
-      tempInput.style = "position: absolute; left: -1000px; top: -1000px";
-      tempInput.value = this.serviceURL()
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand("copy");
-      document.body.removeChild(tempInput);
-    },
-    addEndpointExclude: function(endpointToExclude) {
-      this.service.ProtectedExclude[endpointToExclude.endpoint] = endpointToExclude.methods
-    },
-    removeEndpointExclude: function(endpointToExclude) {
-      var protect = Object.assign({},this.service.ProtectedExclude)
-      delete protect[endpointToExclude]
-      this.service.ProtectedExclude = protect
-    },
-    addHost: function(hostToAdd) {
-      this.service.Hosts.push(hostToAdd);
-      hostToAdd = "";
-    },
-    removeHost: function(hostToRemove) {
-      var index = this.service.Hosts.indexOf(hostToRemove);
-      this.service.Hosts.splice(index, 1);
-    },
-    toggleCard: function(cardName) {
-        console.log(cardName)
-      this.cards[cardName].showing = !this.cards[cardName].showing;
-    },
-    store: function() {
-      serviceDiscoveryAPI.updateService(this.service, response => {
-        this.informationStatus.isActive = true;
+				if (response.status !== 201) {
+					this.informationStatus.msg = response.body.msg
+					this.informationStatus.className = 'alert-danger'
+				} else {
+					this.informationStatus.msg = 'Resource added successfully.'
+					this.informationStatus.className = 'alert-success'
+				}
 
-        if (response.status != 201) {
-          this.informationStatus.msg = response.body.msg;
-          this.informationStatus.className = "alert-danger";
-        } else {
-          this.informationStatus.msg = "Resource added successfully.";
-          this.informationStatus.className = "alert-success";
-        }
+				this.serviceUpdated()
+			})
+		},
+		deleteService: function () {
+			serviceDiscoveryAPI.deleteService(this.service.MatchingURI, response => {
+				this.informationStatus.isActive = true
+				if (response.status === 200) {
+					this.informationStatus.msg = 'Resource removed successfully.'
+					this.informationStatus.className = 'alert-success'
 
-        this.serviceUpdated();
-      });
-    },
-    deleteService: function() {
-      serviceDiscoveryAPI.deleteService(this.service.MatchingURI, response => {
-        this.informationStatus.isActive = true;
-        if (response.status == 200) {
-          this.informationStatus.msg = "Resource removed successfully.";
-          this.informationStatus.className = "alert-success";
-
-          setTimeout(() => {
-            this.$router.go("/service-discovery/services");
-          }, 400);
-        } else {
-          this.informationStatus.msg = "Error removing resource.";
-          this.informationStatus.className = "alert-danger";
-        }
-      });
-    },
-    serviceUpdated: function() {
-      this.service.IsActive = this.service.IsActive;
-      this.$emit("serviceUpdated", this.service);
-    }
-  },
-  components: {
-    InformationPanel,
-    ServiceAPIConfiguration,
-    ServiceManagementConfig
-  }
-};
+					setTimeout(() => {
+						this.$router.go('/service-discovery/services')
+					}, 400)
+				} else {
+					this.informationStatus.msg = 'Error removing resource.'
+					this.informationStatus.className = 'alert-danger'
+				}
+			})
+		},
+		serviceUpdated: function () {
+			this.service.IsActive = this.service.IsActive
+			this.$emit('serviceUpdated', this.service)
+		}
+	},
+	components: {
+		InformationPanel,
+		ServiceAPIConfiguration,
+		ServiceManagementConfig
+	}
+}
 </script>

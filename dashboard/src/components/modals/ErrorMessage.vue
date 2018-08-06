@@ -23,23 +23,21 @@
 </div>
 </template>
 <script>
-
     export default {
-        name: "error-message-modal",
-        props: ["id","title", "error", "showing"],
-        watch:{
-          showing: function(){
-            if (this.showing == true)
-              this.openModal();
-          }
-        },
-        methods:{
-          closeModal:function(){
-            this.$emit("modalClosed")
-          },
-          openModal: function(){
-            document.getElementById("openModal"+this.id).click();
-          }
-        }
+    	name: 'error-message-modal',
+    	props: ['id', 'title', 'error', 'showing'],
+    	watch: {
+    		showing: function () {
+    			if (this.showing === true) { this.openModal() }
+    		}
+    	},
+    	methods: {
+    		closeModal: function () {
+    			this.$emit('modalClosed')
+    		},
+    		openModal: function () {
+    			document.getElementById('openModal' + this.id).click()
+    		}
+    	}
     }
 </script>

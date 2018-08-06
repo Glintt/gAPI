@@ -77,21 +77,20 @@
 <script>
 import { mapGetters } from 'vuex'
 
-
 export default {
-  computed: {
-    isLoggedIn() {
-      return this.$oauthUtils.vmA.isLoggedIn();
-    },
-    ...mapGetters({
-      loggedInUser: 'loggedInUser'
-    })
-  },
-  methods: {
-    logout: function() {
-      this.$oauthUtils.vmA.logout();
-      this.$router.go("/login");
-    }
-  }
-};
+	computed: {
+		isLoggedIn () {
+			return this.$oauthUtils.vmA.isLoggedIn()
+		},
+		...mapGetters({
+			loggedInUser: 'loggedInUser'
+		})
+	},
+	methods: {
+		logout: function () {
+			this.$oauthUtils.vmA.logout()
+			this.$router.go('/login')
+		}
+	}
+}
 </script>
