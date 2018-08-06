@@ -3,6 +3,7 @@ package http
 import (
 	"gAPIManagement/api/utils"
 	"strings"
+
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
 )
@@ -29,7 +30,6 @@ func GetQueryParamsFromRequest(c *routing.Context) map[string]string {
 	return queryParamsMap
 }
 
-
 func GetQueryParamsFromRequestCtx(c *fasthttp.RequestCtx) map[string]string {
 	var queryParamsMap map[string]string
 	queryParamsMap = make(map[string]string)
@@ -43,12 +43,13 @@ func GetQueryParamsFromRequestCtx(c *fasthttp.RequestCtx) map[string]string {
 
 func GetURIWithParams(c *routing.Context) string {
 	queryParams := GetQueryParamsFromRequest(c)
-	
+
 	uri := string(c.Request.RequestURI())
-	
+	uri = strings.Trim(uri, " %20")
+
 	for pKey, pValue := range queryParams {
 		if pValue == "" {
-			uri = strings.Replace(uri, pKey, pKey + "=", 1)
+			uri = strings.Replace(uri, pKey, pKey+"=", 1)
 		}
 	}
 
@@ -85,8 +86,8 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 		request.Header.SetContentType(headers["Content-Type"])
 	}
 	utils.LogMessage("=============================================================", utils.DebugLogType)
-	utils.LogMessage("HTTP Request ---- Method: " + method + " ; Url = " + url + " ; Body = " + body, utils.DebugLogType)
-	utils.LogMessage("             ---- Headers: " + request.Header.String(), utils.DebugLogType)
+	utils.LogMessage("HTTP Request ---- Method: "+method+" ; Url = "+url+" ; Body = "+body, utils.DebugLogType)
+	utils.LogMessage("             ---- Headers: "+request.Header.String(), utils.DebugLogType)
 	utils.LogMessage("=============================================================", utils.DebugLogType)
 
 	client := fasthttp.Client{}
