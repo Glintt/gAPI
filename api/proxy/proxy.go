@@ -1,16 +1,16 @@
 package proxy
 
 import (
-	"gAPIManagement/api/config"
-	"strconv"
-	"gAPIManagement/api/ratelimiting"
-	"gAPIManagement/api/utils"
-	"regexp"
-	"strings"
 	"gAPIManagement/api/cache"
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
+	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/servicediscovery"
 	authentication "gAPIManagement/api/thirdpartyauthentication"
+	"gAPIManagement/api/utils"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/qiangxue/fasthttp-routing"
 )
@@ -42,8 +42,8 @@ func HandleRequest(c *routing.Context) error {
 		var err error
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
 
-		utils.LogMessage("IsExternalRequest = " + strconv.FormatBool(sd.IsExternalRequest(c)), utils.DebugLogType)
-		utils.LogMessage("IsReachableFromExternal = " + strconv.FormatBool(cachedRequest.Service.IsReachableFromExternal(sd)), utils.DebugLogType)
+		utils.LogMessage("IsExternalRequest = "+strconv.FormatBool(sd.IsExternalRequest(c)), utils.DebugLogType)
+		utils.LogMessage("IsReachableFromExternal = "+strconv.FormatBool(cachedRequest.Service.IsReachableFromExternal(sd)), utils.DebugLogType)
 
 		if err != nil || (sd.IsExternalRequest(c) && !cachedRequest.Service.IsReachableFromExternal(sd)) {
 			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME, config.APPLICATION_JSON)
@@ -96,8 +96,8 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 	}
 
 	body := c.Request.Body()
-	
-	response := service.Call(string(c.Method()), http.GetURIWithParams(c) , headers, string(body))
+
+	response := service.Call(string(c.Method()), http.GetURIWithParams(c), headers, string(body))
 
 	return http.ResponseInfo{
 		StatusCode:  response.Header.StatusCode(),

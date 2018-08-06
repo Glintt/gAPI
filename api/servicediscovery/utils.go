@@ -1,12 +1,12 @@
 package servicediscovery
 
 import (
-	"strings"
 	"encoding/json"
 	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"regexp"
+	"strings"
 )
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
@@ -22,7 +22,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]Service, error) {
 		responseBody := resp.Body()
 		json.Unmarshal(responseBody, services)
 	} else {
-		services = Methods[SD_TYPE]["list"].(func(int, string) []Service)(-1, "")
+		services = Methods[SD_TYPE]["list"].(func(int, string, bool) []Service)(-1, "", true)
 	}
 
 	return services, nil
@@ -51,7 +51,7 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (Service, err
 
 func GetMatchURI(uri string) string {
 	f := func(c rune) bool {
-		return c == '/'	
+		return c == '/'
 	}
 
 	uriParts := strings.FieldsFunc(uri, f)
@@ -66,7 +66,7 @@ func (serviceDisc *ServiceDiscovery) UpdateService(service Service) (Service, er
 	if status == 201 {
 		return service, nil
 	}
-	
+
 	return Service{}, errors.New("Not found.")
 }
 
