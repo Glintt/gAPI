@@ -7,6 +7,8 @@ import (
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/plugins"
 
+	"github.com/fatih/structs"
+
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
@@ -24,5 +26,15 @@ func ListPluginsAvailable(c *routing.Context) error {
 	pluginsList, _ := json.Marshal(plugins)
 
 	http.Response(c, string(pluginsList), 200, PluginsServiceName(), config.APPLICATION_JSON)
+	return nil
+}
+
+func ActivePlugins(c *routing.Context) error {
+	m := structs.Map(config.GApiConfiguration.Plugins)
+
+	delete(m, "Location")
+	activePlugins, _ := json.Marshal(m)
+
+	http.Response(c, string(activePlugins), 200, PluginsServiceName(), config.APPLICATION_JSON)
 	return nil
 }

@@ -9,4 +9,5 @@ import (
 
 func InitPluginsRoutes(router *routing.Router) {
 	router.Get("/plugins", authentication.AdminRequiredMiddleware, controllers.ListPluginsAvailable)
+	router.Get("/plugins/active", authentication.AdminRequiredMiddleware, controllers.ActivePlugins)
 }

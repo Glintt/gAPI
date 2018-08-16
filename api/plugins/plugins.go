@@ -3,6 +3,7 @@ package plugins
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func ListAll() (map[string][]string, error) {
@@ -23,7 +24,7 @@ func ListAll() (map[string][]string, error) {
 				return nil
 			}
 
-			filesList = append(filesList, info.Name())
+			filesList = append(filesList, strings.Replace(info.Name(), ".so", "", -1))
 			return nil
 		})
 

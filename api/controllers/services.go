@@ -84,7 +84,7 @@ func RegisterHandler(c *routing.Context) error {
 
 func ListServicesHandler(c *routing.Context) error {
 
-	err := plugins.CallBeforeRequestEntryPlugins(c)
+	err := plugins.CallBeforeRequestPlugins(c)
 	if err != nil {
 		return nil
 	}
