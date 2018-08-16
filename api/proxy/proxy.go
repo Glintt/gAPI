@@ -4,11 +4,13 @@ import (
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
+	"gAPIManagement/api/plugins"
 	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/servicediscovery"
 	authentication "gAPIManagement/api/thirdpartyauthentication"
 	"gAPIManagement/api/utils"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -36,6 +38,7 @@ func HandleRequest(c *routing.Context) error {
 
 	cachedRequest := cache.GetCacheForRequest(c)
 
+	// Service discovery
 	if cachedRequest.Service.ToURI == "" {
 		utils.LogMessage("SD NOT FROM CACHE", utils.DebugLogType)
 
@@ -55,6 +58,7 @@ func HandleRequest(c *routing.Context) error {
 		utils.LogMessage("SD FROM CACHE", utils.DebugLogType)
 	}
 
+	// OAuth authentication
 	if !cachedRequest.Protection.Cached {
 		utils.LogMessage("PROTECTION NOT FROM CACHE", utils.DebugLogType)
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
@@ -69,6 +73,16 @@ func HandleRequest(c *routing.Context) error {
 		utils.LogMessage("PROTECTION FROM CACHE", utils.DebugLogType)
 	}
 
+	// Call plugins before making the call to the microservice
+	if runtime.GOOS != "windows" {
+		utils.LogMessage("CALL BEFORE REQUEST PLUGINS", utils.DebugLogType)
+		pluginErr := plugins.CallBeforeRequestPlugins(c)
+		if pluginErr != nil {
+			return nil
+		}
+	}
+
+	// Make request to microservice
 	if cachedRequest.Response.StatusCode == 0 {
 		utils.LogMessage("RESPONSE NOT FROM CACHE", utils.DebugLogType)
 		cachedRequest.Response = getApiResponse(c, cachedRequest.Protection, cachedRequest.Service)

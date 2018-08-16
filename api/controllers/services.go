@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
-	"gAPIManagement/api/plugins"
 	"gAPIManagement/api/servicediscovery"
 	"strconv"
 
@@ -83,12 +82,7 @@ func RegisterHandler(c *routing.Context) error {
 }
 
 func ListServicesHandler(c *routing.Context) error {
-
-	err := plugins.CallBeforeRequestPlugins(c)
-	if err != nil {
-		return nil
-	}
-
+	var err error
 	page := 1
 	searchQuery := ""
 	user := string(c.Request.Header.Peek("User"))

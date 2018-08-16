@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"gAPIManagement/api/utils"
 	"path/filepath"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -16,6 +17,7 @@ func (p *BeforeRequestPlugin) Call(c *routing.Context) error {
 	symReqEntryPlugin, err := generalPlugin.Load(BeforeRequestEntryPluginLookup)
 
 	if err != nil {
+		utils.LogMessage("BeforeRequestPlugin Call() : "+err.Error(), utils.DebugLogType)
 		return err
 	}
 
@@ -23,6 +25,7 @@ func (p *BeforeRequestPlugin) Call(c *routing.Context) error {
 	var pluginBefore BeforeRequestEntryPlugin
 	pluginBefore, ok := symReqEntryPlugin.(BeforeRequestEntryPlugin)
 	if !ok {
+		utils.LogMessage("BeforeRequestPlugin Call() : "+err.Error(), utils.DebugLogType)
 		return err
 	}
 
@@ -30,6 +33,7 @@ func (p *BeforeRequestPlugin) Call(c *routing.Context) error {
 	err = pluginBefore.Call(c)
 
 	if err != nil {
+		utils.LogMessage("BeforeRequestPlugin Call() : "+err.Error(), utils.DebugLogType)
 		return err
 	}
 
@@ -45,8 +49,12 @@ func CallBeforeRequestPlugins(c *routing.Context) error {
 
 	pluginsLocation := filepath.Join(PLUGINS_LOCATION, BEFORE_REQUEST_PLUGINS_NAME)
 
+	utils.LogMessage("CallBeforeRequestPlugins() - pluginsLocation: "+pluginsLocation, utils.DebugLogType)
+
 	for _, pluginToLoad := range allPlugins[BEFORE_REQUEST_PLUGINS_NAME] {
 		pluginToCall := BeforeRequestPlugin{Location: pluginsLocation, Filename: pluginToLoad}
+
+		utils.LogMessage("CallBeforeRequestPlugins() - pluginToLoad: "+pluginToLoad, utils.DebugLogType)
 
 		hasStoppingError := pluginToCall.Call(c)
 

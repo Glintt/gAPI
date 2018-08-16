@@ -11,7 +11,7 @@ type GeneralPlugin struct {
 }
 
 func (p *GeneralPlugin) Load(lookup string) (plugin.Symbol, error) {
-	mod := filepath.Join(p.Location, p.Filename)
+	mod := filepath.Join(p.Location, p.Filename+PLUGIN_EXTENSION)
 	plug, err := plugin.Open(mod)
 
 	if err != nil {
