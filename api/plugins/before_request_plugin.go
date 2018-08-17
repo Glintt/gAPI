@@ -1,9 +1,13 @@
 package plugins
 
 import (
+	"errors"
+	"gAPIManagement/api/config"
+	"gAPIManagement/api/http"
 	"gAPIManagement/api/utils"
 	"path/filepath"
 
+	"github.com/manucorporat/try"
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
@@ -41,22 +45,24 @@ func (p *BeforeRequestPlugin) Call(c *routing.Context) error {
 }
 
 func CallBeforeRequestPlugins(c *routing.Context) error {
-	allPlugins, err := ListAll()
-
-	if err != nil {
-		return nil
-	}
+	allPlugins := Configurations().BeforeRequest
 
 	pluginsLocation := filepath.Join(PLUGINS_LOCATION, BEFORE_REQUEST_PLUGINS_NAME)
 
 	utils.LogMessage("CallBeforeRequestPlugins() - pluginsLocation: "+pluginsLocation, utils.DebugLogType)
 
-	for _, pluginToLoad := range allPlugins[BEFORE_REQUEST_PLUGINS_NAME] {
+	for _, pluginToLoad := range allPlugins {
 		pluginToCall := BeforeRequestPlugin{Location: pluginsLocation, Filename: pluginToLoad}
 
 		utils.LogMessage("CallBeforeRequestPlugins() - pluginToLoad: "+pluginToLoad, utils.DebugLogType)
-
-		hasStoppingError := pluginToCall.Call(c)
+		var hasStoppingError error
+		try.This(func() {
+			hasStoppingError = pluginToCall.Call(c)
+		}).Catch(func(e try.E) {
+			hasStoppingError = errors.New("Plugin " + pluginToLoad + " failed.")
+			utils.LogMessage("CallBeforeRequestPlugins() - pluginCall: error on plugin", utils.DebugLogType)
+			http.Response(c, `{"error": true, "msg": "`+hasStoppingError.Error()+`"}`, 500, SERVICE_NAME, config.APPLICATION_JSON)
+		})
 
 		if hasStoppingError != nil {
 			return hasStoppingError
