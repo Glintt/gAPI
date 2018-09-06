@@ -1,21 +1,22 @@
 package controllers
 
 import (
-	"gopkg.in/mgo.v2/bson"
-	"strconv"
-	"gopkg.in/mgo.v2"
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/database"
 	"encoding/json"
 	"gAPIManagement/api/config"
-	"github.com/qiangxue/fasthttp-routing"
+	"gAPIManagement/api/database"
 	"gAPIManagement/api/http"
+	"gAPIManagement/api/servicediscovery"
+	"strconv"
+
+	"github.com/qiangxue/fasthttp-routing"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func CreateAppGroup(c *routing.Context) error {
 	var bodyMap servicediscovery.ApplicationGroup
 	err := json.Unmarshal(c.Request.Body(), &bodyMap)
-	
+
 	if err != nil {
 		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
@@ -36,14 +37,14 @@ func CreateAppGroup(c *routing.Context) error {
 		Sparse:     true,
 	}
 	err = collection.EnsureIndex(index)
-	
+
 	bodyMap.Id = bson.NewObjectId()
 	err = collection.Insert(&bodyMap)
 
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	http.Response(c, `{"error" : false, "msg": "Service created successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -55,7 +56,7 @@ func GetAppGroups(c *routing.Context) error {
 	if c.QueryArgs().Has("name") {
 		nameFilter = string(c.QueryArgs().Peek("name"))
 	}
-	
+
 	// Get page
 	page := 1
 	if c.QueryArgs().Has("page") {
@@ -71,10 +72,10 @@ func GetAppGroups(c *routing.Context) error {
 
 	// Get list of application groups
 	var appGroups []servicediscovery.ApplicationGroup
-	
+
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).Find(bson.M{"name": bson.RegEx{nameFilter+".*", ""}}).Sort("name").Skip(skips).Limit(servicediscovery.PAGE_LENGTH).All(&appGroups)
+	db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).Find(bson.M{"name": bson.RegEx{nameFilter + ".*", ""}}).Sort("name").Skip(skips).Limit(servicediscovery.PAGE_LENGTH).All(&appGroups)
 
 	database.MongoDBPool.Close(session)
 
@@ -87,9 +88,9 @@ func GetAppGroups(c *routing.Context) error {
 	return nil
 }
 
-func DeleteAppGroup(c *routing.Context) error {	
+func DeleteAppGroup(c *routing.Context) error {
 	appGroupId := c.Param("group_id")
-	if ! bson.IsObjectIdHex(string(appGroupId)) {
+	if !bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
@@ -102,7 +103,7 @@ func DeleteAppGroup(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -112,7 +113,7 @@ func DeleteAppGroup(c *routing.Context) error {
 
 func GetAppGroupById(c *routing.Context) error {
 	appGroupId := c.Param("group_id")
-	if ! bson.IsObjectIdHex(string(appGroupId)) {
+	if !bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
@@ -128,7 +129,7 @@ func GetAppGroupById(c *routing.Context) error {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -142,15 +143,15 @@ func GetAppGroupById(c *routing.Context) error {
 		responseMap["Services"] = []string{}
 	}
 
-	gjson,_ := json.Marshal(responseMap)
+	gjson, _ := json.Marshal(responseMap)
 
 	http.Response(c, string(gjson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
-func UpdateAppGroup(c *routing.Context) error {	
+func UpdateAppGroup(c *routing.Context) error {
 	appGroupId := c.Param("group_id")
-	if ! bson.IsObjectIdHex(string(appGroupId)) {
+	if !bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
@@ -162,13 +163,13 @@ func UpdateAppGroup(c *routing.Context) error {
 
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	updateGroupQuery := bson.M{"$set": bson.M{"name": aGroup.Name }}
+	updateGroupQuery := bson.M{"$set": bson.M{"name": aGroup.Name}}
 	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(appGroupIdHex, updateGroupQuery)
 
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
@@ -176,68 +177,68 @@ func UpdateAppGroup(c *routing.Context) error {
 	return nil
 }
 
-func DeassociateServiceFromApplicationGroup(c *routing.Context) error {	
+func DeassociateServiceFromApplicationGroup(c *routing.Context) error {
 	appGroupId := c.Param("group_id")
 	serviceId := c.Param("service_id")
-	if ! bson.IsObjectIdHex(string(serviceId)) || ! bson.IsObjectIdHex(string(appGroupId)) {
+	if !bson.IsObjectIdHex(string(serviceId)) || !bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Service/Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	serviceGroupIdHex := bson.ObjectIdHex(appGroupId)
 	serviceIdHx := bson.ObjectIdHex(serviceId)
 
-	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHx }}
-	
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHx}}
+
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
-	
+
 	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, removeFromAllGroups)
 
 	if err != nil {
 		database.MongoDBPool.Close(session)
 
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	http.Response(c, `{"error" : false, "msg": "Service deassociated from group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
-func AssociateServiceToAppGroup(c *routing.Context) error {	
+func AssociateServiceToAppGroup(c *routing.Context) error {
 	appGroupId := c.Param("group_id")
 	serviceId := c.Param("service_id")
-	if ! bson.IsObjectIdHex(string(serviceId)) || ! bson.IsObjectIdHex(string(appGroupId)) {
+	if !bson.IsObjectIdHex(string(serviceId)) || !bson.IsObjectIdHex(string(appGroupId)) {
 		http.Response(c, `{"error" : true, "msg": "Service/Group id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	serviceGroupIdHex := bson.ObjectIdHex(appGroupId)
 	serviceIdHx := bson.ObjectIdHex(serviceId)
 
-	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHx }}
-	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHx }}
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHx}}
+	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHx}}
 
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
-	
-	_,err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
+
+	_, err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
 	err = db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
-	
+
 	if err != nil {
 		database.MongoDBPool.Close(session)
 
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": ` + strconv.Quote(err.Error()) + `}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	http.Response(c, `{"error" : false, "msg": "Service added to group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -246,7 +247,7 @@ func AssociateServiceToAppGroup(c *routing.Context) error {
 
 func FindAppGroupForService(c *routing.Context) error {
 	serviceId := c.Param("service_id")
-	if ! bson.IsObjectIdHex(string(serviceId)) {
+	if !bson.IsObjectIdHex(string(serviceId)) {
 		http.Response(c, `{"error" : true, "msg": "Service id not valid."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
@@ -258,7 +259,7 @@ func FindAppGroupForService(c *routing.Context) error {
 
 	query := bson.M{"services": serviceIdHx}
 	db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).Find(query).One(&appGroup)
-	
+
 	database.MongoDBPool.Close(session)
 
 	if appGroup.Name == "" {
@@ -277,27 +278,27 @@ func AppGroupsMatches(c *routing.Context) error {
 		http.Response(c, `{"error":true, "msg": "Invalid group name"}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	
+
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var servicesThatMatch []servicediscovery.Service
 
 	query := []bson.M{
 		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
-		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"} }}},
-		{"$match": bson.M{"zeroAppGroups":true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/(v1/)?" + groupName + "(/\\w*)?", "i"}}},
+		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"}}}},
+		{"$match": bson.M{"zeroAppGroups": true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/(v1/)?" + groupName + "(/\\w*)?", "i"}}},
 	}
 	// query := bson.M{"matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "/\\w+", ""}}
 
 	db.C(servicediscovery.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
-	
+
 	database.MongoDBPool.Close(session)
 
 	if len(servicesThatMatch) == 0 {
 		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	servicesThatMatchJson , _ := json.Marshal(servicesThatMatch)
+	servicesThatMatchJson, _ := json.Marshal(servicesThatMatch)
 	http.Response(c, string(servicesThatMatchJson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
@@ -309,15 +310,15 @@ func UngroupedApps(c *routing.Context) error {
 
 	query := []bson.M{
 		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
-		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"} }}},
-		{"$match": bson.M{"zeroAppGroups":true}},
+		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"}}}},
+		{"$match": bson.M{"zeroAppGroups": true}},
 	}
 
 	db.C(servicediscovery.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
-	
+
 	database.MongoDBPool.Close(session)
 
-	servicesThatMatchJson , _ := json.Marshal(servicesThatMatch)
+	servicesThatMatchJson, _ := json.Marshal(servicesThatMatch)
 	http.Response(c, string(servicesThatMatchJson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }

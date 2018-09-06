@@ -21,6 +21,7 @@ type GApiConfig struct {
 	RateLimiting     GApiRateLimitingConfig
 	Cache            GApiCacheConfig
 	Protocol         ProtocolConfig
+	Plugins          GApiPluginsConfig
 }
 
 type ProtocolConfig struct {
@@ -81,6 +82,11 @@ type GApiRateLimitingConfig struct {
 	Limit   int
 	Period  int64
 	Metrics []string
+}
+
+type GApiPluginsConfig struct {
+	Location      string
+	BeforeRequest []string
 }
 
 var GApiConfiguration GApiConfig

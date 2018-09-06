@@ -15,6 +15,7 @@ import NewServiceGroup from "./views/ServiceDiscovery/NewServiceGroup.vue";
 import ListServicesGroup from "./views/ServiceDiscovery/ListServicesGroup.vue";
 import NewApplicationGroup from "./views/ServiceDiscovery/NewApplicationGroup.vue";
 import ListApplicationsGroup from "./views/ServiceDiscovery/ListApplicationsGroup.vue";
+import Plugins from "./views/Plugins/Plugins.vue";
 
 var OAuthValidator = require("@/auth");
 Vue.use(Router);
@@ -106,6 +107,12 @@ export default new Router({
       path: "/analytics/realtime",
       name: "analytics-realtime",
       component: Realtime,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/plugins",
+      name: "plugins",
+      component: Plugins,
       beforeEnter: OAuthValidator.requireAdminAuth
     }
   ]

@@ -4,7 +4,6 @@ gAPIManagement allows to easily manage all your microservices by providing a sim
 
 It also provides analytics which are useful to take value from request logs.
 
-
 ### Table of Contents
 
 1. [Requirements](requirements)
@@ -16,7 +15,5 @@ It also provides analytics which are useful to take value from request logs.
 1. [Services](services)
 1. [Reachability](reachability)
 1. [Service Management](service-management)
+1. [Plugins](plugins)
 1. [Contributing](contributing)
-
-
-

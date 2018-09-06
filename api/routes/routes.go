@@ -11,4 +11,5 @@ func InitAPIRoutes(router *routing.Router) {
 	InitServiceDiscoveryAPIRoutes(router)
 	InitAnalyticsAPI(router)
 	InitAppsGroupsApi(router)
+	InitPluginsRoutes(router)
 }

@@ -5,6 +5,7 @@ import users from "./store/modules/users/index";
 import serviceGroups from "./store/modules/services-groups";
 import appsGroups from "./store/modules/apps-groups";
 import fullscreen from "./store/modules/full-screen";
+import plugins from "./store/modules/plugins";
 // var auth = require('./auth')
 Vue.use(Vuex);
 
@@ -13,7 +14,8 @@ export default new Vuex.Store({
     users,
     serviceGroups,
     appsGroups,
-    fullscreen
+    fullscreen,
+    plugins
   },
   state: {
     isLoggedIn: false,

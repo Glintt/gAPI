@@ -51,6 +51,9 @@
                         <router-link to="/users/create" class="dropdown-item"><i class="fas fa-user-plus text-success"></i> Add New</router-link>
                     </div>
                 </li>
+                <li class="nav-item" v-if="isLoggedIn && loggedInUser && loggedInUser.IsAdmin">
+                    <a href="/plugins" class="nav-link" >Plugins</a>
+                </li>
             </ul>
 
             <ul class="navbar-nav">
