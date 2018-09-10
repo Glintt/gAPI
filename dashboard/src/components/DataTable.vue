@@ -31,7 +31,7 @@
       <th scope="row" v-for="(item, index)  in row" v-bind:key="index">
         <span>{{ simplifyString(item) }}</span>
         <br />
-        <span class="text-info" v-if="item !== undefined && (item.length > maxLength || isJSON(item))" @click="showMore(item, index)" data-toggle="modal" data-target="#showMoreModal">
+        <span class="text-info toggable-card" v-if="item !== undefined && (item.length > maxLength || isJSON(item))" @click="showMore(item, index)" data-toggle="modal" data-target="#showMoreModal">
           Show more
         </span>
       </th>
