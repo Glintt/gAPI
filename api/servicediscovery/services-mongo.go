@@ -51,8 +51,8 @@ func ListServicesMongo(page int, filterQuery string, viewAllPermission bool) []S
 	andQuery := []bson.M{
 		bson.M{
 			"$or": []bson.M{
-				bson.M{"name": bson.RegEx{filterQuery + ".*", ""}},
-				bson.M{"matchinguri": bson.RegEx{filterQuery + ".*", ""}}}},
+				bson.M{"name": bson.RegEx{Pattern: filterQuery + ".*", Options: "i"}},
+				bson.M{"matchinguri": bson.RegEx{Pattern: filterQuery + ".*", Options: "i"}}}},
 	}
 
 	if !viewAllPermission {
