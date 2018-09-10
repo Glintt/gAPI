@@ -18,7 +18,7 @@
                     </div>
                     
                     <div class="card mb-12">
-                        <div class="card-header text-white bg-primary" @click="toggleCard('basic')">
+                        <div class="card-header text-white bg-primary toggable-card" @click="toggleCard('basic')">
                             <div class="row">
                                 <div :class="service.LastActiveTime !== 0 ? 'col-sm-10' : 'col-sm-11'">
                                     Basic Information
@@ -63,9 +63,9 @@
                         </div>
                     </div> 
 
-                    <ServiceAPIConfiguration v-on:addEndpointExclude="addEndpointExclude" v-on:removeEndpointExclude="removeEndpointExclude" v-on:addHost="addHost" v-show="isLoggedIn" v-on:toggleCard="toggleCard" v-on:removeHost="removeHost" :showing="cards.api_config.showing" :service="service"/>
+                    <ServiceAPIConfiguration class="toggable-card" v-on:addEndpointExclude="addEndpointExclude" v-on:removeEndpointExclude="removeEndpointExclude" v-on:addHost="addHost" v-show="isLoggedIn" v-on:toggleCard="toggleCard" v-on:removeHost="removeHost" :showing="cards.api_config.showing" :service="service"/>
                     
-                    <ServiceManagementConfig v-on:toggleCard="toggleCard" :showing="cards.management_config.showing" :service="service" v-show="isLoggedIn" />
+                    <ServiceManagementConfig class="toggable-card" v-on:toggleCard="toggleCard" :showing="cards.management_config.showing" :service="service" v-show="isLoggedIn" />
                 </div>
             </div>
         </div>    

@@ -19,6 +19,9 @@ span {
   margin-left: 0.2em;
   margin-right: 0.2em;
 }
+.toggable-card {
+  cursor: pointer;
+}
 </style>
 
 <script>
