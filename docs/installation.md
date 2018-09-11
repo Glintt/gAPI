@@ -38,6 +38,17 @@ Configuration files explanation:
    - **Plugins**
      - Location - where plugins are stored
      - BeforeRequest - list of BeforeRequestPlugin type plugins
+   - **Plugins**
+     - Location - where plugins are stored
+     - BeforeRequest - list of BeforeRequestPlugin type plugins
+   - **ThirdPartyOAuth**
+     - Host - third party oauth host (ex: http://localhost)
+     - Port - third party oauth port
+     - AuthorizeEndpoint - authorization url (ex: /oauth/authorize)
+     - UserTokenInformation - if oauth return information about the token, specify where to retrieve it
+       - Active
+       - Source - where to fetch information from (ex: header)
+       - Name - Information name (ex: user)
 4. **_users.json_** - Users registered on the system to access dashboard
 
 ## Installation
