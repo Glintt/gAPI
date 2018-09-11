@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"fmt"
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
@@ -23,7 +24,7 @@ var oauthserver authentication.OAuthServer
 var SERVICE_NAME = "/proxy"
 
 func StartProxy(router *routing.Router) {
-	oauthserver = authentication.LoadFromConfig()
+	oauthserver = config.GApiConfiguration.ThirdPartyOAuth
 
 	ratelimiting.InitRateLimiting()
 	router.To("GET,POST,PUT,PATCH,DELETE", "/*", ratelimiting.RateLimiting, HandleRequest)
@@ -157,6 +158,7 @@ func getServiceFromServiceDiscovery(c *routing.Context) (servicediscovery.Servic
 }
 
 func Protect(service servicediscovery.Service, c *routing.Context) (string, string, error) {
+	fmt.Println("HERE")
 	if service.Protected {
 		return oauthserver.Authorize(c.Request)
 	}

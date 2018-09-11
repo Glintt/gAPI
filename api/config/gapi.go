@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"gAPIManagement/api/thirdpartyauthentication"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -22,6 +23,7 @@ type GApiConfig struct {
 	Cache            GApiCacheConfig
 	Protocol         ProtocolConfig
 	Plugins          GApiPluginsConfig
+	ThirdPartyOAuth  thirdpartyauthentication.OAuthServer
 }
 
 type ProtocolConfig struct {
@@ -108,6 +110,8 @@ func LoadGApiConfig() {
 	if GApiConfiguration.Protocol.CertificateFile == "" || GApiConfiguration.Protocol.CertificateKey == "" {
 		GApiConfiguration.Protocol.Https = false
 	}
+
+	GApiConfiguration.ThirdPartyOAuth.AuthorizeEndpoint = thirdpartyauthentication.GetAuthorizeEndpointUrl(GApiConfiguration.ThirdPartyOAuth)
 
 	return
 }

@@ -1,23 +1,28 @@
 package thirdpartyauthentication
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/utils"
-	"encoding/json"
 	"errors"
+	"gAPIManagement/api/utils"
+
+	// "gAPIManagement/api/config"
+	// "gAPIManagement/api/config"
+	"gAPIManagement/api/http"
 
 	"github.com/valyala/fasthttp"
 )
 
 type OAuthServer struct {
-	Host                 string               `json:"host"`
-	Port                 string               `json:"port"`
-	AuthorizeEndpoint    string               `json:"authorize_endpoint"`
-	UserTokenInformation UserTokenInformation `json:"token_user_information"`
+	Host                 string
+	Port                 string
+	AuthorizeEndpoint    string
+	UserTokenInformation UserTokenInformation
 }
 
+func GetAuthorizeEndpointUrl(oas OAuthServer) string {
+	return oas.Host + ":" + oas.Port + oas.AuthorizeEndpoint
+}
 
+/*
 func LoadFromConfig() OAuthServer {
 	authenticationJSON, err := utils.LoadJsonFile(config.CONFIGS_LOCATION + config.AUTHENTICATION_CONFIG_FILE)
 
@@ -30,8 +35,7 @@ func LoadFromConfig() OAuthServer {
 
 	oas.AuthorizeEndpoint = oas.Host + ":" + oas.Port + oas.AuthorizeEndpoint
 	return oas
-}
-
+} */
 
 func (oauthServer *OAuthServer) Authorize(request fasthttp.Request) (string, string, error) {
 
@@ -46,7 +50,9 @@ func (oauthServer *OAuthServer) Authorize(request fasthttp.Request) (string, str
 	headers = make(map[string]string)
 	headers["Authorization"] = string(token)
 
-	response := http.MakeRequest(config.GET, oauthServer.AuthorizeEndpoint, "", headers)
+	utils.LogMessage("ThirdPartyOAuth (AuthorizationEndpoint) : "+oauthServer.AuthorizeEndpoint, utils.DebugLogType)
+
+	response := http.MakeRequest("GET", oauthServer.AuthorizeEndpoint, "", headers)
 
 	if response.StatusCode() != 200 {
 		return "", "", errors.New("Not Authorized.")
