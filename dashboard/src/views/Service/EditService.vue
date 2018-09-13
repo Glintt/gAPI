@@ -52,7 +52,7 @@
                                 <div class="input-group mb-2">
                                   <input type="text"
                                       :disabled="true"
-                                      :value="'http://' + $config.API.HOST + ':' + $config.API.PORT + service.MatchingURI" 
+                                      :value="$config.API.getApiBaseUrl() + service.MatchingURI" 
                                       class="form-control" id="gapiBasePath" aria-describedby="nameHelp" placeholder="Enter name">
                                   <button class="btn btn-success" @click="copyURL">
                                     <i class="fas fa-clipboard"></i> Copy

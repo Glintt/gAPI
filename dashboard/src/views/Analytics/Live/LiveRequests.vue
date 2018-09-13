@@ -17,12 +17,7 @@ import io from "socket.io-client";
 export default {
   name: "live-requests",
   mounted() {
-    var socket = io.connect(
-      "http://" +
-        this.$config.API.SOCKET_HOST +
-        ":" +
-        this.$config.API.SOCKET_PORT
-    );
+    var socket = io.connect(this.$config.API.getSocketBaseUrl());
     socket.on("logs", msg => {
       this.updateMonitorInfo(msg);
     });

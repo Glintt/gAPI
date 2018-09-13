@@ -10,7 +10,25 @@ const router = express.Router();
 const https = require("https");
 const http = require("http");
 
-app.use(express.static(`${__dirname}/dist`)); // set the static files location for the static html
+app.use(
+  express.static(`${__dirname}/dist`, {
+    setHeaders: res => {
+      res.setHeader(
+        "Api-Base",
+        `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${
+          process.env.API_PORT
+        }`
+      );
+
+      res.setHeader(
+        "Socket-Base",
+        `${process.env.API_PROTOCOL}://${process.env.SOCKET_HOST}:${
+          process.env.SOCKET_PORT
+        }`
+      );
+    }
+  })
+);
 
 app.engine(".html", require("ejs").renderFile);
 
@@ -20,7 +38,15 @@ router.get("/assets/:file", (req, res) => {
   res.sendFile(`${__dirname}/dist/assets/` + req.params.file);
 });
 
-router.get("/*", (req, res) => {
+router.get("*", (req, res) => {
+  res.set({
+    "Api-Base": `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${
+      process.env.API_PORT
+    }`,
+    "Socket-Base": `${process.env.API_PROTOCOL}://${process.env.SOCKET_HOST}:${
+      process.env.SOCKET_PORT
+    }`
+  });
   res.sendFile(`${__dirname}/dist/index.html`);
 });
 
