@@ -11,9 +11,11 @@ var DELETE = "DELETE"
 var PUT = "PUT"
 var PATCH = "PATCH"
 
-var APPLICATION_JSON="application/json"
+var APPLICATION_JSON = "application/json"
 
-func LoadConfigs(){
+var SOCKET_PORT_DEFAULT = "5000"
+
+func LoadConfigs() {
 	LoadGApiConfig()
 	LoadURLConstants()
 }

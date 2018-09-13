@@ -1,22 +1,22 @@
 package sockets
 
-
 import (
-	"os"
+	"gAPIManagement/api/config"
+	"log"
 	"net/http"
+	"os"
+
 	"github.com/googollee/go-socket.io"
 	"github.com/rs/cors"
-	"log"
-	"gAPIManagement/api/config"
 )
 
 var SocketsConnected []socketio.Socket
 
-func SocketListen(){
+func SocketListen() {
 	port := os.Getenv("SOCKET_PORT")
 
 	if port == "" {
-		return
+		port = config.SOCKET_PORT_DEFAULT
 	}
 
 	server, err := socketio.NewServer(nil)
@@ -44,13 +44,13 @@ func SocketListen(){
 
 	mux := http.NewServeMux()
 	c := cors.New(cors.Options{
-		AllowedOrigins: config.GApiConfiguration.Cors.AllowedOrigins,
+		AllowedOrigins:   config.GApiConfiguration.Cors.AllowedOrigins,
 		AllowCredentials: config.GApiConfiguration.Cors.AllowCredentials,
 	})
 
-    handler := c.Handler(mux)
+	handler := c.Handler(mux)
 
 	mux.Handle("/socket.io/", server)
 
-	log.Fatal(http.ListenAndServe(":"+port, handler ))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

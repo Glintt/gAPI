@@ -1,15 +1,15 @@
 package servicediscovery
 
 import (
-	"gAPIManagement/api/utils"
-	"gAPIManagement/api/database"
-	"sort"
-	"strings"
 	"encoding/json"
 	"errors"
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/database"
+	"gAPIManagement/api/utils"
 	"io/ioutil"
 	"regexp"
+	"sort"
+	"strings"
 )
 
 type ServicesConfig struct {
@@ -62,19 +62,19 @@ func ListServicesFile(page int, filterQuery string) []Service {
 		for _, v := range sd.registeredServices {
 			if strings.Contains(strings.ToLower(v.Name), strings.ToLower(filterQuery)) || strings.Contains(strings.ToLower(v.MatchingURI), strings.ToLower(filterQuery)) {
 				servicesList = append(servicesList, v)
-			}		
+			}
 		}
-	}else {
+	} else {
 		servicesList = sd.registeredServices
 	}
-	
+
 	sort.Slice(servicesList, func(i, j int) bool { return servicesList[i].MatchingURI < servicesList[j].MatchingURI })
 
 	if page == -1 {
 		return servicesList
 	}
 	from, to := database.PageFromTo(page, PAGE_LENGTH, len(servicesList))
-	
+
 	return servicesList[from:to]
 }
 
@@ -90,7 +90,7 @@ func DeleteServiceFile(service Service) (string, int) {
 
 	for _, element := range sd.registeredServices {
 		if element.Name == service.Name && element.MatchingURI == service.MatchingURI && element.ToURI == service.ToURI {
-			
+
 		} else {
 			newServices = append(newServices, element)
 		}
@@ -105,7 +105,7 @@ func DeleteServiceFile(service Service) (string, int) {
 
 func FindFile(service Service) (Service, error) {
 	for _, rs := range sd.registeredServices {
-		if (rs.MatchingURIRegex == "") {
+		if rs.MatchingURIRegex == "" {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
@@ -133,7 +133,7 @@ func (service *ServiceDiscovery) SaveServicesToFile() {
 	err = ioutil.WriteFile(config.CONFIGS_LOCATION+config.SERVICE_DISCOVERY_CONFIG_FILE, registeredServicesJson, 0777)
 }
 
-func NormalizeServicesFile() error{
+func NormalizeServicesFile() error {
 	var normalizedServices []Service
 
 	for _, rs := range sd.registeredServices {
@@ -144,6 +144,6 @@ func NormalizeServicesFile() error{
 
 	sd.registeredServices = normalizedServices
 	sd.SaveServicesToFile()
-	 
+
 	return nil
 }

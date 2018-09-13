@@ -17,6 +17,9 @@ func ListAll() (map[string][]string, error) {
 		typeLocation := configuration.Location + string(filepath.Separator) + pluginType
 
 		filepath.Walk(typeLocation, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
 			if info.IsDir() {
 				return nil
 			}
