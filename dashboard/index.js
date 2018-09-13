@@ -7,24 +7,23 @@ const port = process.env.PORT || 3003;
 const protocol = process.env.FRONTEND_PROTOCOL || "http";
 const router = express.Router();
 
+const ApiProtocol = process.env.API_PROTOCOL || "http";
+const ApiHost = process.env.API_HOST || "localhost";
+const ApiPort = process.env.API_PORT || "8080";
+const SocketHost = process.env.SOCKET_HOST || "localhost";
+const SocketPort = process.env.SOCKET_PORT || "5000";
+
 const https = require("https");
 const http = require("http");
 
 app.use(
   express.static(`${__dirname}/dist`, {
     setHeaders: res => {
-      res.setHeader(
-        "Api-Base",
-        `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${
-          process.env.API_PORT
-        }`
-      );
+      res.setHeader("Api-Base", `${ApiProtocol}://${ApiHost}:${ApiPort}`);
 
       res.setHeader(
         "Socket-Base",
-        `${process.env.API_PROTOCOL}://${process.env.SOCKET_HOST}:${
-          process.env.SOCKET_PORT
-        }`
+        `${ApiProtocol}://${SocketHost}:${SocketPort}`
       );
     }
   })
@@ -40,12 +39,8 @@ router.get("/assets/:file", (req, res) => {
 
 router.get("*", (req, res) => {
   res.set({
-    "Api-Base": `${process.env.API_PROTOCOL}://${process.env.API_HOST}:${
-      process.env.API_PORT
-    }`,
-    "Socket-Base": `${process.env.API_PROTOCOL}://${process.env.SOCKET_HOST}:${
-      process.env.SOCKET_PORT
-    }`
+    "Api-Base": `${ApiProtocol}://${ApiHost}:${ApiPort}`,
+    "Socket-Base": `${ApiProtocol}://${SocketHost}:${SocketPort}`
   });
   res.sendFile(`${__dirname}/dist/index.html`);
 });
