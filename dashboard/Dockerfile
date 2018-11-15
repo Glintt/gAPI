@@ -15,8 +15,8 @@ RUN rm -rf ./build
 RUN rm -rf ./test
 RUN rm -rf ./src
 
-RUN mv dist/assets/gAPIlogo.PNG dist/assets/gAPIlogo.png
-RUN mv public/assets/gAPIlogo.PNG public/assets/gAPIlogo.png
+RUN mv dist/assets/gAPIlogo.PNG dist/assets/gAPIlogo.png 2>/dev/null
+RUN mv public/assets/gAPIlogo.PNG public/assets/gAPIlogo.png 2>/dev/null
 
 ENV PORT=80
 
