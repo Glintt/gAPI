@@ -23,6 +23,7 @@ services:
   frontend: 
     build: 
       context: ./dashboard 
+    env_file: .env
     restart: always
     ports:
       - ${FRONTEND_PORT}:80
