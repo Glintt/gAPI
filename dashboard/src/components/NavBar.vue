@@ -62,7 +62,7 @@
                 </li>
                 
                 
-                <li class="nav-item dropdown" v-if="isLoggedIn">
+                <li class="nav-item dropdown" v-if="isLoggedIn && loggedInUser">
                     <a href="" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         {{loggedInUser.Username}}
                     </a>

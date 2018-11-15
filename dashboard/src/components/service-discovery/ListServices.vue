@@ -3,8 +3,8 @@
             <thead>
                 <tr class="table-secondary" >
                     <th scope="col">Name</th>
-                    <th scope="col">gAPI Path</th>
-                    <th scope="col">API Documentation</th>
+                    <th scope="col">API Base Path</th>
+                    <th scope="col">Documentation</th>
                     <th scope="col">Health</th>
                     <th scope="col" v-show="isLoggedIn">Secured?</th>
                     <th scope="col">Actions</th>
@@ -13,8 +13,8 @@
             <tbody>
                 <tr v-for="service in services" v-bind:key="service.Id" v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || loggedInUser">
                     <td>{{ service.Name }}</td>
-                    <td>{{ service.MatchingURI }}</td>
-                    <td>{{ service.APIDocumentation }}</td>
+                    <td>{{ apiPath(service) }}</td>
+                    <td><a :href="service.APIDocumentation" target="_blank"><i class="fas fa-book"></i> Documentation</a></td>
                     <td><i class="fas fa-heartbeat " :class="service.IsActive ? 'text-success' : 'text-danger'"></i></td>
                     <td v-show="isLoggedIn"><i class="fas " :class="service.Protected ? 'fa-lock text-success' : 'fa-unlock text-danger'"></i></td>
                     <td style="max-width: 20rem">
@@ -40,12 +40,17 @@
 </template>
 
 <script>
+const pathModule = require("url");
+
 export default {
   name: "list-services",
   props: ["services", "isLoggedIn", "loggedInUser"],
   methods: {
     showManageModal: function(service) {
       this.$emit("showManageModal", service);
+    },
+    apiPath(service) {
+        return pathModule.resolve(this.$config.API.getApiBaseUrl() , service.MatchingURI);
     }
   }
 };
