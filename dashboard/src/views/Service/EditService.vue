@@ -197,7 +197,7 @@ export default {
       });
     },
     deleteService: function() {
-      serviceDiscoveryAPI.deleteService(this.service.MatchingURI, response => {
+      serviceDiscoveryAPI.deleteService(this.service.Id, response => {
         this.informationStatus.isActive = true;
         if (response.status === 200) {
           this.informationStatus.msg = "Resource removed successfully.";

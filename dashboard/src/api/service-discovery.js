@@ -5,11 +5,11 @@ const ServiceDiscoveryBaseURL = APIConfig.SERVICE_DISCOVERY_BASEPATH;
 const Endpoints = {
   list: "/services",
   get: "/endpoint",
-  store: "/register",
-  delete: "/delete",
+  store: "/services",
+  delete: "/services/<service_id>",
   manage: "/services/manage",
   manage_types: "/services/manage/types",
-  update: "/update",
+  update: "/services/<service_id>",
   add_to_group: "/service-groups/<group_id>/services",
   deassociate_from_group: "/service-groups/<group_id>/services/<service_id>",
   list_groups: "/service-groups",
@@ -181,10 +181,14 @@ export function deleteServiceGroup(groupId, cb) {
   );
 }
 
-export function deleteService(serviceEndpoint, cb) {
-  HTTP.DELETE(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.delete), {
-    params: { uri: serviceEndpoint }
-  }).then(
+export function deleteService(serviceId, cb) {
+  HTTP.DELETE(
+    HTTP.PathToCall(
+      ServiceDiscoveryBaseURL +
+        Endpoints.delete.replace("<service_id>", serviceId)
+    ),
+    {}
+  ).then(
     response => {
       cb(response);
     },
@@ -195,8 +199,11 @@ export function deleteService(serviceEndpoint, cb) {
 }
 
 export function updateService(service, cb) {
-  HTTP.POST(
-    HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.update),
+  HTTP.PUT(
+    HTTP.PathToCall(
+      ServiceDiscoveryBaseURL +
+        Endpoints.update.replace("<service_id>", service.Id)
+    ),
     service,
     {}
   ).then(
