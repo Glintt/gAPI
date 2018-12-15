@@ -151,9 +151,12 @@ func GetEndpointHandler(c *routing.Context) error {
 }
 
 func DeleteEndpointHandler(c *routing.Context) error {
-	matchingURI := c.QueryArgs().Peek("uri")
+	serviceID := c.Param("service_id")
+	// matchingURI := c.QueryArgs().Peek("uri")
 
-	service := servicediscovery.Service{MatchingURI: string(matchingURI)}
+	// service := servicediscovery.Service{MatchingURI: string(matchingURI)}
+	service := servicediscovery.Service{Id: bson.ObjectIdHex(serviceID)}
+
 	resp, status := Methods()["delete"].(func(servicediscovery.Service) (string, int))(service)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)

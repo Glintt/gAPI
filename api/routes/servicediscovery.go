@@ -6,7 +6,7 @@ import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/controllers"
 
-	"github.com/qiangxue/fasthttp-routing"
+	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
@@ -17,7 +17,7 @@ func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 	serviceDiscoveryAPIGroup.Put("/services/<service_id>", authentication.AdminRequiredMiddleware, controllers.UpdateHandler)
 	serviceDiscoveryAPIGroup.Get("/services", authentication.CheckUserMiddleware, cache.ResponseCacheGApi, controllers.ListServicesHandler, cache.StoreCacheGApi)
 	serviceDiscoveryAPIGroup.Get("/endpoint", cache.ResponseCacheGApi, authentication.CheckUserMiddleware, controllers.GetEndpointHandler, cache.StoreCacheGApi)
-	serviceDiscoveryAPIGroup.Delete("/services", authentication.AdminRequiredMiddleware, controllers.DeleteEndpointHandler)
+	serviceDiscoveryAPIGroup.Delete("/services/<service_id>", authentication.AdminRequiredMiddleware, controllers.DeleteEndpointHandler)
 	serviceDiscoveryAPIGroup.Post("/services/manage", authentication.AuthorizationMiddleware, controllers.ManageServiceHandler)
 	serviceDiscoveryAPIGroup.Get("/services/manage/types", controllers.ManageServiceTypesHandler)
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
