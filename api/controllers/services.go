@@ -5,6 +5,7 @@ import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/utils"
 	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -93,6 +94,39 @@ func AutoRegisterHandler(c *routing.Context) error {
 	s2, _ := json.Marshal(service)
 
 	http.Response(c, string(s2), status, "AUTO_REGISTER", "application/json")
+	return nil
+}
+
+func AutoDeRegisterHandler(c *routing.Context) error {
+	var s map[string]string
+	json.Unmarshal(c.Request.Body(), &s)
+
+	if s["MatchingUri"] == "" || s["Port"] == "" {
+		http.Response(c, `{"error" : true, "msg": "Missing body parameters."}`,
+			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	host := c.RemoteIP().String() + ":" + s["Port"]
+
+	service := servicediscovery.Service{
+		MatchingURI: s["MatchingUri"],
+	}
+	service.MatchingURIRegex = servicediscovery.GetMatchingURIRegex(service.MatchingURI)
+
+	serviceFound, err := servicediscovery.ValidateServiceExists(service)
+	var status int
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "Service not found."}`,
+			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	} else {
+		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
+		_, status = servicediscovery.UpdateMongo(serviceFound, serviceFound)
+	}
+	service, _ = servicediscovery.FindMongo(service)
+	s2, _ := json.Marshal(service)
+
+	http.Response(c, string(s2), status, "AUTO_DEREGISTER", "application/json")
 	return nil
 }
 
