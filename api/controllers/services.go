@@ -7,7 +7,8 @@ import (
 	"gAPIManagement/api/servicediscovery"
 	"strconv"
 
-	"github.com/qiangxue/fasthttp-routing"
+	routing "github.com/qiangxue/fasthttp-routing"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func Methods() map[string]interface{} {
@@ -38,7 +39,10 @@ func NormalizeServices(c *routing.Context) error {
 }
 
 func UpdateHandler(c *routing.Context) error {
+	serviceID := c.Param("service_id")
 	service, err := servicediscovery.ValidateServiceBody(c)
+
+	service.Id = bson.ObjectIdHex(serviceID)
 
 	if err != nil {
 		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -147,9 +151,12 @@ func GetEndpointHandler(c *routing.Context) error {
 }
 
 func DeleteEndpointHandler(c *routing.Context) error {
-	matchingURI := c.QueryArgs().Peek("uri")
+	serviceID := c.Param("service_id")
+	// matchingURI := c.QueryArgs().Peek("uri")
 
-	service := servicediscovery.Service{MatchingURI: string(matchingURI)}
+	// service := servicediscovery.Service{MatchingURI: string(matchingURI)}
+	service := servicediscovery.Service{Id: bson.ObjectIdHex(serviceID)}
+
 	resp, status := Methods()["delete"].(func(servicediscovery.Service) (string, int))(service)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
