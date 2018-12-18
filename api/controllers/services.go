@@ -5,6 +5,7 @@ import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/utils"
 	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -59,6 +60,73 @@ func UpdateHandler(c *routing.Context) error {
 	resp, status := Methods()["update"].(func(servicediscovery.Service, servicediscovery.Service) (string, int))(service, serviceExists)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+	return nil
+}
+
+func AutoRegisterHandler(c *routing.Context) error {
+	var s map[string]string
+	json.Unmarshal(c.Request.Body(), &s)
+
+	if s["MatchingUri"] == "" || s["ToUri"] == "" || s["Name"] == "" || s["Port"] == "" {
+		http.Response(c, `{"error" : true, "msg": "Missing body parameters."}`,
+			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	host := c.RemoteIP().String() + ":" + s["Port"]
+	service := servicediscovery.Service{
+		Hosts:       []string{host},
+		MatchingURI: s["MatchingUri"],
+		ToURI:       s["ToUri"],
+		Name:        s["Name"],
+	}
+	service.MatchingURIRegex = servicediscovery.GetMatchingURIRegex(service.MatchingURI)
+
+	serviceFound, err := servicediscovery.ValidateServiceExists(service)
+	var status int
+	if err != nil {
+		_, status = servicediscovery.CreateServiceMongo(service)
+
+	} else {
+		serviceFound.Hosts = append(serviceFound.Hosts, host)
+		_, status = servicediscovery.UpdateMongo(serviceFound, serviceFound)
+	}
+	service, _ = servicediscovery.FindMongo(service)
+	s2, _ := json.Marshal(service)
+
+	http.Response(c, string(s2), status, "AUTO_REGISTER", "application/json")
+	return nil
+}
+
+func AutoDeRegisterHandler(c *routing.Context) error {
+	var s map[string]string
+	json.Unmarshal(c.Request.Body(), &s)
+
+	if s["MatchingUri"] == "" || s["Port"] == "" {
+		http.Response(c, `{"error" : true, "msg": "Missing body parameters."}`,
+			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	host := c.RemoteIP().String() + ":" + s["Port"]
+
+	service := servicediscovery.Service{
+		MatchingURI: s["MatchingUri"],
+	}
+	service.MatchingURIRegex = servicediscovery.GetMatchingURIRegex(service.MatchingURI)
+
+	serviceFound, err := servicediscovery.ValidateServiceExists(service)
+	var status int
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "Service not found."}`,
+			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	} else {
+		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
+		_, status = servicediscovery.UpdateMongo(serviceFound, serviceFound)
+	}
+	service, _ = servicediscovery.FindMongo(service)
+	s2, _ := json.Marshal(service)
+
+	http.Response(c, string(s2), status, "AUTO_DEREGISTER", "application/json")
 	return nil
 }
 
