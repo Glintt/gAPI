@@ -34,6 +34,8 @@ func CreateServiceMongo(s Service) (string, int) {
 	s.Id = bson.NewObjectId()
 	err := db.C(SERVICES_COLLECTION).Insert(&s)
 
+	s.Identifier = s.GenerateIdentifier()
+
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
@@ -120,7 +122,7 @@ func FindMongo(s Service) (Service, error) {
 	if len(uriParts) == 0 {
 		uriParts = append(uriParts, "")
 	}
-	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}}, bson.M{"_id": s.Id}}}
+	query := bson.M{"$or": []bson.M{bson.M{"matchinguri": bson.RegEx{"/" + uriParts[0] + ".*", "i"}}, bson.M{"_id": s.Id}, bson.M{"identifier": s.Identifier}}}
 	db.C(SERVICES_COLLECTION).Find(query).All(&services)
 
 	database.MongoDBPool.Close(session)
@@ -130,7 +132,7 @@ func FindMongo(s Service) (Service, error) {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
-		if re.MatchString(s.MatchingURI) || rs.Id == s.Id {
+		if re.MatchString(s.MatchingURI) || rs.Id == s.Id || rs.Identifier == s.Identifier {
 			return rs, nil
 		}
 	}
@@ -156,12 +158,13 @@ func NormalizeServicesMongo() error {
 	var services []Service
 	db.C(SERVICES_COLLECTION).Find(bson.M{}).All(&services)
 
-	database.MongoDBPool.Close(session)
-
 	for _, rs := range services {
 		rs.NormalizeService()
 
 		db.C(SERVICES_COLLECTION).UpdateId(rs.Id, &rs)
 	}
+
+	database.MongoDBPool.Close(session)
+
 	return nil
 }

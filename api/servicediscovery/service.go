@@ -18,6 +18,7 @@ import (
 
 type Service struct {
 	Id                         bson.ObjectId `bson:"_id" json:"Id"`
+	Identifier                 string
 	Name                       string
 	Hosts                      []string
 	Domain                     string
@@ -108,10 +109,19 @@ func (service *Service) GenerateId() bson.ObjectId {
 	return bson.NewObjectId()
 }
 
+func (service *Service) GenerateIdentifier() string {
+	identifier := strings.ToLower(service.Name)
+	identifier = strings.Replace(identifier, " ", "-", -1)
+	return identifier
+}
+
 func (service *Service) NormalizeService() {
 	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
 	if service.Id == "" {
 		service.Id = service.GenerateId()
+	}
+	if service.Identifier == "" {
+		service.Identifier = service.GenerateIdentifier()
 	}
 }
 

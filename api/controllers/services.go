@@ -199,6 +199,21 @@ func ListServicesHandler(c *routing.Context) error {
 func GetEndpointHandler(c *routing.Context) error {
 	matchingURI := c.QueryArgs().Peek("uri")
 
+	// If identifier is passed, search by identifier instead
+	identifier := string(c.QueryArgs().Peek("identifier"))
+	if identifier != "" {
+		service := servicediscovery.Service{
+			Identifier: string(identifier),
+		}
+		var err error
+		service, err = Methods()["get"].(func(servicediscovery.Service) (servicediscovery.Service, error))(service)
+		if err == nil {
+			serviceJSON, _ := json.Marshal(service)
+			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+			return nil
+		}
+	}
+
 	service, err := ServiceDiscovery().GetEndpointForUri(string(matchingURI))
 
 	group, getGroupErr := service.GetGroup()
