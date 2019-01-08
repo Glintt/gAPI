@@ -24,6 +24,7 @@ type GApiConfig struct {
 	Protocol         ProtocolConfig
 	Plugins          GApiPluginsConfig
 	ThirdPartyOAuth  thirdpartyauthentication.OAuthServer
+	MatchingUriRegex string
 }
 
 type ProtocolConfig struct {
@@ -105,6 +106,10 @@ func LoadGApiConfig() {
 	apiProtocol := os.Getenv("API_PROTOCOL")
 	if strings.ToLower(apiProtocol) == "https" {
 		GApiConfiguration.Protocol.Https = true
+	}
+
+	if GApiConfiguration.MatchingUriRegex == "" {
+		GApiConfiguration.MatchingUriRegex = MATCHING_URI_REGEX
 	}
 
 	if GApiConfiguration.Protocol.CertificateFile == "" || GApiConfiguration.Protocol.CertificateKey == "" {
