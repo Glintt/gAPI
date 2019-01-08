@@ -75,7 +75,7 @@ func GetMatchingURIRegex(uri string) string {
 	re := regexp.MustCompile("^(\\^/)?/?")
 	s = re.ReplaceAllString(s, "^/")
 	re = regexp.MustCompile("(/(\\.\\*)?)?$")
-	s = re.ReplaceAllString(s, "((/\\w*)+|$)")
+	s = re.ReplaceAllString(s, config.GApiConfiguration.MatchingUriRegex)
 	return s
 }
 
