@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"gAPIManagement/api/api-analytics"
+	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
 	"gAPIManagement/api/users"
 	"runtime"
@@ -27,6 +27,8 @@ import (
 
 var server = &fasthttp.Server{}
 var router *routing.Router
+
+var defaultHttpsPort = "443"
 
 func main() {
 	if os.Getenv("GO_MAX_PROCS") != "" {
@@ -81,10 +83,13 @@ func listenAPI(router *routing.Router) {
 	utils.LogMessage("Using HTTPS: "+strconv.FormatBool(config.GApiConfiguration.Protocol.Https), utils.InfoLogType)
 
 	if config.GApiConfiguration.Protocol.Https {
-		panic(fasthttp.ListenAndServeTLS(":"+listeningPort, config.GApiConfiguration.Protocol.CertificateFile, config.GApiConfiguration.Protocol.CertificateKey, CORSHandle))
-	} else {
-		panic(fasthttp.ListenAndServe(":"+listeningPort, CORSHandle))
+		go func() {
+			panic(fasthttp.ListenAndServeTLS(":"+defaultHttpsPort, config.GApiConfiguration.Protocol.CertificateFile, config.GApiConfiguration.Protocol.CertificateKey, CORSHandle))
+		}()
 	}
+
+	panic(fasthttp.ListenAndServe(":"+listeningPort, CORSHandle))
+
 }
 
 var (
