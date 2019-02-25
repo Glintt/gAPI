@@ -131,6 +131,10 @@ func FindMongo(s Service) (Service, error) {
 		if rs.MatchingURIRegex == "" {
 			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
 		}
+
+		rs.Identifier = rs.GenerateIdentifier()
+		s.Identifier = s.GenerateIdentifier()
+
 		re := regexp.MustCompile(rs.MatchingURIRegex)
 		if re.MatchString(s.MatchingURI) || rs.Id == s.Id || rs.Identifier == s.Identifier {
 			return rs, nil
