@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/googollee/go-socket.io"
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/rs/cors"
 )
 
-var SocketsConnected []socketio.Socket
+var SocketsConnected []socketio.Conn
 
 func SocketListen() {
 	port := os.Getenv("SOCKET_PORT")
@@ -24,21 +24,22 @@ func SocketListen() {
 		log.Fatal(err)
 	}
 
-	server.On("connection", func(so socketio.Socket) {
+	server.OnConnect("/", func(so socketio.Conn) error {
 		SocketsConnected = append(SocketsConnected, so)
-
-		so.On("disconnection", func() {
-			var SocketsConnectedTemp []socketio.Socket
-			for _, element := range SocketsConnected {
-				if element.Id() != so.Id() {
-					SocketsConnectedTemp = append(SocketsConnectedTemp, element)
-				}
-				SocketsConnected = SocketsConnectedTemp
-			}
-		})
+		return nil
 	})
 
-	server.On("error", func(so socketio.Socket, err error) {
+	server.OnDisconnect("/", func(so socketio.Conn, msg string) {
+		var SocketsConnectedTemp []socketio.Conn
+		for _, element := range SocketsConnected {
+			if element.ID() != so.ID() {
+				SocketsConnectedTemp = append(SocketsConnectedTemp, element)
+			}
+			SocketsConnected = SocketsConnectedTemp
+		}
+	})
+
+	server.OnError("/", func(err error) {
 		log.Println("error:", err)
 	})
 
