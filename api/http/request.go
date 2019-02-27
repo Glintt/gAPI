@@ -52,7 +52,8 @@ func GetURIWithParams(c *routing.Context) string {
 	uri = strings.Trim(uri, " ")
 
 	for pKey, pValue := range queryParams {
-		if pValue == "" && strings.HasSuffix(pKey, "=") == false {
+		if pValue == "" {
+			pKey = strings.Replace(pKey, "=", "", -1)
 			uri = strings.Replace(uri, pKey, pKey+"=", 1)
 		}
 	}
