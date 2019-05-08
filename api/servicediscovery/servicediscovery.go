@@ -1,11 +1,12 @@
 package servicediscovery
 
 import (
+	"gAPIManagement/api/config"
+	"gAPIManagement/api/database"
 	"gAPIManagement/api/utils"
 	"strings"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/config"
-	"github.com/qiangxue/fasthttp-routing"
+
+	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 type ServiceDiscovery struct {
@@ -21,18 +22,25 @@ var SD_TYPE = "file"
 
 var Methods = map[string]map[string]interface{}{
 	"mongo": {
-		"delete": DeleteServiceMongo,
-		"update": UpdateMongo,
-		"create": CreateServiceMongo,
-		"list":   ListServicesMongo,
-		"get":    FindMongo,
+		"delete":    DeleteServiceMongo,
+		"update":    UpdateMongo,
+		"create":    CreateServiceMongo,
+		"list":      ListServicesMongo,
+		"get":       FindMongo,
 		"normalize": NormalizeServicesMongo},
+	"oracle": {
+		"delete":    DeleteServiceOracle,
+		"update":    UpdateOracle,
+		"create":    CreateServiceOracle,
+		"list":      ListServicesOracle,
+		"get":       FindOracle,
+		"normalize": NormalizeServicesOracle},
 	"file": {
-		"delete": DeleteServiceFile,
-		"update": UpdateFile,
-		"create": CreateServiceFile,
-		"list":   ListServicesFile,
-		"get":    FindFile,
+		"delete":    DeleteServiceFile,
+		"update":    UpdateFile,
+		"create":    CreateServiceFile,
+		"list":      ListServicesFile,
+		"get":       FindFile,
 		"normalize": NormalizeServicesFile}}
 
 func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []Service) {
@@ -44,8 +52,8 @@ func GetServiceDiscoveryObject() *ServiceDiscovery {
 }
 
 func InitServiceDiscovery() {
-	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
-		SD_TYPE = "mongo"
+	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" || config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
+		SD_TYPE = config.GApiConfiguration.ServiceDiscovery.Type
 
 		if !database.IsConnectionDone {
 			if err := database.InitDatabaseConnection(); err != nil {
@@ -60,14 +68,13 @@ func InitServiceDiscovery() {
 	sd.isService = true
 }
 
-
 func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
 	hosts, _ := ListAllAvailableHosts()
 	requestHost := requestContxt.RemoteIP().String()
-	
-	utils.LogMessage("ListAllAvailableHosts = " + strings.Join(hosts,","), utils.DebugLogType)
-	utils.LogMessage("RequestIp = " + requestHost, utils.DebugLogType)
-	
+
+	utils.LogMessage("ListAllAvailableHosts = "+strings.Join(hosts, ","), utils.DebugLogType)
+	utils.LogMessage("RequestIp = "+requestHost, utils.DebugLogType)
+
 	for _, v := range hosts {
 		hostInfo := strings.Split(v, ":")
 		if hostInfo[0] == "localhost" {
