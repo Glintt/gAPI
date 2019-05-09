@@ -1,9 +1,7 @@
 package servicediscovery
 
 import (
-	"errors"
 	"gAPIManagement/api/database"
-	"regexp"
 	"strings"
 
 	"gopkg.in/mgo.v2/bson"
@@ -127,24 +125,10 @@ func FindMongo(s Service) (Service, error) {
 
 	database.MongoDBPool.Close(session)
 
-	for _, rs := range services {
-		if rs.MatchingURIRegex == "" {
-			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
-		}
-
-		rs.Identifier = rs.GenerateIdentifier()
-		s.Identifier = s.GenerateIdentifier()
-
-		re := regexp.MustCompile(rs.MatchingURIRegex)
-		if re.MatchString(s.MatchingURI) || rs.Id == s.Id || rs.Identifier == s.Identifier {
-			return rs, nil
-		}
-	}
-
-	return Service{}, errors.New("Not found.")
+	return FindServiceInList(s, services)
 }
 
-func ListAllAvailableHosts() ([]string, error) {
+func ListAllAvailableHostsMongo() ([]string, error) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var hosts []string

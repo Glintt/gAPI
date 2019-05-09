@@ -22,19 +22,21 @@ var SD_TYPE = "file"
 
 var Methods = map[string]map[string]interface{}{
 	"mongo": {
-		"delete":    DeleteServiceMongo,
-		"update":    UpdateMongo,
-		"create":    CreateServiceMongo,
-		"list":      ListServicesMongo,
-		"get":       FindMongo,
-		"normalize": NormalizeServicesMongo},
+		"delete":        DeleteServiceMongo,
+		"update":        UpdateMongo,
+		"create":        CreateServiceMongo,
+		"list":          ListServicesMongo,
+		"get":           FindMongo,
+		"normalize":     NormalizeServicesMongo,
+		"distincthosts": ListAllAvailableHostsMongo},
 	"oracle": {
-		"delete":    DeleteServiceOracle,
-		"update":    UpdateOracle,
-		"create":    CreateServiceOracle,
-		"list":      ListServicesOracle,
-		"get":       FindOracle,
-		"normalize": NormalizeServicesOracle},
+		"delete":        DeleteServiceOracle,
+		"update":        UpdateOracle,
+		"create":        CreateServiceOracle,
+		"list":          ListServicesOracle,
+		"get":           FindOracle,
+		"normalize":     NormalizeServicesOracle,
+		"distincthosts": ListAllAvailableHostsOracle},
 	"file": {
 		"delete":    DeleteServiceFile,
 		"update":    UpdateFile,
@@ -69,7 +71,8 @@ func InitServiceDiscovery() {
 }
 
 func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
-	hosts, _ := ListAllAvailableHosts()
+	hosts, _ := Methods[SD_TYPE]["distincthosts"].(func() ([]string, error))()
+
 	requestHost := requestContxt.RemoteIP().String()
 
 	utils.LogMessage("ListAllAvailableHosts = "+strings.Join(hosts, ","), utils.DebugLogType)
