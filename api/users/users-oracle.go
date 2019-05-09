@@ -64,13 +64,25 @@ func FindUsersByUsernameOrEmailOracle(q string, page int) []User {
 		return []User{}
 	}
 
-	rows, err := db.Query(FIND_BY_EMAIL_OR_USERNAME, "%"+q+"%", "%"+q+"%")
+	query := `SELECT * FROM
+		(
+			SELECT a.*, rownum r__
+			FROM
+			(
+				` + FIND_BY_EMAIL_OR_USERNAME + `
+			) a
+			WHERE rownum < ((:page * 10) + 1 )
+		)
+		WHERE r__ >= (((:page-1) * 10) + 1)`
+
+	rows, err := db.Query(query, "%"+q+"%", "%"+q+"%", page)
+
 	if err != nil {
 		database.CloseOracleConnection(db)
 		return []User{}
 	}
 
-	users := RowsToUser(rows)
+	users := RowsToUser(rows, true)
 
 	database.CloseOracleConnection(db)
 	return users
@@ -88,18 +100,23 @@ func GetUserByUsernameOracle(username string) []User {
 		return []User{}
 	}
 
-	users := RowsToUser(rows)
+	users := RowsToUser(rows, false)
 
 	database.CloseOracleConnection(db)
 	return users
 }
 
-func RowsToUser(rows *sql.Rows) []User {
+func RowsToUser(rows *sql.Rows, containsPagination bool) []User {
 	var users []User
 	for rows.Next() {
 		var user User
 		var id string
-		rows.Scan(&id, &user.Username, &user.Password, &user.Email, &user.IsAdmin)
+		var r int
+		if containsPagination {
+			rows.Scan(&id, &user.Username, &user.Password, &user.Email, &user.IsAdmin, &r)
+		} else {
+			rows.Scan(&id, &user.Username, &user.Password, &user.Email, &user.IsAdmin)
+		}
 
 		if bson.IsObjectIdHex(id) {
 			user.Id = bson.ObjectIdHex(id)
