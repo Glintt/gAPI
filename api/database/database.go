@@ -1,6 +1,7 @@
 package database
 
 import (
+	"gAPIManagement/api/config"
 	"os"
 )
 
@@ -21,11 +22,16 @@ func InitDatabaseConnection() error {
 	if MONGO_PORT != "" {
 		MONGO_HOST = MONGO_HOST + ":" + MONGO_PORT
 	}
-	err := ConnectToMongo(MONGO_HOST)
 
-	if err == nil {
-		IsConnectionDone = true
+	IsConnectionDone = true
+
+	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
+		err := ConnectToMongo(MONGO_HOST)
+
+		if err != nil {
+			IsConnectionDone = false
+		}
+		return err
 	}
-
-	return err
+	return nil
 }
