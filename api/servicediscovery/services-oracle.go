@@ -98,34 +98,6 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 	return `{"error" : false, "msg": "Service updated successfuly."}`, 201
 }
 
-// tx, err := db.Begin()
-// fmt.Println("ere")
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// fmt.Println("ere")
-// defer tx.Rollback()
-// fmt.Println("ere")
-// stmt, err := tx.Prepare(INSERT_SERVICE_ORACLE)
-// fmt.Println("ere")
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// fmt.Println("ere")
-// defer stmt.Close() // danger!
-// _, err = stmt.Exec("123123123")
-// if err != nil {
-// 	fmt.Println(err)
-// 	return "nao deu", 0
-// }
-// fmt.Println("ere")
-// err = tx.Commit()
-// fmt.Println("ere")
-// if err != nil {
-// 	fmt.Println("fa")
-// 	log.Fatal(err)
-// }
-
 func CreateServiceOracle(s Service) (string, int) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
@@ -174,8 +146,9 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 		return []Service{}
 	}
 
+	services := RowsToService(rows)
 	database.CloseOracleConnection(db)
-	return RowsToService(rows)
+	return services
 }
 
 func DeleteServiceOracle(s Service) (string, int) {
@@ -230,6 +203,29 @@ func FindOracle(s Service) (Service, error) {
 }
 
 func NormalizeServicesOracle() error {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.Query(LIST_SERVICES_ORACLE)
+	if err != nil {
+		fmt.Println("Error running query")
+		defer rows.Close()
+		database.CloseOracleConnection(db)
+		return err
+	}
+
+	services := RowsToService(rows)
+
+	database.CloseOracleConnection(db)
+
+	for _, rs := range services {
+		rs.NormalizeService()
+
+		go UpdateOracle(rs, rs)
+	}
+
 	return nil
 }
 
