@@ -33,6 +33,8 @@ var FIND_SERVICES_ORACLE = `select a.id, a.identifier,
 	a.servicemanagementendpoints, a.hosts, a.protectedexclude 	
 	from gapi_services a where a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier`
 
+var DELETE_SERVICES_ORACLE = `delete from gapi_services where id = :id`
+
 func UpdateOracle(service Service, serviceExists Service) (string, int) {
 	return "", 0
 }
@@ -68,7 +70,7 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 func CreateServiceOracle(s Service) (string, int) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
-		return "", 400
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
 	if s.ServiceManagementEndpoints == nil {
@@ -81,11 +83,6 @@ func CreateServiceOracle(s Service) (string, int) {
 	hosts, _ := json.Marshal(s.Hosts)
 	protectedexclude, _ := json.Marshal(s.ProtectedExclude)
 
-	fmt.Println(s)
-	fmt.Println(string(mgnendpoints))
-	fmt.Println(string(hosts))
-	fmt.Println(string(protectedexclude))
-
 	_, err = db.Exec(INSERT_SERVICE_ORACLE,
 		bson.NewObjectId().Hex(), s.GenerateIdentifier(), s.Name, s.MatchingURI, s.MatchingURIRegex, s.ToURI,
 		utils.BoolToInt(s.Protected), s.APIDocumentation, utils.BoolToInt(s.IsCachingActive), utils.BoolToInt(s.IsActive),
@@ -95,8 +92,9 @@ func CreateServiceOracle(s Service) (string, int) {
 		string(mgnendpoints), string(hosts), string(protectedexclude),
 	)
 
+	database.CloseOracleConnection(db)
+
 	if err != nil {
-		fmt.Println(err)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 	return `{"error" : false, "msg": "Service created successfuly."}`, 201
@@ -121,7 +119,22 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 }
 
 func DeleteServiceOracle(s Service) (string, int) {
-	return "", 0
+	service, err := FindOracle(s)
+	if err != nil {
+		return `{"error": true, "msg": "Not found"}`, 404
+	}
+
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+
+	_, err = db.Exec(DELETE_SERVICES_ORACLE,
+		service.Id.Hex(),
+	)
+
+	database.CloseOracleConnection(db)
+	if err == nil {
+		return `{"error": false, "msg": "Removed successfully."}`, 200
+	}
+	return `{"error": true, "msg": "Service could not be removed"}`, 404
 }
 
 func FindOracle(s Service) (Service, error) {
@@ -142,19 +155,17 @@ func FindOracle(s Service) (Service, error) {
 		uriParts = append(uriParts, "")
 	}
 
-	fmt.Println(s.Identifier)
-	fmt.Println(s.Identifier)
-	fmt.Println("/" + uriParts[0] + ".*")
 	rows, err := db.Query(FIND_SERVICES_ORACLE, s.Id.Hex(),
 		"/"+uriParts[0]+".*",
 		s.Identifier)
 	if err != nil {
-		fmt.Println(err)
+		database.CloseOracleConnection(db)
 		return Service{}, err
 	}
 
 	services := RowsToService(rows)
 
+	database.CloseOracleConnection(db)
 	return FindServiceInList(s, services)
 }
 
@@ -188,6 +199,8 @@ func RowsToService(rows *sql.Rows) []Service {
 
 		services = append(services, s)
 	}
+
+	defer rows.Close()
 
 	return services
 }
