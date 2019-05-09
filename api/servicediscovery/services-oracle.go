@@ -17,10 +17,10 @@ var SERVICE_COLUMNS = ` a.id, a.identifier,
 	a.healthcheckurl, a.lastactivetime, a.ratelimit, a.ratelimitexpirationtime, a.isreachable, 
 	a.groupid, a.usegroupattributes, 
 	a.servicemanagementhost, a.servicemanagementport,
-	a.servicemanagementendpoints, a.hosts, a.protectedexclude `
+	a.servicemanagementendpoints, a.hosts, a.protectedexclude, b.isreachable as groupreachable `
 
 var LIST_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS + ` 
-	from gapi_services a`
+	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where (a.name like :name or a.matchinguri like :matchinguri) `
 
 var INSERT_SERVICE_ORACLE = `INSERT INTO gapi_services 
 (
@@ -36,8 +36,8 @@ VALUES(:id, :identifier,:name, :matchinguri,:matchinguriregex,:touri,
 	:servicemanagementhost, :servicemanagementport,
 	:servicemanagementendpoints, :hosts, :protectedexclude)`
 
-var FIND_SERVICES_ORACLE = `select	 ` + SERVICE_COLUMNS +
-	` from gapi_services a where a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier`
+var FIND_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS +
+	` from gapi_services a left join gapi_services_groups b on a.groupid = b.id where (a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier) `
 
 var DELETE_SERVICES_ORACLE = `delete from gapi_services where id = :id`
 
@@ -177,7 +177,32 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 		return nil
 	}
 
-	rows, err := db.Query(LIST_SERVICES_ORACLE)
+	query := LIST_SERVICES_ORACLE
+
+	if !viewAllPermission {
+		query = query + " and (a.isreachable = 1 or (b.isreachable = 1 and a.usegroupattributes = 1)) "
+	}
+
+	query = query + " order by a.id"
+	var rows *sql.Rows
+	var pagination = false
+	if page >= 0 {
+		query = `SELECT * FROM
+			(
+				SELECT a.*, rownum r__
+				FROM
+				(
+					` + query + `
+				) a
+				WHERE rownum < ((:page * 10) + 1 )
+			)
+			WHERE r__ >= (((:page-1) * 10) + 1)`
+		rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%", page)
+		pagination = true
+	} else {
+		rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%")
+	}
+
 	if err != nil {
 		fmt.Println("Error running query")
 		defer rows.Close()
@@ -185,7 +210,7 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 		return []Service{}
 	}
 
-	services := RowsToService(rows)
+	services := RowsToService(rows, pagination)
 	database.CloseOracleConnection(db)
 	return services
 }
@@ -235,7 +260,7 @@ func FindOracle(s Service) (Service, error) {
 		return Service{}, err
 	}
 
-	services := RowsToService(rows)
+	services := RowsToService(rows, false)
 
 	database.CloseOracleConnection(db)
 	return FindServiceInList(s, services)
@@ -247,7 +272,7 @@ func NormalizeServicesOracle() error {
 		return err
 	}
 
-	rows, err := db.Query(LIST_SERVICES_ORACLE)
+	rows, err := db.Query(LIST_SERVICES_ORACLE, "%", "%")
 	if err != nil {
 		fmt.Println("Error running query")
 		defer rows.Close()
@@ -255,7 +280,7 @@ func NormalizeServicesOracle() error {
 		return err
 	}
 
-	services := RowsToService(rows)
+	services := RowsToService(rows, false)
 
 	database.CloseOracleConnection(db)
 
@@ -268,7 +293,7 @@ func NormalizeServicesOracle() error {
 	return nil
 }
 
-func RowsToService(rows *sql.Rows) []Service {
+func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 	var services []Service
 	for rows.Next() {
 		var s Service
@@ -277,12 +302,24 @@ func RowsToService(rows *sql.Rows) []Service {
 			hosts,
 			protectedexclude []byte
 
-		rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
-			&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable,
-			&s.GroupId, &s.UseGroupAttributes,
-			&s.ServiceManagementHost, &s.ServiceManagementPort,
-			&mngendpoints, &hosts, &protectedexclude,
-		)
+		var a int
+		if containsPagination {
+			rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
+				&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable,
+				&s.GroupId, &s.UseGroupAttributes,
+				&s.ServiceManagementHost, &s.ServiceManagementPort,
+				&mngendpoints, &hosts, &protectedexclude,
+				&s.GroupVisibility, &a,
+			)
+		} else {
+			rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
+				&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable,
+				&s.GroupId, &s.UseGroupAttributes,
+				&s.ServiceManagementHost, &s.ServiceManagementPort,
+				&mngendpoints, &hosts, &protectedexclude,
+				&s.GroupVisibility,
+			)
+		}
 
 		if bson.IsObjectIdHex(id) {
 			s.Id = bson.ObjectIdHex(id)
