@@ -1,6 +1,7 @@
 package servicediscovery
 
 import (
+	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/utils"
@@ -166,4 +167,24 @@ func (service *Service) GetGroup() (ServiceGroup, error) {
 	}
 
 	return servicesGroup, nil
+}
+
+func FindServiceInList(s Service, services []Service) (Service, error) {
+	for _, rs := range services {
+		if rs.MatchingURIRegex == "" {
+			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
+		}
+
+		rs.Identifier = rs.GenerateIdentifier()
+		// s.Identifier = s.GenerateIdentifier()
+
+		// ser, _ := json.Marshal(rs)
+
+		re := regexp.MustCompile(rs.MatchingURIRegex)
+		if re.MatchString(s.MatchingURI) || rs.Id == s.Id || rs.Identifier == s.Identifier {
+			return rs, nil
+		}
+	}
+
+	return s, errors.New("Not found.")
 }
