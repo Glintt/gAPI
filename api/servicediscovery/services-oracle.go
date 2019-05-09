@@ -12,31 +12,90 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var LIST_SERVICES_ORACLE = `select a.id, a.identifier,
-	name, a.matchinguri, a.matchinguriregex, a.touri, a.protected, a.apidocumentation, a.iscachingactive, a.isactive, 
-	a.healthcheckurl, a.lastactivetime, a.ratelimit, a.ratelimitexpirationtime, a.isreachable, a.usegroupattributes, 
+var SERVICE_COLUMNS = ` a.id, a.identifier,
+	a.name, a.matchinguri, a.matchinguriregex, a.touri, a.protected, a.apidocumentation, a.iscachingactive, a.isactive, 
+	a.healthcheckurl, a.lastactivetime, a.ratelimit, a.ratelimitexpirationtime, a.isreachable, 
+	a.groupid, a.usegroupattributes, 
 	a.servicemanagementhost, a.servicemanagementport,
-	a.servicemanagementendpoints, a.hosts, a.protectedexclude 	
+	a.servicemanagementendpoints, a.hosts, a.protectedexclude `
+
+var LIST_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS + ` 
 	from gapi_services a`
 
 var INSERT_SERVICE_ORACLE = `INSERT INTO gapi_services 
+(
+	id, identifier,name, matchinguri,matchinguriregex,touri,
+	protected,apidocumentation,iscachingactive,isactive,healthcheckurl, lastactivetime, ratelimit, ratelimitexpirationtime, 
+	isreachable, groupid, usegroupattributes, 
+	servicemanagementhost, servicemanagementport,
+	servicemanagementendpoints, hosts, protectedexclude
+) 
 VALUES(:id, :identifier,:name, :matchinguri,:matchinguriregex,:touri,
 	:protected,:apidocumentation,:iscachingactive,:isactive,:healthcheckurl, :lastactivetime, :ratelimit, :ratelimitexpirationtime, 
 	:isreachable, :groupid, :usegroupattributes, 
 	:servicemanagementhost, :servicemanagementport,
 	:servicemanagementendpoints, :hosts, :protectedexclude)`
 
-var FIND_SERVICES_ORACLE = `select a.id, a.identifier,
-	name, a.matchinguri, a.matchinguriregex, a.touri, a.protected, a.apidocumentation, a.iscachingactive, a.isactive, 
-	a.healthcheckurl, a.lastactivetime, a.ratelimit, a.ratelimitexpirationtime, a.isreachable, a.usegroupattributes, 
-	a.servicemanagementhost, a.servicemanagementport,
-	a.servicemanagementendpoints, a.hosts, a.protectedexclude 	
-	from gapi_services a where a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier`
+var FIND_SERVICES_ORACLE = `select	 ` + SERVICE_COLUMNS +
+	` from gapi_services a where a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier`
 
 var DELETE_SERVICES_ORACLE = `delete from gapi_services where id = :id`
 
+var UPDATE_SERVICE_ORACLE = `UPDATE gapi_services
+SET 
+	identifier = :identifier,	
+	name = :name, 
+	matchinguri = :matchinguri, 
+	matchinguriregex = :matchinguriregex, 
+	touri = :touri, 
+	protected = :protected, 
+	apidocumentation = :apidocumentation, 
+	iscachingactive = :iscachingactive, 
+	isactive = :isactive, 	
+	healthcheckurl = :healthcheckurl, 
+	lastactivetime = :lastactivetime, 
+	ratelimit = :ratelimit, 
+	ratelimitexpirationtime = :ratelimitexpirationtime, 
+	isreachable = :isreachable, 
+	groupid = :groupid,
+	usegroupattributes = :usegroupattributes, 
+	servicemanagementhost = :servicemanagementhost, 
+	servicemanagementport = :servicemanagementport,
+	servicemanagementendpoints = :servicemanagementendpoints, 
+	hosts = :hosts, 
+	protectedexclude = :protectedexclude
+WHERE id = :id`
+
 func UpdateOracle(service Service, serviceExists Service) (string, int) {
-	return "", 0
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
+
+	service.NormalizeService()
+
+	mgnendpoints, _ := json.Marshal(service.ServiceManagementEndpoints)
+	hosts, _ := json.Marshal(service.Hosts)
+	protectedexclude, _ := json.Marshal(service.ProtectedExclude)
+
+	_, err = db.Exec(UPDATE_SERVICE_ORACLE,
+		service.GenerateIdentifier(),
+		service.Name, service.MatchingURI, service.MatchingURIRegex, service.ToURI,
+		utils.BoolToInt(service.Protected), service.APIDocumentation, utils.BoolToInt(service.IsCachingActive), utils.BoolToInt(service.IsActive),
+		service.HealthcheckUrl, service.LastActiveTime, service.RateLimit, service.RateLimitExpirationTime, utils.BoolToInt(service.IsReachable),
+		service.GroupId.Hex(), utils.BoolToInt(service.UseGroupAttributes),
+		service.ServiceManagementHost, service.ServiceManagementPort,
+		string(mgnendpoints), string(hosts), string(protectedexclude),
+
+		service.Id.Hex(),
+	)
+
+	database.CloseOracleConnection(db)
+
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
+	return `{"error" : false, "msg": "Service updated successfuly."}`, 201
 }
 
 // tx, err := db.Begin()
@@ -87,7 +146,8 @@ func CreateServiceOracle(s Service) (string, int) {
 		bson.NewObjectId().Hex(), s.GenerateIdentifier(), s.Name, s.MatchingURI, s.MatchingURIRegex, s.ToURI,
 		utils.BoolToInt(s.Protected), s.APIDocumentation, utils.BoolToInt(s.IsCachingActive), utils.BoolToInt(s.IsActive),
 		s.HealthcheckUrl, s.LastActiveTime, s.RateLimit, s.RateLimitExpirationTime, utils.BoolToInt(s.IsReachable),
-		s.GroupId.Hex(), utils.BoolToInt(s.UseGroupAttributes),
+		s.GroupId.Hex(),
+		utils.BoolToInt(s.UseGroupAttributes),
 		s.ServiceManagementHost, s.ServiceManagementPort,
 		string(mgnendpoints), string(hosts), string(protectedexclude),
 	)
@@ -183,17 +243,21 @@ func RowsToService(rows *sql.Rows) []Service {
 			protectedexclude []byte
 
 		rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
-			&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable, &s.UseGroupAttributes,
+			&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable,
+			&s.GroupId, &s.UseGroupAttributes,
 			&s.ServiceManagementHost, &s.ServiceManagementPort,
 			&mngendpoints, &hosts, &protectedexclude,
 		)
+
+		fmt.Println("hosts")
+		fmt.Println(string(hosts))
 
 		if bson.IsObjectIdHex(id) {
 			s.Id = bson.ObjectIdHex(id)
 		} else {
 			s.Id = bson.NewObjectId()
 		}
-		json.Unmarshal(mngendpoints, &s.ServiceManagementEndpoints)
+		json.Unmarshal([]byte(mngendpoints), &s.ServiceManagementEndpoints)
 		json.Unmarshal([]byte(hosts), &s.Hosts)
 		json.Unmarshal([]byte(protectedexclude), &s.ProtectedExclude)
 
