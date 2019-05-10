@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
@@ -63,6 +64,10 @@ func AddServiceToGroupHandler(c *routing.Context) error {
 		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
+
+	fmt.Println(serviceGroupId)
+	fmt.Println("bodyMap")
+	fmt.Println(bodyMap["service_id"])
 
 	err = servicediscovery.ServiceGroupMethods()["addservicetogroup"].(func(string, string) error)(serviceGroupId, bodyMap["service_id"])
 

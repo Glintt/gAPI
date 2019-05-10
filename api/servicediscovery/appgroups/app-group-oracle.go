@@ -193,7 +193,7 @@ func RowsToAppGroup(rows *sql.Rows, containsPagination bool) []ApplicationGroup 
 			appG.Id = bson.NewObjectId()
 		}
 
-		var services []bson.ObjectId
+		services := make([]bson.ObjectId, 0)
 		for _, s := range servicesListArray {
 			if !bson.IsObjectIdHex(strings.Trim(s, " ")) {
 				continue
