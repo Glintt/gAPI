@@ -133,15 +133,9 @@ func UpdateServiceGroup(c *routing.Context) error {
 }
 
 func RemoveServiceGroup(c *routing.Context) error {
-	serviceGroupId := bson.ObjectIdHex(c.Param("group_id"))
+	serviceGroupId := c.Param("group_id")
 
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	err := db.C(constants.SERVICE_GROUP_COLLECTION).RemoveId(serviceGroupId)
-
-	_, err = db.C(constants.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"groupid": nil}})
-
-	database.MongoDBPool.Close(session)
+	err := servicediscovery.ServiceGroupMethods()["delete"].(func(string) error)(serviceGroupId)
 
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)

@@ -20,6 +20,7 @@ var ServiceGroupMethods = map[string]map[string]interface{}{
 		"addservicetogroup": AddServiceToGroupMongo,
 		"create":            CreateServiceGroupMongo,
 		"update":            UpdateServiceGroupMongo,
+		"delete":            DeleteServiceGroupMongo,
 	},
 
 	"oracle": {
@@ -27,6 +28,7 @@ var ServiceGroupMethods = map[string]map[string]interface{}{
 		"addservicetogroup": AddServiceToGroupOracle,
 		"create":            CreateServiceGroupOracle,
 		"update":            UpdateServiceGroupOracle,
+		"delete":            DeleteServiceGroupOracle,
 	},
 }
 

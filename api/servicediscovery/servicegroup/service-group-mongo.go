@@ -54,6 +54,20 @@ func UpdateServiceGroupMongo(serviceGroupId string, serviceGroup ServiceGroup) e
 	return err
 }
 
+func DeleteServiceGroupMongo(serviceGroupId string) error {
+	serviceGroupIdObj := bson.ObjectIdHex(serviceGroupId)
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	err := db.C(constants.SERVICE_GROUP_COLLECTION).RemoveId(serviceGroupIdObj)
+
+	_, err = db.C(constants.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"groupid": nil}})
+
+	database.MongoDBPool.Close(session)
+
+	return err
+}
+
 func AddServiceToGroupMongo(serviceGroupId string, serviceId string) error {
 	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
 	serviceIdHex := bson.ObjectIdHex(serviceId)
