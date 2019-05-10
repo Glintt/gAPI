@@ -13,6 +13,7 @@ const (
 	LIST_SERVICE_GROUP              = `select id, name, isreachable from gapi_services_groups`
 	GET_SERVICE_GROUP_BY_ID_OR_NAME = `select id, name, isreachable from gapi_services_groups where id = :id or name = :name`
 	ADD_SERVICE_TO_GROUP            = `update gapi_services set groupid = :groupid where id = :id`
+	REMOVE_SERVICE_FROM_GROUP       = `update gapi_services set groupid = '' where id = :id`
 	CREATE_SERVICE_GROUP            = `insert into gapi_services_groups(id, name, isreachable) values (:id,:name,:isreachable)`
 	UPDATE_SERVICE_GROUP            = `update gapi_services_groups set name = :name, isreachable = :isreachable where id = :id`
 	DELETE_SERVICE_GROUP            = `delete from gapi_services_groups where id = :id`
@@ -64,6 +65,20 @@ func AddServiceToGroupOracle(serviceGroupId string, serviceId string) error {
 
 	_, err = db.Exec(ADD_SERVICE_TO_GROUP,
 		serviceGroupId, serviceId,
+	)
+
+	database.CloseOracleConnection(db)
+	return err
+}
+
+func RemoveServiceFromGroupOracle(serviceGroupId string, serviceId string) error {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(REMOVE_SERVICE_FROM_GROUP,
+		serviceId,
 	)
 
 	database.CloseOracleConnection(db)

@@ -3,10 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"gAPIManagement/api/config"
-	"gAPIManagement/api/database"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/servicegroup"
 	"strconv"
 
@@ -85,29 +83,10 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 		return nil
 	}
 
-	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
-	serviceIdHex := bson.ObjectIdHex(serviceId)
-
-	updateGroup := bson.M{"$pull": bson.M{"services": serviceIdHex}}
-	updateService := bson.M{"$set": bson.M{"groupid": nil, "usegroupattributes": false}}
-
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	err := db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+	err := servicediscovery.ServiceGroupMethods()["removeservicefromgroup"].(func(string, string) error)(serviceGroupId, serviceId)
 
 	if err != nil {
-		database.MongoDBPool.Close(session)
-
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
-	}
-
-	err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
-
-	database.MongoDBPool.Close(session)
-
-	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "`+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	http.Response(c, `{"error" : false, "msg": "Service deassociated from group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)

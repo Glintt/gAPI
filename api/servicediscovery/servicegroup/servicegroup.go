@@ -16,21 +16,23 @@ type ServiceGroup struct {
 
 var ServiceGroupMethods = map[string]map[string]interface{}{
 	"mongo": {
-		"list":              GetServiceGroupsMongo,
-		"addservicetogroup": AddServiceToGroupMongo,
-		"create":            CreateServiceGroupMongo,
-		"update":            UpdateServiceGroupMongo,
-		"delete":            DeleteServiceGroupMongo,
-		"getbyid":           GetServiceGroupByIdMongo,
+		"list":                   GetServiceGroupsMongo,
+		"addservicetogroup":      AddServiceToGroupMongo,
+		"removeservicefromgroup": RemoveServiceFromGroupMongo,
+		"create":                 CreateServiceGroupMongo,
+		"update":                 UpdateServiceGroupMongo,
+		"delete":                 DeleteServiceGroupMongo,
+		"getbyid":                GetServiceGroupByIdMongo,
 	},
 
 	"oracle": {
-		"list":              GetServiceGroupsOracle,
-		"addservicetogroup": AddServiceToGroupOracle,
-		"create":            CreateServiceGroupOracle,
-		"update":            UpdateServiceGroupOracle,
-		"delete":            DeleteServiceGroupOracle,
-		"getbyid":           GetServiceGroupByIdOracle,
+		"list":                   GetServiceGroupsOracle,
+		"addservicetogroup":      AddServiceToGroupOracle,
+		"removeservicefromgroup": RemoveServiceFromGroupOracle,
+		"create":                 CreateServiceGroupOracle,
+		"update":                 UpdateServiceGroupOracle,
+		"delete":                 DeleteServiceGroupOracle,
+		"getbyid":                GetServiceGroupByIdOracle,
 	},
 }
 

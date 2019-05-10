@@ -106,3 +106,26 @@ func AddServiceToGroupMongo(serviceGroupId string, serviceId string) error {
 
 	return err
 }
+
+func RemoveServiceFromGroupMongo(serviceGroupId string, serviceId string) error {
+	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
+	serviceIdHex := bson.ObjectIdHex(serviceId)
+
+	updateGroup := bson.M{"$pull": bson.M{"services": serviceIdHex}}
+	updateService := bson.M{"$set": bson.M{"groupid": nil, "usegroupattributes": false}}
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	err := db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+
+	if err != nil {
+		database.MongoDBPool.Close(session)
+		return err
+	}
+
+	err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
+
+	database.MongoDBPool.Close(session)
+
+	return err
+}
