@@ -2,6 +2,7 @@ package appgroups
 
 import (
 	"database/sql"
+	"fmt"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/servicediscovery"
 
@@ -21,6 +22,7 @@ gapi_services b
  where b.id = :id and b.applicationgroupid = a.id`
 
 var ASSOCIATE_APPLICATION_TO_GROUP = `update gapi_services set applicationgroupid = :groupid where id = :id`
+var UNGROUPED_SERVICES = `select ` + servicediscovery.SERVICE_COLUMNS + `  from gapi_services a left join gapi_services_groups b on a.groupid = b.id where applicationgroupid is null`
 
 func CreateApplicationGroupOracle(bodyMap ApplicationGroup) error {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
@@ -212,4 +214,22 @@ func RemoveServiceFromGroupOracle(appGroupId string, serviceId string) error {
 
 	database.CloseOracleConnection(db)
 	return err
+}
+
+func UngroupedServicesOracle() []servicediscovery.Service {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return []servicediscovery.Service{}
+	}
+
+	rows, err := db.Query(UNGROUPED_SERVICES)
+	if err != nil {
+		fmt.Println(err)
+		return []servicediscovery.Service{}
+	}
+
+	services := servicediscovery.RowsToService(rows, false)
+
+	database.CloseOracleConnection(db)
+	return services
 }

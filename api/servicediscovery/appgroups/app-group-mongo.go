@@ -135,3 +135,21 @@ func RemoveServiceFromGroupMongo(appGroupId string, serviceId string) error {
 
 	return err
 }
+
+func UngroupedServicesMongo() []servicediscovery.Service {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	var servicesThatMatch []servicediscovery.Service
+
+	query := []bson.M{
+		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
+		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"}}}},
+		{"$match": bson.M{"zeroAppGroups": true}},
+	}
+
+	db.C(servicediscovery.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
+
+	database.MongoDBPool.Close(session)
+
+	return servicesThatMatch
+}
