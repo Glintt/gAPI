@@ -5,6 +5,7 @@ import (
 	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
+	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/service"
 	sdUtils "gAPIManagement/api/servicediscovery/utils"
 	"gAPIManagement/api/utils"
@@ -75,7 +76,7 @@ func ListServicesFile(page int, filterQuery string) []service.Service {
 	if page == -1 {
 		return servicesList
 	}
-	from, to := database.PageFromTo(page, PAGE_LENGTH, len(servicesList))
+	from, to := database.PageFromTo(page, constants.PAGE_LENGTH, len(servicesList))
 
 	return servicesList[from:to]
 }

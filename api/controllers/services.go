@@ -5,6 +5,7 @@ import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/service"
 	sdUtils "gAPIManagement/api/servicediscovery/utils"
 	"gAPIManagement/api/utils"
@@ -15,11 +16,11 @@ import (
 )
 
 func Methods() map[string]interface{} {
-	return servicediscovery.Methods[servicediscovery.SD_TYPE]
+	return servicediscovery.Methods[constants.SD_TYPE]
 }
 
 func ServiceDiscoveryServiceName() string {
-	return servicediscovery.SERVICE_NAME
+	return constants.SERVICE_NAME
 }
 
 func ServiceDiscovery() *servicediscovery.ServiceDiscovery {

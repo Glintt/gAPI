@@ -3,11 +3,16 @@ package servicegroup
 import (
 	"database/sql"
 	"gAPIManagement/api/database"
+	"gAPIManagement/api/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
-const LIST_SERVICE_GROUP = `select id, name, isreachable from gapi_services_groups`
+const (
+	LIST_SERVICE_GROUP   = `select id, name, isreachable from gapi_services_groups`
+	ADD_SERVICE_TO_GROUP = `update gapi_services set groupid = :groupid where id = :id`
+	CREATE_SERVICE_GROUP = `insert into gapi_services_groups(id, name, isreachable) values (:id,:name,:isreachable)`
+)
 
 func GetServiceGroupsOracle() ([]ServiceGroup, error) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
@@ -21,6 +26,34 @@ func GetServiceGroupsOracle() ([]ServiceGroup, error) {
 	database.CloseOracleConnection(db)
 
 	return groups, nil
+}
+
+func AddServiceToGroupOracle(serviceGroupId string, serviceId string) error {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ADD_SERVICE_TO_GROUP,
+		serviceGroupId, serviceId,
+	)
+
+	database.CloseOracleConnection(db)
+	return err
+}
+
+func CreateServiceGroupOracle(serviceGroup ServiceGroup) error {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(CREATE_SERVICE_GROUP,
+		serviceGroup.Id.Hex(), serviceGroup.Name, utils.BoolToInt(serviceGroup.IsReachable),
+	)
+
+	database.CloseOracleConnection(db)
+	return err
 }
 
 func RowsToServiceGroup(rows *sql.Rows, containsPagination bool) []ServiceGroup {

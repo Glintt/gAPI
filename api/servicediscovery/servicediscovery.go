@@ -6,6 +6,7 @@ import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/http"
+	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/service"
 	"gAPIManagement/api/servicediscovery/servicegroup"
 	sdUtils "gAPIManagement/api/servicediscovery/utils"
@@ -13,7 +14,6 @@ import (
 	"strings"
 
 	routing "github.com/qiangxue/fasthttp-routing"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type ServiceDiscovery struct {
@@ -22,10 +22,6 @@ type ServiceDiscovery struct {
 }
 
 var sd ServiceDiscovery
-
-var SERVICE_NAME = "/service-discovery"
-var PAGE_LENGTH = 10
-var SD_TYPE = "file"
 
 var Methods = map[string]map[string]interface{}{
 	"mongo": {
@@ -57,7 +53,7 @@ func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service)
 }
 
 func ServiceGroupMethods() map[string]interface{} {
-	return servicegroup.ServiceGroupMethods[SD_TYPE]
+	return servicegroup.ServiceGroupMethods[constants.SD_TYPE]
 }
 
 func GetServiceDiscoveryObject() *ServiceDiscovery {
@@ -66,7 +62,7 @@ func GetServiceDiscoveryObject() *ServiceDiscovery {
 
 func InitServiceDiscovery() {
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" || config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
-		SD_TYPE = config.GApiConfiguration.ServiceDiscovery.Type
+		constants.SD_TYPE = config.GApiConfiguration.ServiceDiscovery.Type
 
 		if !database.IsConnectionDone {
 			if err := database.InitDatabaseConnection(); err != nil {
@@ -82,7 +78,7 @@ func InitServiceDiscovery() {
 }
 
 func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
-	hosts, _ := Methods[SD_TYPE]["distincthosts"].(func() ([]string, error))()
+	hosts, _ := Methods[constants.SD_TYPE]["distincthosts"].(func() ([]string, error))()
 
 	requestHost := requestContxt.RemoteIP().String()
 
@@ -115,28 +111,10 @@ func (sd *ServiceDiscovery) GetListOfServicesGroup() ([]servicegroup.ServiceGrou
 	return servicesGroup, err
 }
 
-func (sd *ServiceDiscovery) AddServiceToGroup(serviceGroupId string, serviceId string) error {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
-	serviceIdHex := bson.ObjectIdHex(serviceId)
-
-	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHex}}
-	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHex}}
-	updateService := bson.M{"$set": bson.M{"groupid": serviceGroupIdHex}}
-
-	err := db.C(service.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
-	if err != nil {
-		database.MongoDBPool.Close(session)
-		return errors.New("Update Service failed")
-	}
-
-	_, err = db.C(service.SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
-	err = db.C(service.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
-
-	database.MongoDBPool.Close(session)
-	return nil
-}
+// func (sd *ServiceDiscovery) AddServiceToGroup(serviceGroupId string, serviceId string) error {
+// 	err := ServiceGroupMethods()["addservicetogroup"].(func(string, string) error)(serviceGroupId, serviceId)
+// 	return err
+// }
 
 func IsServiceReachableFromExternal(service service.Service, sd ServiceDiscovery) bool {
 	if !service.UseGroupAttributes || service.GroupId == "" {
@@ -169,7 +147,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error)
 		responseBody := resp.Body()
 		json.Unmarshal(responseBody, services)
 	} else {
-		services = Methods[SD_TYPE]["list"].(func(int, string, bool) []service.Service)(-1, "", true)
+		services = Methods[constants.SD_TYPE]["list"].(func(int, string, bool) []service.Service)(-1, "", true)
 	}
 
 	return services, nil
@@ -197,7 +175,7 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (service.Serv
 }
 
 func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.Service, error) {
-	_, status := Methods[SD_TYPE]["update"].(func(service.Service, service.Service) (string, int))(s, s)
+	_, status := Methods[constants.SD_TYPE]["update"].(func(service.Service, service.Service) (string, int))(s, s)
 	if status == 201 {
 		return s, nil
 	}
@@ -206,7 +184,7 @@ func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.S
 }
 
 func (serviceDisc *ServiceDiscovery) FindService(s service.Service) (service.Service, error) {
-	return Methods[SD_TYPE]["get"].(func(service.Service) (service.Service, error))(s)
+	return Methods[constants.SD_TYPE]["get"].(func(service.Service) (service.Service, error))(s)
 }
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (service.Service, error) {

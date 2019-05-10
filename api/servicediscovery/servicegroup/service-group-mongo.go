@@ -1,8 +1,11 @@
 package servicegroup
 
 import (
+	"errors"
 	"gAPIManagement/api/database"
+	"gAPIManagement/api/servicediscovery/constants"
 
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -17,7 +20,48 @@ func GetServiceGroupsMongo() ([]ServiceGroup, error) {
 	return servicesGroup, err
 }
 
-func CreateServiceGroupMongo(serviceGroupId string, serviceId string) error {
+func CreateServiceGroupMongo(serviceGroup ServiceGroup) error {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	return nil
+	serviceGroup.Id = bson.NewObjectId()
+	collection := db.C(constants.SERVICE_GROUP_COLLECTION)
+	index := mgo.Index{
+		Key:        []string{"name"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+	err := collection.EnsureIndex(index)
+	if err != nil {
+		return err
+	}
+	err = collection.Insert(&serviceGroup)
+
+	database.MongoDBPool.Close(session)
+
+	return err
+}
+
+func AddServiceToGroupMongo(serviceGroupId string, serviceId string) error {
+	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
+	serviceIdHex := bson.ObjectIdHex(serviceId)
+
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHex}}
+	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHex}}
+	updateService := bson.M{"$set": bson.M{"groupid": serviceGroupIdHex}}
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+	err := db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+	if err != nil {
+		database.MongoDBPool.Close(session)
+		return errors.New("Update Service failed")
+	}
+
+	_, err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
+	err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
+
+	database.MongoDBPool.Close(session)
+
+	return err
 }

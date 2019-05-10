@@ -22,7 +22,7 @@ func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 	serviceDiscoveryAPIGroup.Get("/services/manage/types", controllers.ManageServiceTypesHandler)
 	serviceDiscoveryAPIGroup.Post("/auto-register", authentication.AdminRequiredMiddleware, controllers.AutoRegisterHandler)
 	serviceDiscoveryAPIGroup.Post("/auto-deregister", authentication.AdminRequiredMiddleware, controllers.AutoDeRegisterHandler)
-	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" {
+	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" || config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
 		LoadDBSpecificEndpoints(serviceDiscoveryAPIGroup)
 	}
 	serviceDiscoveryAPIGroup.To("GET,POST,PUT,PATCH,DELETE", "/*", controllers.ServiceNotFound)

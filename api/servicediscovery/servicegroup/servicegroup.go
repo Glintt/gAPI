@@ -16,11 +16,15 @@ type ServiceGroup struct {
 
 var ServiceGroupMethods = map[string]map[string]interface{}{
 	"mongo": {
-		"list": GetServiceGroupsMongo,
+		"list":              GetServiceGroupsMongo,
+		"addservicetogroup": AddServiceToGroupMongo,
+		"create":            CreateServiceGroupMongo,
 	},
 
 	"oracle": {
-		"list": GetServiceGroupsOracle,
+		"list":              GetServiceGroupsOracle,
+		"addservicetogroup": AddServiceToGroupOracle,
+		"create":            CreateServiceGroupOracle,
 	},
 }
 

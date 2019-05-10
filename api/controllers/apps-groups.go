@@ -5,8 +5,8 @@ import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/servicediscovery/appgroups"
+	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/service"
 	"strconv"
 
@@ -15,7 +15,7 @@ import (
 )
 
 func AppGroupMethods() map[string]interface{} {
-	return appgroups.ApplicationGroupMethods[servicediscovery.SD_TYPE]
+	return appgroups.ApplicationGroupMethods[constants.SD_TYPE]
 }
 
 func CreateAppGroup(c *routing.Context) error {
@@ -63,12 +63,12 @@ func GetAppGroups(c *routing.Context) error {
 	appGroups := AppGroupMethods()["list"].(func(int, string) []appgroups.ApplicationGroup)(page, nameFilter)
 
 	if len(appGroups) == 0 {
-		http.Response(c, `[]`, 200, servicediscovery.SERVICE_NAME, config.APPLICATION_JSON)
+		http.Response(c, `[]`, 200, constants.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
 	}
 
 	appGroupsString, _ := json.Marshal(appGroups)
-	http.Response(c, string(appGroupsString), 200, servicediscovery.SERVICE_NAME, config.APPLICATION_JSON)
+	http.Response(c, string(appGroupsString), 200, constants.SERVICE_NAME, config.APPLICATION_JSON)
 	return nil
 }
 
@@ -211,13 +211,13 @@ func AppGroupsMatches(c *routing.Context) error {
 	var servicesThatMatch []service.Service
 
 	query := []bson.M{
-		{"$lookup": bson.M{"from": service.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
+		{"$lookup": bson.M{"from": constants.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
 		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"}}}},
 		{"$match": bson.M{"zeroAppGroups": true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/(v1/)?" + groupName + "(/\\w*)?", "i"}}},
 	}
 	// query := bson.M{"matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "/\\w+", ""}}
 
-	db.C(service.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
+	db.C(constants.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
 
 	database.MongoDBPool.Close(session)
 

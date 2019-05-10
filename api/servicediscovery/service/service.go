@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
+	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/servicegroup"
 	sdUtils "gAPIManagement/api/servicediscovery/utils"
 	"gAPIManagement/api/utils"
@@ -142,7 +143,7 @@ func (service *Service) GetGroup() (servicegroup.ServiceGroup, error) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var servicesGroup servicegroup.ServiceGroup
-	err := db.C(SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
+	err := db.C(constants.SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
 
 	database.MongoDBPool.Close(session)
 
