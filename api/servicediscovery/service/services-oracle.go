@@ -1,4 +1,4 @@
-package servicediscovery
+package service
 
 import (
 	"database/sql"

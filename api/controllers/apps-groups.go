@@ -7,6 +7,7 @@ import (
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/servicediscovery/appgroups"
+	"gAPIManagement/api/servicediscovery/service"
 	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -98,7 +99,7 @@ func GetAppGroupById(c *routing.Context) error {
 
 	group, err := AppGroupMethods()["getbyid"].(func(string) (appgroups.ApplicationGroup, error))(appGroupId)
 
-	servicesList, err := AppGroupMethods()["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]servicediscovery.Service, error))(group)
+	servicesList, err := AppGroupMethods()["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(group)
 
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -207,16 +208,16 @@ func AppGroupsMatches(c *routing.Context) error {
 
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	var servicesThatMatch []servicediscovery.Service
+	var servicesThatMatch []service.Service
 
 	query := []bson.M{
-		{"$lookup": bson.M{"from": servicediscovery.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
+		{"$lookup": bson.M{"from": service.SERVICE_APPS_GROUP_COLLECTION, "localField": "_id", "foreignField": "services", "as": "service_app_group"}},
 		{"$addFields": bson.M{"zeroAppGroups": bson.M{"$not": bson.M{"$size": "$service_app_group"}}}},
 		{"$match": bson.M{"zeroAppGroups": true, "matchinguri": bson.RegEx{"/api/(experience|system|process)/(v1/)?" + groupName + "(/\\w*)?", "i"}}},
 	}
 	// query := bson.M{"matchinguri": bson.RegEx{"/api/(experience|system|process)/" + groupName + "/\\w+", ""}}
 
-	db.C(servicediscovery.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
+	db.C(service.SERVICES_COLLECTION).Pipe(query).All(&servicesThatMatch)
 
 	database.MongoDBPool.Close(session)
 
@@ -230,7 +231,7 @@ func AppGroupsMatches(c *routing.Context) error {
 }
 
 func UngroupedApps(c *routing.Context) error {
-	servicesThatMatch := AppGroupMethods()["ungroupedservices"].(func() []servicediscovery.Service)()
+	servicesThatMatch := AppGroupMethods()["ungroupedservices"].(func() []service.Service)()
 
 	servicesThatMatchJson, _ := json.Marshal(servicesThatMatch)
 	http.Response(c, string(servicesThatMatchJson), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)

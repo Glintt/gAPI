@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"gAPIManagement/api/notifications"
+	"gAPIManagement/api/servicediscovery/service"
 	"gAPIManagement/api/utils"
 
 	"gAPIManagement/api/config"
@@ -11,7 +12,7 @@ import (
 )
 
 var sd *servicediscovery.ServiceDiscovery
-var services []servicediscovery.Service
+var services []service.Service
 
 var TickerTime = 30
 var TimeoutDuration = 2
@@ -53,7 +54,7 @@ func CheckServicesHealth() {
 		// healthcheckURL = "http://" + s.Domain + ":" + s.Port + healthcheckURL
 		utils.LogMessage("-----> "+s.HealthcheckUrl, utils.DebugLogType)
 
-		go func(healthcheckURL string, s servicediscovery.Service) {
+		go func(healthcheckURL string, s service.Service) {
 			resp, err := http.Get(healthcheckURL)
 			if err != nil || resp.StatusCode != 200 {
 				NotifyHealthDown(s)
@@ -77,22 +78,22 @@ func CheckServicesHealth() {
 	utils.LogMessage("### HEALTH CHECK ENDED ###", utils.DebugLogType)
 }
 
-func NotifyHealthDown(service servicediscovery.Service) {
-	if !config.GApiConfiguration.Healthcheck.Notification || !service.IsActive {
+func NotifyHealthDown(s service.Service) {
+	if !config.GApiConfiguration.Healthcheck.Notification || !s.IsActive {
 		return
 	}
 
-	msg := "*" + service.Name + "* located at *" + service.Domain + ":" + service.Port + service.ToURI + "* is down :thinking_face: :thinking_face:"
+	msg := "*" + s.Name + "* located at *" + s.Domain + ":" + s.Port + s.ToURI + "* is down :thinking_face: :thinking_face:"
 
 	notifications.SendNotification(msg)
 }
 
-func NotifyHealthUp(service servicediscovery.Service) {
-	if !config.GApiConfiguration.Healthcheck.Notification || service.IsActive {
+func NotifyHealthUp(s service.Service) {
+	if !config.GApiConfiguration.Healthcheck.Notification || s.IsActive {
 		return
 	}
 
-	msg := "*" + service.Name + "* located at *" + service.Domain + ":" + service.Port + service.ToURI + "* went up again! :smiley: :smiley:"
+	msg := "*" + s.Name + "* located at *" + s.Domain + ":" + s.Port + s.ToURI + "* went up again! :smiley: :smiley:"
 
 	notifications.SendNotification(msg)
 }

@@ -1,4 +1,4 @@
-package servicediscovery
+package service
 
 import (
 	"gAPIManagement/api/database"
@@ -12,6 +12,7 @@ const (
 	SERVICE_GROUP_COLLECTION      = "services_groups"
 	SERVICE_APPS_GROUP_COLLECTION = "services_apps_groups"
 )
+const PAGE_LENGTH = 10
 
 func UpdateMongo(service Service, serviceExists Service) (string, int) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)

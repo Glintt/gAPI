@@ -1,13 +1,13 @@
 package proxy
 
 import (
-	"fmt"
 	"gAPIManagement/api/cache"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
 	"gAPIManagement/api/plugins"
 	"gAPIManagement/api/ratelimiting"
 	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/servicediscovery/service"
 	authentication "gAPIManagement/api/thirdpartyauthentication"
 	"gAPIManagement/api/utils"
 	"regexp"
@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/qiangxue/fasthttp-routing"
+	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 var sd servicediscovery.ServiceDiscovery
@@ -47,9 +47,9 @@ func HandleRequest(c *routing.Context) error {
 		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
 
 		utils.LogMessage("IsExternalRequest = "+strconv.FormatBool(sd.IsExternalRequest(c)), utils.DebugLogType)
-		utils.LogMessage("IsReachableFromExternal = "+strconv.FormatBool(cachedRequest.Service.IsReachableFromExternal(sd)), utils.DebugLogType)
+		utils.LogMessage("IsReachableFromExternal = "+strconv.FormatBool(servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)), utils.DebugLogType)
 
-		if err != nil || (sd.IsExternalRequest(c) && !cachedRequest.Service.IsReachableFromExternal(sd)) {
+		if err != nil || (sd.IsExternalRequest(c) && !servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)) {
 			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME, config.APPLICATION_JSON)
 			return nil
 		}
@@ -102,7 +102,7 @@ func HandleRequest(c *routing.Context) error {
 	return nil
 }
 
-func getApiResponse(c *routing.Context, authorization authentication.ProtectionInfo, service servicediscovery.Service) http.ResponseInfo {
+func getApiResponse(c *routing.Context, authorization authentication.ProtectionInfo, s service.Service) http.ResponseInfo {
 
 	c.Request.Header.Set(authorization.Header, authorization.UserInfo)
 	headers := http.GetHeadersFromRequest(c.Request)
@@ -112,7 +112,7 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 
 	body := c.Request.Body()
 
-	response := service.Call(string(c.Method()), http.GetURIWithParams(c), headers, string(body))
+	response := s.Call(string(c.Method()), http.GetURIWithParams(c), headers, string(body))
 
 	return http.ResponseInfo{
 		StatusCode:  response.Header.StatusCode(),
@@ -120,16 +120,16 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 		Body:        response.Body()}
 }
 
-func checkAuthorization(c *routing.Context, service servicediscovery.Service) authentication.ProtectionInfo {
-	if !service.Protected {
+func checkAuthorization(c *routing.Context, s service.Service) authentication.ProtectionInfo {
+	if !s.Protected {
 		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
 	}
 
-	endpoint := strings.Replace(string(c.RequestURI()), service.MatchingURI, "", 1)
+	endpoint := strings.Replace(string(c.RequestURI()), s.MatchingURI, "", 1)
 	endpoint = strings.Split(endpoint, "?")[0]
 
-	if _, ok := service.ProtectedExclude[endpoint]; !ok {
-		for key, val := range service.ProtectedExclude {
+	if _, ok := s.ProtectedExclude[endpoint]; !ok {
+		for key, val := range s.ProtectedExclude {
 			re := regexp.MustCompile(key)
 
 			value := strings.ToLower(val)
@@ -143,7 +143,7 @@ func checkAuthorization(c *routing.Context, service servicediscovery.Service) au
 		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
 	}
 
-	headerName, userInfo, notAuthorizedErr := Protect(service, c)
+	headerName, userInfo, notAuthorizedErr := Protect(s, c)
 
 	if notAuthorizedErr != nil {
 		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: notAuthorizedErr}
@@ -153,13 +153,12 @@ func checkAuthorization(c *routing.Context, service servicediscovery.Service) au
 
 }
 
-func getServiceFromServiceDiscovery(c *routing.Context) (servicediscovery.Service, error) {
+func getServiceFromServiceDiscovery(c *routing.Context) (service.Service, error) {
 	return sd.GetEndpointForUri(string(c.Request.RequestURI()))
 }
 
-func Protect(service servicediscovery.Service, c *routing.Context) (string, string, error) {
-	fmt.Println("HERE")
-	if service.Protected {
+func Protect(s service.Service, c *routing.Context) (string, string, error) {
+	if s.Protected {
 		return oauthserver.Authorize(c.Request)
 	}
 	return "n/a", "n/a", nil

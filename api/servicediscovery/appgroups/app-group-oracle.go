@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"gAPIManagement/api/database"
-	"gAPIManagement/api/servicediscovery"
+	"gAPIManagement/api/servicediscovery/service"
 	"strings"
 
 	"gopkg.in/mgo.v2/bson"
@@ -15,7 +15,7 @@ var LIST_APPLICATION_GROUP_V2 = `select a.id, a.name, listagg(b.id,', ') within 
 on b.applicationgroupid = a.id  where a.name like :name group by (a.id, a.name)`
 var LIST_APPLICATION_GROUP = `select a.id, a.name from gapi_services_apps_groups a where a.name like :name`
 var GET_APPLICATION_GROUP_BY_ID = `select id, name, '' as services from gapi_services_apps_groups where id = :id`
-var GET_SERVICES_FOR_APPLICATION_GROUP = `select ` + servicediscovery.SERVICE_COLUMNS + ` 
+var GET_SERVICES_FOR_APPLICATION_GROUP = `select ` + service.SERVICE_COLUMNS + ` 
 	from gapi_services a left join gapi_services_groups b on a.groupid = b.id, gapi_services_apps_groups c where a.applicationgroupid = c.id and c.id = :id`
 
 var DELETE_APPLICATION_GROUP = `delete from gapi_services_apps_groups where id = :id`
@@ -25,7 +25,7 @@ gapi_services b
  where b.id = :id and b.applicationgroupid = a.id`
 
 var ASSOCIATE_APPLICATION_TO_GROUP = `update gapi_services set applicationgroupid = :groupid where id = :id`
-var UNGROUPED_SERVICES = `select ` + servicediscovery.SERVICE_COLUMNS + `  from gapi_services a left join gapi_services_groups b on a.groupid = b.id where applicationgroupid is null`
+var UNGROUPED_SERVICES = `select ` + service.SERVICE_COLUMNS + `  from gapi_services a left join gapi_services_groups b on a.groupid = b.id where applicationgroupid is null`
 
 func CreateApplicationGroupOracle(bodyMap ApplicationGroup) error {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
@@ -94,18 +94,18 @@ func GetApplicationGroupByIdOracle(appGroupId string) (ApplicationGroup, error) 
 	return appGroups[0], err
 }
 
-func GetServicesForApplicationGroupOracle(appGroup ApplicationGroup) ([]servicediscovery.Service, error) {
+func GetServicesForApplicationGroupOracle(appGroup ApplicationGroup) ([]service.Service, error) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
-		return []servicediscovery.Service{}, err
+		return []service.Service{}, err
 	}
 
 	rows, err := db.Query(GET_SERVICES_FOR_APPLICATION_GROUP, appGroup.Id.Hex())
 	if err != nil {
-		return []servicediscovery.Service{}, err
+		return []service.Service{}, err
 	}
 
-	services := servicediscovery.RowsToService(rows, false)
+	services := service.RowsToService(rows, false)
 	database.CloseOracleConnection(db)
 
 	return services, err
@@ -238,19 +238,19 @@ func RemoveServiceFromGroupOracle(appGroupId string, serviceId string) error {
 	return err
 }
 
-func UngroupedServicesOracle() []servicediscovery.Service {
+func UngroupedServicesOracle() []service.Service {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
-		return []servicediscovery.Service{}
+		return []service.Service{}
 	}
 
 	rows, err := db.Query(UNGROUPED_SERVICES)
 	if err != nil {
 		fmt.Println(err)
-		return []servicediscovery.Service{}
+		return []service.Service{}
 	}
 
-	services := servicediscovery.RowsToService(rows, false)
+	services := service.RowsToService(rows, false)
 
 	database.CloseOracleConnection(db)
 	return services
