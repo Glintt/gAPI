@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/servicediscovery"
+	"strings"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
 var INSERT_APPLICATION_GROUP = `insert into gapi_services_apps_groups(id, name) values (:id, :name)`
-var LIST_APPLICATION_GROUP = `select id, name from gapi_services_apps_groups where name like :name`
-var GET_APPLICATION_GROUP_BY_ID = `select id, name from gapi_services_apps_groups where id = :id`
+var LIST_APPLICATION_GROUP_V2 = `select a.id, a.name, listagg(b.id,', ') within group(order by b.id) services from gapi_services_apps_groups a left join gapi_services b
+on b.applicationgroupid = a.id  where a.name like :name group by (a.id, a.name)`
+var LIST_APPLICATION_GROUP = `select a.id, a.name from gapi_services_apps_groups a where a.name like :name`
+var GET_APPLICATION_GROUP_BY_ID = `select id, name, '' as services from gapi_services_apps_groups where id = :id`
 var GET_SERVICES_FOR_APPLICATION_GROUP = `select ` + servicediscovery.SERVICE_COLUMNS + ` 
 	from gapi_services a left join gapi_services_groups b on a.groupid = b.id, gapi_services_apps_groups c where a.applicationgroupid = c.id and c.id = :id`
 
 var DELETE_APPLICATION_GROUP = `delete from gapi_services_apps_groups where id = :id`
 var UPDATE_APPLICATION_GROUP = `update gapi_services_apps_groups set name = :name where id = :id`
-var GET_APPLICATION_GROUP_FOR_SERVICE = `select a.id, a.name from gapi_services_apps_groups a,
+var GET_APPLICATION_GROUP_FOR_SERVICE = `select a.id, a.name, '' as services from gapi_services_apps_groups a,
 gapi_services b
  where b.id = :id and b.applicationgroupid = a.id`
 
@@ -31,11 +34,15 @@ func CreateApplicationGroupOracle(bodyMap ApplicationGroup) error {
 	}
 	tx, err := db.Begin()
 
+	id := bson.NewObjectId().Hex()
 	_, err = tx.Exec(INSERT_APPLICATION_GROUP,
-		bson.NewObjectId().Hex(), bodyMap.Name,
+		id, bodyMap.Name,
 	)
 
-	// TODO: update all services
+	for _, rs := range bodyMap.Services {
+		AddServiceToGroupOracle(id, rs.Hex())
+	}
+
 	tx.Commit()
 	database.CloseOracleConnection(db)
 
@@ -48,7 +55,7 @@ func GetApplicationGroupsOracle(page int, nameFilter string) []ApplicationGroup 
 		return []ApplicationGroup{}
 	}
 
-	query := LIST_APPLICATION_GROUP
+	query := LIST_APPLICATION_GROUP_V2
 	query = `SELECT * FROM
 			(
 				SELECT a.*, rownum r__
@@ -133,7 +140,10 @@ func UpdateApplicationGroupOracle(appGroupId string, newGroup ApplicationGroup) 
 		newGroup.Name, appGroupId,
 	)
 
-	// TODO: update all services
+	for _, rs := range newGroup.Services {
+		AddServiceToGroupOracle(appGroupId, rs.Hex())
+	}
+
 	tx.Commit()
 	database.CloseOracleConnection(db)
 
@@ -168,18 +178,30 @@ func RowsToAppGroup(rows *sql.Rows, containsPagination bool) []ApplicationGroup 
 	for rows.Next() {
 		var appG ApplicationGroup
 		var id string
+		var servicesList string
 		var a int
 		if containsPagination {
-			rows.Scan(&id, &appG.Name, &a)
+			rows.Scan(&id, &appG.Name, &servicesList, &a)
 		} else {
-			rows.Scan(&id, &appG.Name)
+			rows.Scan(&id, &appG.Name, &servicesList)
 		}
 
+		servicesListArray := strings.Split(servicesList, ",")
 		if bson.IsObjectIdHex(id) {
 			appG.Id = bson.ObjectIdHex(id)
 		} else {
 			appG.Id = bson.NewObjectId()
 		}
+
+		var services []bson.ObjectId
+		for _, s := range servicesListArray {
+			if !bson.IsObjectIdHex(strings.Trim(s, " ")) {
+				continue
+			}
+			services = append(services, bson.ObjectIdHex(strings.Trim(s, " ")))
+		}
+
+		appG.Services = services
 		appGroups = append(appGroups, appG)
 	}
 
