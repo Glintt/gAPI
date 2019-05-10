@@ -19,12 +19,14 @@ var ServiceGroupMethods = map[string]map[string]interface{}{
 		"list":              GetServiceGroupsMongo,
 		"addservicetogroup": AddServiceToGroupMongo,
 		"create":            CreateServiceGroupMongo,
+		"update":            UpdateServiceGroupMongo,
 	},
 
 	"oracle": {
 		"list":              GetServiceGroupsOracle,
 		"addservicetogroup": AddServiceToGroupOracle,
 		"create":            CreateServiceGroupOracle,
+		"update":            UpdateServiceGroupOracle,
 	},
 }
 

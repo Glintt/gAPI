@@ -115,24 +115,19 @@ func DeassociateServiceFromGroup(c *routing.Context) error {
 }
 
 func UpdateServiceGroup(c *routing.Context) error {
-	serviceGroupId := bson.ObjectIdHex(c.Param("group_id"))
+	serviceGroupId := c.Param("group_id")
 
 	var sGroup servicegroup.ServiceGroup
 	sgNew := c.Request.Body()
 	json.Unmarshal(sgNew, &sGroup)
 
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	err := db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupId, sGroup)
+	err := servicediscovery.ServiceGroupMethods()["update"].(func(string, servicegroup.ServiceGroup) error)(
+		serviceGroupId, sGroup)
 
 	if err != nil {
-		database.MongoDBPool.Close(session)
-
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-
-	database.MongoDBPool.Close(session)
 	http.Response(c, `{"error" : false, "msg": "Service group update successfuly."}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }

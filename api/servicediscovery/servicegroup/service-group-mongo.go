@@ -43,6 +43,17 @@ func CreateServiceGroupMongo(serviceGroup ServiceGroup) error {
 	return err
 }
 
+func UpdateServiceGroupMongo(serviceGroupId string, serviceGroup ServiceGroup) error {
+	serviceGroupIdObj := bson.ObjectIdHex(serviceGroupId)
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	err := db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdObj, serviceGroup)
+
+	database.MongoDBPool.Close(session)
+	return err
+}
+
 func AddServiceToGroupMongo(serviceGroupId string, serviceId string) error {
 	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
 	serviceIdHex := bson.ObjectIdHex(serviceId)
