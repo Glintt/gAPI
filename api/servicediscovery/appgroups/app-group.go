@@ -18,7 +18,9 @@ var ApplicationGroupMethods = map[string]map[string]interface{}{
 		"getbyid":                GetApplicationGroupByIdMongo,
 		"getservicesforappgroup": GetServicesForApplicationGroupMongo,
 		"update":                 UpdateApplicationGroupMongo,
-		"getappforservice":       FindServiceApplicationGroupMongo},
+		"getappforservice":       FindServiceApplicationGroupMongo,
+		"addapptogroup":          AddServiceToGroupMongo,
+		"removeappfromgroup":     RemoveServiceFromGroupMongo},
 
 	"oracle": {
 		"create":                 CreateApplicationGroupOracle,
@@ -27,5 +29,7 @@ var ApplicationGroupMethods = map[string]map[string]interface{}{
 		"getbyid":                GetApplicationGroupByIdOracle,
 		"getservicesforappgroup": GetServicesForApplicationGroupOracle,
 		"update":                 UpdateApplicationGroupOracle,
-		"getappforservice":       FindServiceApplicationGroupOracle},
+		"getappforservice":       FindServiceApplicationGroupOracle,
+		"addapptogroup":          AddServiceToGroupOracle,
+		"removeappfromgroup":     RemoveServiceFromGroupOracle},
 }

@@ -20,6 +20,8 @@ var GET_APPLICATION_GROUP_FOR_SERVICE = `select a.id, a.name from gapi_services_
 gapi_services b
  where b.id = :id and b.applicationgroupid = a.id`
 
+var ASSOCIATE_APPLICATION_TO_GROUP = `update gapi_services set applicationgroupid = :groupid where id = :id`
+
 func CreateApplicationGroupOracle(bodyMap ApplicationGroup) error {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
@@ -182,4 +184,32 @@ func RowsToAppGroup(rows *sql.Rows, containsPagination bool) []ApplicationGroup 
 	defer rows.Close()
 
 	return appGroups
+}
+
+func AddServiceToGroupOracle(appGroupId string, serviceId string) error {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ASSOCIATE_APPLICATION_TO_GROUP,
+		appGroupId, serviceId,
+	)
+
+	database.CloseOracleConnection(db)
+	return err
+}
+
+func RemoveServiceFromGroupOracle(appGroupId string, serviceId string) error {
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ASSOCIATE_APPLICATION_TO_GROUP,
+		"", serviceId,
+	)
+
+	database.CloseOracleConnection(db)
+	return err
 }

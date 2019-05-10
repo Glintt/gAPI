@@ -105,3 +105,33 @@ func FindServiceApplicationGroupMongo(serviceId string) ApplicationGroup {
 
 	return appGroup
 }
+
+func AddServiceToGroupMongo(appGroupId string, serviceId string) error {
+	serviceGroupIdHex := bson.ObjectIdHex(appGroupId)
+	serviceIdHx := bson.ObjectIdHex(serviceId)
+
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHx}}
+	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHx}}
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	_, err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
+	err = db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
+
+	database.MongoDBPool.Close(session)
+	return err
+}
+
+func RemoveServiceFromGroupMongo(appGroupId string, serviceId string) error {
+	serviceGroupIdHex := bson.ObjectIdHex(appGroupId)
+	serviceIdHx := bson.ObjectIdHex(serviceId)
+
+	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHx}}
+
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	err := db.C(servicediscovery.SERVICE_APPS_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, removeFromAllGroups)
+	database.MongoDBPool.Close(session)
+
+	return err
+}
