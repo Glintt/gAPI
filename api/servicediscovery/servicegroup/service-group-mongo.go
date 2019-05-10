@@ -20,6 +20,22 @@ func GetServiceGroupsMongo() ([]ServiceGroup, error) {
 	return servicesGroup, err
 }
 
+func GetServiceGroupByIdMongo(serviceGroup string) (ServiceGroup, error) {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	var sg ServiceGroup
+	var err error
+	if bson.IsObjectIdHex(serviceGroup) {
+		err = db.C(constants.SERVICE_GROUP_COLLECTION).FindId(bson.ObjectIdHex(serviceGroup)).One(&sg)
+	} else {
+		err = db.C(constants.SERVICE_GROUP_COLLECTION).Find(bson.M{"name": serviceGroup}).One(&sg)
+	}
+
+	database.MongoDBPool.Close(session)
+
+	return sg, err
+}
+
 func CreateServiceGroupMongo(serviceGroup ServiceGroup) error {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 

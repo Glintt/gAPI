@@ -149,17 +149,7 @@ func RemoveServiceGroup(c *routing.Context) error {
 func GetServiceGroupHandler(c *routing.Context) error {
 	serviceGroup := string(c.Param("group"))
 
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	var sg servicegroup.ServiceGroup
-	var err error
-	if bson.IsObjectIdHex(serviceGroup) {
-		err = db.C(constants.SERVICE_GROUP_COLLECTION).FindId(bson.ObjectIdHex(serviceGroup)).One(&sg)
-	} else {
-		err = db.C(constants.SERVICE_GROUP_COLLECTION).Find(bson.M{"name": serviceGroup}).One(&sg)
-	}
-
-	database.MongoDBPool.Close(session)
+	sg, err := servicediscovery.ServiceGroupMethods()["getbyid"].(func(string) (servicegroup.ServiceGroup, error))(serviceGroup)
 
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
