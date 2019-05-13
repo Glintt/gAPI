@@ -54,7 +54,9 @@ export function listServices(page, searchQuery, cb) {
 
 export function getServices(serviceEndpoint, cb) {
   HTTP.GET(HTTP.PathToCall(ServiceDiscoveryBaseURL + Endpoints.get), {
-    params: { uri: serviceEndpoint }
+    params: {
+      uri: serviceEndpoint
+    }
   }).then(
     response => {
       cb(response);
@@ -96,7 +98,9 @@ export function storeServiceGroup(group, cb) {
 }
 
 export function addServiceToServiceGroup(groupId, serviceId, cb) {
-  let obj = { service_id: serviceId };
+  let obj = {
+    service_id: serviceId
+  };
   HTTP.POST(
     HTTP.PathToCall(
       ServiceDiscoveryBaseURL +
@@ -307,7 +311,9 @@ export function deleteAppsGroup(groupId, cb) {
 }
 
 export function addServiceToAppsGroup(groupId, serviceId, cb) {
-  let obj = { service_id: serviceId };
+  let obj = {
+    service_id: serviceId
+  };
   HTTP.POST(
     HTTP.PathToCall(
       Endpoints.associate_to_application_group
@@ -391,9 +397,8 @@ export function findPossibleMatches(name, cb) {
 
 export function applicationGroupById(groupId, cb) {
   HTTP.GET(
-    HTTP.PathToCall(Endpoints.get_application_group_by_id).replace(
-      "<group_id>",
-      groupId
+    HTTP.PathToCall(
+      Endpoints.get_application_group_by_id.replace("<group_id>", groupId)
     ),
     {}
   ).then(
