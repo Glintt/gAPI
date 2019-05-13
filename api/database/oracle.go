@@ -7,10 +7,16 @@ import (
 	_ "gopkg.in/goracle.v2"
 )
 
+var dbConnection *sql.DB
+
 func ConnectToOracle(connectionString string) (*sql.DB, error) {
 	var err error
 
-	dbConnection, err := sql.Open("goracle", connectionString)
+	if dbConnection != nil {
+		dbConnection.Ping()
+		return dbConnection, err
+	}
+	dbConnection, err = sql.Open("goracle", connectionString)
 
 	if err != nil {
 		return nil, err
@@ -26,6 +32,6 @@ func ConnectToOracle(connectionString string) (*sql.DB, error) {
 }
 
 func CloseOracleConnection(dbConnection *sql.DB) error {
-	defer dbConnection.Close()
+	//defer dbConnection.Close()
 	return nil
 }

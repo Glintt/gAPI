@@ -40,7 +40,7 @@ func CreateApplicationGroupOracle(bodyMap ApplicationGroup) error {
 	)
 
 	for _, rs := range bodyMap.Services {
-		AddServiceToGroupOracle(id, rs.Hex())
+		AddServiceToGroupQuery(id, rs.Hex(), tx)
 	}
 
 	tx.Commit()
@@ -141,7 +141,7 @@ func UpdateApplicationGroupOracle(appGroupId string, newGroup ApplicationGroup) 
 	)
 
 	for _, rs := range newGroup.Services {
-		AddServiceToGroupOracle(appGroupId, rs.Hex())
+		AddServiceToGroupQuery(appGroupId, rs.Hex(), tx)
 	}
 
 	tx.Commit()
@@ -216,11 +216,19 @@ func AddServiceToGroupOracle(appGroupId string, serviceId string) error {
 		return err
 	}
 
-	_, err = db.Exec(ASSOCIATE_APPLICATION_TO_GROUP,
+	tx, err := db.Begin()
+
+	AddServiceToGroupQuery(appGroupId, serviceId, tx)
+
+	tx.Commit()
+	database.CloseOracleConnection(db)
+	return err
+}
+
+func AddServiceToGroupQuery(appGroupId string, serviceId string, tx *sql.Tx) error {
+	_, err := tx.Exec(ASSOCIATE_APPLICATION_TO_GROUP,
 		appGroupId, serviceId,
 	)
-
-	database.CloseOracleConnection(db)
 	return err
 }
 

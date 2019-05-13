@@ -215,6 +215,8 @@ func GetEndpointHandler(c *routing.Context) error {
 			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 			return nil
 		}
+		http.Response(c, `{"error": true, "msg": "Not found"}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
 	}
 
 	service, err := ServiceDiscovery().GetEndpointForUri(string(matchingURI))

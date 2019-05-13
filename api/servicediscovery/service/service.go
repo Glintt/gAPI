@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"gAPIManagement/api/config"
-	"gAPIManagement/api/database"
 	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/servicediscovery/servicegroup"
 	sdUtils "gAPIManagement/api/servicediscovery/utils"
@@ -140,12 +139,10 @@ func ValidateURL(url string) bool {
 }
 
 func (service *Service) GetGroup() (servicegroup.ServiceGroup, error) {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	var servicesGroup servicegroup.ServiceGroup
-	err := db.C(constants.SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
+	groupId := service.GroupId.Hex()
 
-	database.MongoDBPool.Close(session)
+	servicesGroup, err := servicegroup.ServiceGroupMethods[constants.SD_TYPE]["getbyid"].(func(string) (servicegroup.ServiceGroup, error))(groupId)
 
 	if err != nil {
 		return servicegroup.ServiceGroup{}, err

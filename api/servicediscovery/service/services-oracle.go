@@ -223,11 +223,17 @@ func DeleteServiceOracle(s Service) (string, int) {
 
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 
-	_, err = db.Exec(DELETE_SERVICES_ORACLE,
+	tx, err := db.Begin()
+
+	DeleteHostsFromService(s, tx)
+
+	_, err = tx.Exec(DELETE_SERVICES_ORACLE,
 		service.Id.Hex(),
 	)
 
+	tx.Commit()
 	database.CloseOracleConnection(db)
+
 	if err == nil {
 		return `{"error": false, "msg": "Removed successfully."}`, 200
 	}
@@ -297,7 +303,7 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 	var services []Service
 	for rows.Next() {
 		var s Service
-		var id string
+		var id, groupid string
 		var mngendpoints,
 			hosts,
 			protectedexclude []byte
@@ -306,7 +312,7 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 		if containsPagination {
 			rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
 				&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable,
-				&s.GroupId, &s.UseGroupAttributes,
+				&groupid, &s.UseGroupAttributes,
 				&s.ServiceManagementHost, &s.ServiceManagementPort,
 				&mngendpoints, &hosts, &protectedexclude,
 				&s.GroupVisibility, &a,
@@ -314,7 +320,7 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 		} else {
 			rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
 				&s.HealthcheckUrl, &s.LastActiveTime, &s.RateLimit, &s.RateLimitExpirationTime, &s.IsReachable,
-				&s.GroupId, &s.UseGroupAttributes,
+				&groupid, &s.UseGroupAttributes,
 				&s.ServiceManagementHost, &s.ServiceManagementPort,
 				&mngendpoints, &hosts, &protectedexclude,
 				&s.GroupVisibility,
@@ -326,6 +332,10 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 		} else {
 			s.Id = bson.NewObjectId()
 		}
+		if bson.IsObjectIdHex(groupid) {
+			s.GroupId = bson.ObjectIdHex(groupid)
+		}
+
 		json.Unmarshal([]byte(mngendpoints), &s.ServiceManagementEndpoints)
 		json.Unmarshal([]byte(hosts), &s.Hosts)
 		json.Unmarshal([]byte(protectedexclude), &s.ProtectedExclude)
