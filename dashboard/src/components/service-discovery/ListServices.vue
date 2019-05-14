@@ -20,7 +20,7 @@
         <td>{{ apiPath(service)}}</td>
         <td>
           <a
-            :href="$config.API.getApiBaseUrl()+`api_docs/${service.Identifier}/documentation`"
+            :href="$utils.urlConcat($config.API.getApiBaseUrl(),`api_docs/${service.Identifier}/documentation`)"
             target="_blank"
           >
             <i class="fas fa-book"></i> Documentation

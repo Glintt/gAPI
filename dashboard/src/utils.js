@@ -32,6 +32,13 @@ export function convertMillisToTime(millis) {
 
 export function enableTooltip() {
   $(document).ready(function() {
-    $("body").tooltip({ selector: "[data-toggle=tooltip]", trigger: "hover" });
+    $("body").tooltip({
+      selector: "[data-toggle=tooltip]",
+      trigger: "hover"
+    });
   });
+}
+
+export function urlConcat(host, path) {
+  return new URL(path, host).href;
 }
