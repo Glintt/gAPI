@@ -5,6 +5,9 @@ import (
 	"errors"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
+	"gAPIManagement/api/servicediscovery/constants"
+	"gAPIManagement/api/servicediscovery/service"
+	sdUtils "gAPIManagement/api/servicediscovery/utils"
 	"gAPIManagement/api/utils"
 	"io/ioutil"
 	"regexp"
@@ -13,7 +16,7 @@ import (
 )
 
 type ServicesConfig struct {
-	Services []Service `json:"services"`
+	Services []service.Service `json:"services"`
 }
 
 func LoadServicesConfiguration() ServicesConfig {
@@ -28,8 +31,8 @@ func LoadServicesConfiguration() ServicesConfig {
 	return sc
 }
 
-func UpdateFile(service Service, serviceExists Service) (string, int) {
-	var newServices []Service
+func UpdateFile(s service.Service, serviceExists service.Service) (string, int) {
+	var newServices []service.Service
 
 	for _, element := range sd.registeredServices {
 		if element.Id == serviceExists.Id || (element.Name == serviceExists.Name && element.MatchingURI == serviceExists.MatchingURI && element.ToURI == serviceExists.ToURI && element.Domain == serviceExists.Domain) {
@@ -39,7 +42,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 		}
 	}
 
-	newServices = append(newServices, service)
+	newServices = append(newServices, s)
 	sd.registeredServices = newServices
 
 	go sd.SaveServicesToFile()
@@ -47,7 +50,7 @@ func UpdateFile(service Service, serviceExists Service) (string, int) {
 	return `{"error" : false, "msg": "Service updated successfuly."}`, 201
 }
 
-func CreateServiceFile(s Service) (string, int) {
+func CreateServiceFile(s service.Service) (string, int) {
 	s.Id = s.GenerateId()
 	sd.registeredServices = append(sd.registeredServices, s)
 
@@ -56,8 +59,8 @@ func CreateServiceFile(s Service) (string, int) {
 	return `{"error" : false, "msg": "Registered service successfuly."}`, 201
 }
 
-func ListServicesFile(page int, filterQuery string) []Service {
-	var servicesList []Service
+func ListServicesFile(page int, filterQuery string) []service.Service {
+	var servicesList []service.Service
 	if filterQuery != "" {
 		for _, v := range sd.registeredServices {
 			if strings.Contains(strings.ToLower(v.Name), strings.ToLower(filterQuery)) || strings.Contains(strings.ToLower(v.MatchingURI), strings.ToLower(filterQuery)) {
@@ -73,23 +76,23 @@ func ListServicesFile(page int, filterQuery string) []Service {
 	if page == -1 {
 		return servicesList
 	}
-	from, to := database.PageFromTo(page, PAGE_LENGTH, len(servicesList))
+	from, to := database.PageFromTo(page, constants.PAGE_LENGTH, len(servicesList))
 
 	return servicesList[from:to]
 }
 
-func DeleteServiceFile(service Service) (string, int) {
+func DeleteServiceFile(s service.Service) (string, int) {
 	//service, err := FindFile(GetMatchURI(matchingURI))
-	service, err := FindFile(service)
+	s, err := FindFile(s)
 
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
 	}
 
-	var newServices []Service
+	var newServices []service.Service
 
 	for _, element := range sd.registeredServices {
-		if element.Name == service.Name && element.MatchingURI == service.MatchingURI && element.ToURI == service.ToURI {
+		if element.Name == s.Name && element.MatchingURI == s.MatchingURI && element.ToURI == s.ToURI {
 
 		} else {
 			newServices = append(newServices, element)
@@ -103,26 +106,26 @@ func DeleteServiceFile(service Service) (string, int) {
 	return `{"error": false, "msg": "Removed successfully."}`, 200
 }
 
-func FindFile(service Service) (Service, error) {
+func FindFile(s service.Service) (service.Service, error) {
 	for _, rs := range sd.registeredServices {
 		if rs.MatchingURIRegex == "" {
-			rs.MatchingURIRegex = GetMatchingURIRegex(rs.MatchingURI)
+			rs.MatchingURIRegex = sdUtils.GetMatchingURIRegex(rs.MatchingURI)
 		}
 		re := regexp.MustCompile(rs.MatchingURIRegex)
-		if re.MatchString(service.MatchingURI) {
+		if re.MatchString(s.MatchingURI) {
 			return rs, nil
 		}
-		if rs.Id == service.Id {
+		if rs.Id == s.Id {
 			return rs, nil
 		}
 	}
-	return Service{}, errors.New("Not found.")
+	return service.Service{}, errors.New("Not found.")
 }
 
-func (service *ServiceDiscovery) SaveServicesToFile() {
-	var reg map[string][]Service
-	reg = make(map[string][]Service)
-	reg["services"] = service.registeredServices
+func (s *ServiceDiscovery) SaveServicesToFile() {
+	var reg map[string][]service.Service
+	reg = make(map[string][]service.Service)
+	reg["services"] = s.registeredServices
 
 	registeredServicesJson, err := json.Marshal(reg)
 
@@ -134,7 +137,7 @@ func (service *ServiceDiscovery) SaveServicesToFile() {
 }
 
 func NormalizeServicesFile() error {
-	var normalizedServices []Service
+	var normalizedServices []service.Service
 
 	for _, rs := range sd.registeredServices {
 		rs.NormalizeService()

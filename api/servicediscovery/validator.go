@@ -3,46 +3,48 @@ package servicediscovery
 import (
 	"encoding/json"
 	"errors"
+	"gAPIManagement/api/servicediscovery/service"
+	"gAPIManagement/api/servicediscovery/servicegroup"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
-func ValidateServiceGroupBody(c *routing.Context) (ServiceGroup, error) {
-	var s ServiceGroup
+func ValidateServiceGroupBody(c *routing.Context) (servicegroup.ServiceGroup, error) {
+	var s servicegroup.ServiceGroup
 	err := json.Unmarshal(c.Request.Body(), &s)
 
 	if s.Name == "" {
-		return ServiceGroup{}, errors.New(`{"error" : true, "msg": "Missing body parameters."}`)
+		return servicegroup.ServiceGroup{}, errors.New(`{"error" : true, "msg": "Missing body parameters."}`)
 	}
 	if err != nil {
-		return ServiceGroup{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
+		return servicegroup.ServiceGroup{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
 	}
-	
+
 	return s, nil
 }
 
-func ValidateServiceBody(c *routing.Context) (Service, error) {
-	var s Service
+func ValidateServiceBody(c *routing.Context) (service.Service, error) {
+	var s service.Service
 	err := json.Unmarshal(c.Request.Body(), &s)
 
 	if s.Name == "" || len(s.Hosts) == 0 || s.MatchingURI == "" || s.ToURI == "" || s.APIDocumentation == "" {
-		return Service{}, errors.New(`{"error" : true, "msg": "Missing body parameters."}`)
+		return service.Service{}, errors.New(`{"error" : true, "msg": "Missing body parameters."}`)
 	}
 	if err != nil {
-		return Service{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
+		return service.Service{}, errors.New(`{"error" : true, "msg": "Error parsing body."}`)
 	}
 
 	s.NormalizeService()
-	
+
 	return s, nil
 }
 
-func ValidateServiceExists(s Service) (Service, error) {
-	service, err := sd.FindService(s)
-	
+func ValidateServiceExists(s service.Service) (service.Service, error) {
+	ser, err := sd.FindService(s)
+
 	if err != nil {
-		return Service{}, errors.New(`{"error":true, "msg":"Resource not found"}`)
+		return service.Service{}, errors.New(`{"error":true, "msg":"Resource not found"}`)
 	}
 
-	return service, nil
+	return ser, nil
 }

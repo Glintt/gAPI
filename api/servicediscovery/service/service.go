@@ -1,8 +1,11 @@
-package servicediscovery
+package service
 
 import (
+	"errors"
 	"gAPIManagement/api/config"
-	"gAPIManagement/api/database"
+	"gAPIManagement/api/servicediscovery/constants"
+	"gAPIManagement/api/servicediscovery/servicegroup"
+	sdUtils "gAPIManagement/api/servicediscovery/utils"
 	"gAPIManagement/api/utils"
 	"math/rand"
 	"net"
@@ -53,24 +56,6 @@ func Contains(array []int, value int) bool {
 	return false
 }
 
-func (service *Service) IsReachableFromExternal(sd ServiceDiscovery) bool {
-	if !service.UseGroupAttributes || service.GroupId == "" {
-		return service.IsReachable
-	}
-
-	sgList, err := sd.GetListOfServicesGroup()
-	if err != nil {
-		return false
-	}
-
-	for _, sg := range sgList {
-		if sg.Contains(*service) {
-			return sg.IsReachable
-		}
-	}
-	return false
-}
-
 func (service *Service) BalanceUrl() string {
 	numHosts := len(service.Hosts)
 	indexesToTry := rand.Perm(numHosts)
@@ -116,7 +101,7 @@ func (service *Service) GenerateIdentifier() string {
 }
 
 func (service *Service) NormalizeService() {
-	service.MatchingURIRegex = GetMatchingURIRegex(service.MatchingURI)
+	service.MatchingURIRegex = sdUtils.GetMatchingURIRegex(service.MatchingURI)
 	if service.Id == "" {
 		service.Id = service.GenerateId()
 	}
@@ -153,17 +138,35 @@ func ValidateURL(url string) bool {
 	return validURL.MatchString(url)
 }
 
-func (service *Service) GetGroup() (ServiceGroup, error) {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
+func (service *Service) GetGroup() (servicegroup.ServiceGroup, error) {
 
-	var servicesGroup ServiceGroup
-	err := db.C(SERVICE_GROUP_COLLECTION).FindId(service.GroupId).One(&servicesGroup)
+	groupId := service.GroupId.Hex()
 
-	database.MongoDBPool.Close(session)
+	servicesGroup, err := servicegroup.ServiceGroupMethods[constants.SD_TYPE]["getbyid"].(func(string) (servicegroup.ServiceGroup, error))(groupId)
 
 	if err != nil {
-		return ServiceGroup{}, err
+		return servicegroup.ServiceGroup{}, err
 	}
 
 	return servicesGroup, nil
+}
+
+func FindServiceInList(s Service, services []Service) (Service, error) {
+	for _, rs := range services {
+		if rs.MatchingURIRegex == "" {
+			rs.MatchingURIRegex = sdUtils.GetMatchingURIRegex(rs.MatchingURI)
+		}
+
+		rs.Identifier = rs.GenerateIdentifier()
+		// s.Identifier = s.GenerateIdentifier()
+
+		// ser, _ := json.Marshal(rs)
+
+		re := regexp.MustCompile(rs.MatchingURIRegex)
+		if re.MatchString(s.MatchingURI) || rs.Id == s.Id || rs.Identifier == s.Identifier {
+			return rs, nil
+		}
+	}
+
+	return s, errors.New("Not found.")
 }

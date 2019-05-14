@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/routes"
+	"gAPIManagement/api/servicediscovery/constants"
 	"gAPIManagement/api/users"
 	"runtime"
 	"strconv"
@@ -124,7 +125,7 @@ func RequestCounterSocket(service []byte) {
 func IsGApiService(service []byte) bool {
 	serviceString := string(service)
 
-	if serviceString == servicediscovery.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME {
+	if serviceString == constants.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME {
 		return true
 	}
 

@@ -1,18 +1,17 @@
 package cache
 
 import (
-	"gAPIManagement/api/thirdpartyauthentication"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/utils"
 	"encoding/json"
-	
+	"gAPIManagement/api/http"
+	"gAPIManagement/api/servicediscovery/service"
+	"gAPIManagement/api/thirdpartyauthentication"
+	"gAPIManagement/api/utils"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 type CachedRequest struct {
-	Service               servicediscovery.Service
+	Service               service.Service
 	UpdateServiceCache    bool
 	Protection            thirdpartyauthentication.ProtectionInfo
 	UpdateProtectionCache bool
@@ -41,7 +40,7 @@ func apiResponseCacheKey(c *routing.Context) string {
 }
 
 func GetCacheForRequest(c *routing.Context) CachedRequest {
-	var serviceCache servicediscovery.Service
+	var serviceCache service.Service
 	var protectionCacheObj thirdpartyauthentication.ProtectionInfo
 	var respObj http.ResponseInfo
 

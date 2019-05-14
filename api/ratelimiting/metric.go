@@ -1,9 +1,10 @@
 package ratelimiting
 
 import (
-	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/config"
-	"github.com/qiangxue/fasthttp-routing"
+	"gAPIManagement/api/servicediscovery/service"
+
+	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 func GetRateLimitingMetricName(c *routing.Context, limiter config.GApiRateLimitingConfig) string {
@@ -36,7 +37,7 @@ func matchingUri(c *routing.Context) string {
 	return serviceForUri(c).MatchingURI
 }
 
-func serviceForUri(c *routing.Context) servicediscovery.Service {
+func serviceForUri(c *routing.Context) service.Service {
 	s, _ := sd.GetEndpointForUri(string(c.Request.RequestURI()))
 	return s
 }

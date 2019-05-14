@@ -1,12 +1,13 @@
 package cache
 
 import (
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/http"
-	"github.com/qiangxue/fasthttp-routing"
-	"strings"
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/http"
+	"gAPIManagement/api/servicediscovery/constants"
+	"strings"
 	"time"
+
+	routing "github.com/qiangxue/fasthttp-routing"
 
 	"github.com/allegro/bigcache"
 )
@@ -15,7 +16,7 @@ type Cache struct {
 	ServiceDiscovery *bigcache.BigCache
 	Apis             *bigcache.BigCache
 	OAuth            *bigcache.BigCache
-	gAPIApi			 *bigcache.BigCache
+	gAPIApi          *bigcache.BigCache
 }
 
 var GatewayCache Cache
@@ -109,7 +110,6 @@ func GApiCacheGet(key string) ([]byte, error) {
 	return GatewayCache.gAPIApi.Get(key)
 }
 
-
 func GApiCacheKey(c *routing.Context) string {
 	return string(c.Method()) + "-" + c.URI().String() + c.Request.Header.String()
 }
@@ -123,8 +123,8 @@ func StoreCacheGApi(c *routing.Context) error {
 }
 
 func ResponseCacheGApi(c *routing.Context) error {
-	
-	if ! config.GApiConfiguration.Cache.Enabled {
+
+	if !config.GApiConfiguration.Cache.Enabled {
 		return nil
 	}
 
@@ -134,7 +134,7 @@ func ResponseCacheGApi(c *routing.Context) error {
 		return nil
 	}
 
-	http.Response(c, string(resp), 200, servicediscovery.SERVICE_NAME, config.APPLICATION_JSON)
+	http.Response(c, string(resp), 200, constants.SERVICE_NAME, config.APPLICATION_JSON)
 	c.Abort()
 	return nil
 }
