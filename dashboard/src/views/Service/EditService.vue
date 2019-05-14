@@ -1,75 +1,120 @@
 <template>
-    <div class="row">
+  <div class="row">
+    <div class="col-sm">
+      <InformationPanel
+        v-if="informationStatus.isActive"
+        :msg="informationStatus.msg"
+        :className="informationStatus.className"
+      ></InformationPanel>
+      <div class="row"></div>
+      <div class="row">
         <div class="col-sm">
-            <InformationPanel v-if="informationStatus.isActive" :msg="informationStatus.msg" :className="informationStatus.className"></InformationPanel>
-            <div class="row">
+          <div class="row">
+            <div class="col-sm-10" v-show="isLoggedIn">
+              <h2>{{ service.Name }} API Information</h2>
             </div>
-            <div class="row">
-                <div class="col-sm">
-                    <div class="row">
-                        <div class="col-sm-10" v-show="isLoggedIn">
-                            <h2>{{ service.Name }} API Information</h2>
-                        </div>
-                        <div class="col-sm-2" v-show="isAdmin">
-                            <button type="submit" class="btn btn-xs btn-primary" v-on:click="store">Save</button>
-                            <button class="btn btn-danger"  @click="deleteService">Delete</button>
-                            <button type="submit" class="btn btn-info" v-on:click="serviceUpdated">Preview</button>
-                        </div>
-                    </div>
-                    
-                    <div class="card mb-12">
-                        <div class="card-header text-white bg-primary toggable-card" @click="toggleCard('basic')">
-                            <div class="row">
-                                <div :class="service.LastActiveTime !== 0 ? 'col-sm-10' : 'col-sm-11'">
-                                    Basic Information
-                                </div>
-                                <div :class="service.LastActiveTime !== 0 ? 'col-sm-2' : 'col-sm-1'">
-                                    <span>Health: </span>
-                                    <i class="fas fa-heartbeat fa-lg" :class="isActiveClass"></i>
-                                    <small v-if="service.LastActiveTime !== 0"><br />Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }} </small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body row" v-if="cards.basic.showing">
-                            <div class="form-group col-sm">
-                                <label for="serviceName">Name</label>
-                                <input type="text"
-                                    :disabled="! (isLoggedIn && isAdmin)"
-                                    v-model="service.Name" class="form-control" id="serviceName" aria-describedby="nameHelp" placeholder="Enter name">
-                                <small id="nameHelp" class="form-text text-primary">Give the service/API a name.</small>
-                            </div>
+            <div class="col-sm-2" v-show="isAdmin">
+              <button type="submit" class="btn btn-xs btn-primary" v-on:click="store">Save</button>
+              <button class="btn btn-danger" @click="deleteService">Delete</button>
+              <!-- <button type="submit" class="btn btn-info" v-on:click="serviceUpdated">Preview</button> -->
+            </div>
+          </div>
 
-                            <div class="form-group col-sm">
-                                <label for="serviceMatchingUri">MatchingURI</label>
-                                <input type="text"
-                                    :disabled="! $permissions.HasPermission(pageType, loggedInUser)"
-                                    v-model="service.MatchingURI" class="form-control" id="serviceMatchingUri" aria-describedby="serviceMatchingUriHelp" placeholder="Enter domain">
-                                <small id="serviceMatchingUriHelp" class="form-text text-primary">Base URI which links to the service on API Management Platform.</small>
-                            </div>
-
-                            <div class="form-group col-sm">
-                                <label for="serviceName">URL:</label>
-                                <div class="input-group mb-2">
-                                  <input type="text"
-                                      :disabled="true"
-                                      :value="$config.API.getApiBaseUrl() + service.MatchingURI" 
-                                      class="form-control" id="gapiBasePath" aria-describedby="nameHelp" placeholder="Enter name">
-                                  <button class="btn btn-success" @click="copyURL">
-                                    <i class="fas fa-clipboard"></i> Copy
-                                  </button>
-                                 </div>
-                                <small id="nameHelp" class="form-text text-primary">Base Path to call microservice.</small>
-                            </div>
-                        </div>
-                    </div> 
-
-                    <ServiceAPIConfiguration class="toggable-card" v-on:addEndpointExclude="addEndpointExclude" v-on:removeEndpointExclude="removeEndpointExclude" v-on:addHost="addHost" v-show="isLoggedIn" v-on:toggleCard="toggleCard" v-on:removeHost="removeHost" :showing="cards.api_config.showing" :service="service"/>
-                    
-                    <ServiceManagementConfig class="toggable-card" v-on:toggleCard="toggleCard" :showing="cards.management_config.showing" :service="service" v-show="isLoggedIn" />
+          <div class="card mb-12">
+            <div
+              class="card-header text-white bg-primary toggable-card"
+              @click="toggleCard('basic')"
+            >
+              <div class="row">
+                <div
+                  :class="service.LastActiveTime !== 0 ? 'col-sm-10' : 'col-sm-11'"
+                >Basic Information</div>
+                <div :class="service.LastActiveTime !== 0 ? 'col-sm-2' : 'col-sm-1'">
+                  <span>Health:</span>
+                  <i class="fas fa-heartbeat fa-lg" :class="isActiveClass"></i>
+                  <small v-if="service.LastActiveTime !== 0">
+                    <br>
+                    Last Time Active: {{ this.$utils.convertMillisToTime(new Date().getTime() - service.LastActiveTime) }}
+                  </small>
                 </div>
+              </div>
             </div>
-        </div>    
+            <div class="card-body row" v-if="cards.basic.showing">
+              <div class="form-group col-sm">
+                <label for="serviceName">Name</label>
+                <input
+                  type="text"
+                  :disabled="! (isLoggedIn && isAdmin)"
+                  v-model="service.Name"
+                  class="form-control"
+                  id="serviceName"
+                  aria-describedby="nameHelp"
+                  placeholder="Enter name"
+                >
+                <small id="nameHelp" class="form-text text-primary">Give the service/API a name.</small>
+              </div>
+
+              <div class="form-group col-sm">
+                <label for="serviceMatchingUri">MatchingURI</label>
+                <input
+                  type="text"
+                  :disabled="! $permissions.HasPermission(pageType, loggedInUser)"
+                  v-model="service.MatchingURI"
+                  class="form-control"
+                  id="serviceMatchingUri"
+                  aria-describedby="serviceMatchingUriHelp"
+                  placeholder="Enter domain"
+                >
+                <small
+                  id="serviceMatchingUriHelp"
+                  class="form-text text-primary"
+                >Base URI which links to the service on API Management Platform.</small>
+              </div>
+
+              <div class="form-group col-sm">
+                <label for="serviceName">URL:</label>
+                <div class="input-group mb-2">
+                  <input
+                    type="text"
+                    :disabled="true"
+                    :value="serviceURL()"
+                    class="form-control"
+                    id="gapiBasePath"
+                    aria-describedby="nameHelp"
+                    placeholder="Enter name"
+                  >
+                  <button class="btn btn-success" @click="copyURL">
+                    <i class="fas fa-clipboard"></i> Copy
+                  </button>
+                </div>
+                <small id="nameHelp" class="form-text text-primary">Base Path to call microservice.</small>
+              </div>
+            </div>
+          </div>
+
+          <ServiceAPIConfiguration
+            class="toggable-card"
+            v-on:addEndpointExclude="addEndpointExclude"
+            v-on:removeEndpointExclude="removeEndpointExclude"
+            v-on:addHost="addHost"
+            v-show="isLoggedIn"
+            v-on:toggleCard="toggleCard"
+            v-on:removeHost="removeHost"
+            :showing="cards.api_config.showing"
+            :service="service"
+          />
+
+          <ServiceManagementConfig
+            class="toggable-card"
+            v-on:toggleCard="toggleCard"
+            :showing="cards.management_config.showing"
+            :service="service"
+            v-show="isLoggedIn"
+          />
+        </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -144,13 +189,8 @@ export default {
   },
   methods: {
     serviceURL: function() {
-      return (
-        "http://" +
-        this.$config.API.HOST +
-        ":" +
-        this.$config.API.PORT +
-        this.service.MatchingURI
-      );
+      return new URL(this.service.MatchingURI, this.$config.API.getApiBaseUrl())
+        .href;
     },
     copyURL: function() {
       var tempInput = document.createElement("input");

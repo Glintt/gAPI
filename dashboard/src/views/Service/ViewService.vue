@@ -1,25 +1,36 @@
 <template>
-<div>    
+  <div>
     <div class="row" v-if="! documentationExpanded">
-        <div class="col-sm">
-            <EditService  v-on:serviceUpdated="updateDocumentationEndpoint"></EditService>
-        </div>   
+      <div class="col-sm">
+        <EditService v-on:serviceUpdated="updateDocumentationEndpoint"></EditService>
+      </div>
     </div>
-    <br  v-if="! documentationExpanded" />
-    
-    <div class="row">
-        <div class="col-sm-6">
-            <h2 v-if="! documentationExpanded">Documentation</h2>            
-        </div>
-        <div class="offset-sm-5 col-sm-1 text-right" style="cursor: pointer;" @click="expandDocumentation">
-            <i class="fas fa-expand-arrows-alt text-primary"></i>
-        </div>
-    </div>
-    <hr  v-if="! documentationExpanded"/> 
+    <br v-if="! documentationExpanded">
 
-    <iframe ref="documentation" id="documentation" v-if="ServiceDocumentationEndpoint !== null" frameborder="0" :style="documentationStyle" :height="documentationHeight" width="100%" :src="ServiceDocumentationEndpoint"></iframe>
-</div>
-   
+    <div class="row">
+      <div class="col-sm-6">
+        <h2 v-if="! documentationExpanded">Documentation</h2>
+      </div>
+      <div
+        class="offset-sm-5 col-sm-1 text-right"
+        style="cursor: pointer;"
+        @click="expandDocumentation"
+      >
+        <i class="fas fa-expand-arrows-alt text-primary"></i>
+      </div>
+    </div>
+    <hr v-if="! documentationExpanded">
+    <iframe
+      ref="documentation"
+      id="documentation"
+      v-if="ServiceDocumentationEndpoint !== null"
+      frameborder="0"
+      :style="documentationStyle"
+      :height="documentationHeight"
+      width="100%"
+      :src="ServiceDocumentationEndpoint"
+    ></iframe>
+  </div>
 </template>
 <style>
 #documentation {
@@ -53,7 +64,10 @@ export default {
   methods: {
     ...mapActions("fullscreen", ["openFullScreen", "closeFullScreen"]),
     updateDocumentationEndpoint: function(service) {
-      this.ServiceDocumentationEndpoint = service.APIDocumentation;
+      //this.ServiceDocumentationEndpoint = service.APIDocumentation;
+      this.ServiceDocumentationEndpoint =
+        this.$config.API.getApiBaseUrl() +
+        `api_docs/${service.Identifier}/documentation`;
     },
     expandDocumentation: function() {
       this.documentationExpanded = !this.documentationExpanded;
