@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	netUrl "net/url"
 	"path"
@@ -11,6 +10,7 @@ import (
 	gapiHttp "gAPIManagement/api/http"
 	"gAPIManagement/api/servicediscovery"
 	"gAPIManagement/api/servicediscovery/service"
+	"gAPIManagement/api/utils"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
@@ -18,11 +18,15 @@ import (
 func HandleServiceDocumentationRequest(c *routing.Context) error {
 	url, err := GetServiceDocumentationUrl(c.Param("service_name"))
 	if err != nil {
-		return err
+		gapiHttp.Response(c, "Not found", 404, "", "text/html")
+		return nil
 	}
 
-	response, responseString := GetHtml(url)
-
+	response, responseString, err := GetHtml(url)
+	if err != nil {
+		gapiHttp.Response(c, responseString, 500, "", "text/html")
+		return nil
+	}
 	gapiHttp.Response(c, responseString, 200, "", response.Header.Get("Content-Type"))
 
 	return nil
@@ -31,8 +35,10 @@ func HandleServiceDocumentationRequest(c *routing.Context) error {
 func HandleServiceDocumentationJSRequest(c *routing.Context) error {
 	serviceIdentifier := c.Param("service_name")
 	url, err := GetServiceDocumentationUrl(serviceIdentifier)
+
 	if err != nil {
-		return err
+		gapiHttp.Response(c, "Not found", 404, "", "text/html")
+		return nil
 	}
 
 	uri := strings.Replace(string(c.Request.RequestURI()), "/api_docs/"+serviceIdentifier+"/", "", -1)
@@ -41,7 +47,11 @@ func HandleServiceDocumentationJSRequest(c *routing.Context) error {
 	uri = path.Join(u.Path, uri)
 	url = u.Scheme + "://" + u.Host + uri
 
-	response, responseString := GetHtml(url)
+	response, responseString, err := GetHtml(url)
+	if err != nil {
+		gapiHttp.Response(c, responseString, 500, "", "text/html")
+		return nil
+	}
 
 	gapiHttp.Response(c, responseString, 200, "", response.Header.Get("Content-Type"))
 
@@ -57,17 +67,19 @@ func GetServiceDocumentationUrl(serviceIdentifier string) (string, error) {
 	return service.APIDocumentation, nil
 }
 
-func GetHtml(url string) (*http.Response, string) {
+func GetHtml(url string) (*http.Response, string, error) {
 	response, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		utils.LogMessage(err.Error(), utils.ErrorLogType)
+		return response, err.Error(), err
 	}
 	defer response.Body.Close()
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Fatal(err)
+		utils.LogMessage(err.Error(), utils.ErrorLogType)
+		return response, err.Error(), err
 	}
 
-	return response, string(responseData)
+	return response, string(responseData), nil
 }
