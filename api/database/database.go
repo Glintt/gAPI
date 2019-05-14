@@ -2,6 +2,7 @@ package database
 
 import (
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/database/migrations"
 	"os"
 )
 
@@ -32,6 +33,10 @@ func InitDatabaseConnection() error {
 			IsConnectionDone = false
 		}
 		return err
+	}
+
+	if config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
+		migrations.MigrateOracle(ORACLE_CONNECTION_STRING)
 	}
 	return nil
 }
