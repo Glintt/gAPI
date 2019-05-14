@@ -189,8 +189,10 @@ export default {
   },
   methods: {
     serviceURL: function() {
-      return new URL(this.service.MatchingURI, this.$config.API.getApiBaseUrl())
-        .href;
+      return this.$utils.urlConcat(
+        this.$config.API.getApiBaseUrl(),
+        this.service.MatchingURI
+      ).href;
     },
     copyURL: function() {
       var tempInput = document.createElement("input");

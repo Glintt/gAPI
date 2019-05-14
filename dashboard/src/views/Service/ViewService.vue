@@ -65,9 +65,10 @@ export default {
     ...mapActions("fullscreen", ["openFullScreen", "closeFullScreen"]),
     updateDocumentationEndpoint: function(service) {
       //this.ServiceDocumentationEndpoint = service.APIDocumentation;
-      this.ServiceDocumentationEndpoint =
-        this.$config.API.getApiBaseUrl() +
-        `api_docs/${service.Identifier}/documentation`;
+      this.ServiceDocumentationEndpoint = this.$utils.urlConcat(
+        this.$config.API.getApiBaseUrl(),
+        `api_docs/${service.Identifier}/documentation`
+      );
     },
     expandDocumentation: function() {
       this.documentationExpanded = !this.documentationExpanded;
