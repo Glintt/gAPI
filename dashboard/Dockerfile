@@ -1,13 +1,13 @@
-
-FROM node:8.11.3
+FROM node:12.2.0-alpine as dependencies
 
 ADD package.json /tmp/package.json
 RUN cd /tmp && yarn install
-RUN mkdir -p /usr/src/app && cp -a /tmp/node_modules /usr/src/app
 
-# From here we load our application's code in, therefore the previous docker
-# "layer" thats been cached will be used if possible
+FROM node:12.2.0-alpine
 WORKDIR /usr/src/app
+
+COPY --from=dependencies /tmp/node_modules ./node_modules
+
 ADD . /usr/src/app
 
 RUN npm run build
