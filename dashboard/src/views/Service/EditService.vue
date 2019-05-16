@@ -192,7 +192,7 @@ export default {
       return this.$utils.urlConcat(
         this.$config.API.getApiBaseUrl(),
         this.service.MatchingURI
-      ).href;
+      );
     },
     copyURL: function() {
       var tempInput = document.createElement("input");
