@@ -71,7 +71,11 @@
                         <h5 class="card-title">User Agent</h5>
                         <hr/>
                         <div class="card-text">
-                            <bar-chart :chartData="globalUserAgent" :options="{responsive: false}"></bar-chart>
+                          
+                            <bar-chart :chartData="globalUserAgent" :options="{scales: {
+                              xAxes:[{
+                              ticks: {display: false}
+                            }]}, responsive: false}"></bar-chart>
                         </div>
                     </div>
                 </div>
