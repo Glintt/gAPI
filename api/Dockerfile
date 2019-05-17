@@ -41,7 +41,7 @@ RUN go build -o server ./server.go
 
 
 ### Create final image
-FROM base
+FROM golang:1.9
 
 ENV RABBITMQ_HOST rabbit
 ENV RABBITMQ_PORT 5672
@@ -55,7 +55,6 @@ ENV LD_LIBRARY_PATH /usr/lib:/usr/local/lib:/usr/lib/oracle/12.1/client64/lib
 RUN apt-get update && apt-get install -y pkg-config libaio1
 
 RUN mkdir -p /usr/lib/oracle/12.1/client64/lib && mkdir -p /usr/include/oracle/12.1/client64/
-
 
 COPY --from=base /usr/lib/oracle/ /usr/lib/oracle/
 COPY --from=base /usr/include/oracle/ /usr/include/oracle/
@@ -76,5 +75,6 @@ ARG db=mongo
 ARG logs_type=Elastic
 
 RUN sh generate_config.sh db=$db logs_type=$logs_type
+RUN cat configs/gAPI.json
 
 CMD ["/go/src/gAPIManagement/api/server"]

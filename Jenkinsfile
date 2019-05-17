@@ -1,5 +1,7 @@
 node{
 	env.BUILD_VERSION = "${params.version}".trim()
+	env.DB = "${params.db}".trim()
+	env.LOGS_TYPE = "${params.logs_type}".trim()
     env.DOCKER_USER = "${env.DOCKER_USER}"
 
 	stage('Clone repository') {
@@ -8,11 +10,11 @@ node{
 
 	stage('Build docker images') {
 		dir('api') {
-			sh "docker image build -t $DOCKER_USER/gapi-backend:$BUILD_VERSION -f Dockerfile ."
-			sh "docker image build -t $DOCKER_USER/gapi-backend -f Dockerfile ."
+			sh "docker image build --build-arg db=$DB --build-arg logs_type=$LOGS_TYPE -t $DOCKER_USER/gapi-backend:$BUILD_VERSION-$DB -f Dockerfile ."
+			// sh "docker image build --build-arg db=$DB --build-arg logs_type=$LOGS_TYPE -t $DOCKER_USER/gapi-backend -f Dockerfile ."
 		}
 
-		dir('api') {
+		dir('logs-listener') {
 			sh "docker image build -t $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION -f Dockerfile-rabbitlistener ."
 			sh "docker image build -t $DOCKER_USER/gapi-rabbitlistener -f Dockerfile-rabbitlistener ."			
 		}

@@ -1,22 +1,17 @@
 #!/bin/sh
-
 for ARGUMENT in "$@"
 do
-
-    KEY=$(echo $ARGUMENT | cut -f1 -d=)
-    VALUE=$(echo $ARGUMENT | cut -f2 -d=)   
-
-    case "$KEY" in
-            token_signing_key)              token_signing_key=${VALUE} ;;
-            token_expiration_time)    token_expiration_time=${VALUE} ;;     
-            logs_type)    logs_type=${VALUE} ;;     
-            db)    db=${VALUE} ;;     
-            matching_regex)    matching_regex=${VALUE} ;;     
-            healthcheck_freq)    healthcheck_freq=${VALUE} ;;     
-        *)   
-    esac    
-
-
+  KEY=$(echo $ARGUMENT | cut -f1 -d=)
+  VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+  case "$KEY" in
+          token_signing_key)              token_signing_key=${VALUE} ;;
+          token_expiration_time)    token_expiration_time=${VALUE} ;;     
+          logs_type)    logs_type=${VALUE} ;;     
+          db)    db=${VALUE} ;;     
+          matching_regex)    matching_regex=${VALUE} ;;     
+          healthcheck_freq)    healthcheck_freq=${VALUE} ;;     
+      *)   
+  esac
 done
 
 mkdir -p configs
@@ -30,7 +25,7 @@ if [ -z "$token_signing_key" ]; then
 fi
 
 if [ -z "$matching_regex" ]; then
-    matching_regex="((/([\\w?\\-=.&+#])*)*$)"
+    matching_regex="((/([\\\\\\w?\\\\\\-=.&+#])*)*$)"
 fi
 
 if [ -z "$db" ]; then
@@ -44,6 +39,8 @@ fi
 if [ -z "$healthcheck_freq" ]; then
     healthcheck_freq=60
 fi
+
+rm configs/gAPI.json
 
 echo "
 {
