@@ -1,19 +1,21 @@
 <template>
     <div class="home"> 
       
-          <div class="row">
+          <!-- <div class="row">
             <div class="alert alert-info col-sm-4 offset-sm-4" role="alert">
               <strong>gAPI Base Url:</strong>
               <span>&nbsp;&nbsp;{{ `${$config.API.getApiBaseUrl()}` }}</span><br />
               <small>Use this URL + gAPIPath to call microservices</small>
             </div>
-          </div>      
+          </div>       -->
       <div class="row">
         <div class="col-sm-2">
             <h5>Application Groups</h5><hr/>
             <ul class="list-group">
-              <li class="list-group-item" v-for="g in groups" @click="filterByApp(g)" v-bind:key="g.Id">{{g.Name}}</li>
-              <li  class="list-group-item" @click="updateData()">All</li>
+              <li :class="'list-group-item clickable ' + (appFilter == null ? 'active' : '')" @click="updateData()">All</li>
+              <li :class="'list-group-item clickable ' + (appFilter == g.Id ? 'active' : '')" v-for="g in groups" @click="filterByApp(g)" v-bind:key="g.Id">
+                {{g.Name}}
+              </li>
             </ul>
         </div>
         <div class="col-sm-10">
@@ -22,8 +24,8 @@
               <div class="row">
                 <div class="col-sm-12 text-center form-inline ">
                   <form v-on:keyup.13="search" style="width: 100%">
-                    <input class="form-control" style="width: 80%" v-model="searchText" placeholder="Search ..." />
-                    <button class="btn btn-sm btn-info" @click="search">
+                    <input class="form-control" style="width: 100%" v-model="searchText" placeholder="Search ..." />
+                    <button hidden="true" class="btn btn-info" @click="search">
                       <i class="fas fa-search"></i>
                     </button>
                   </form>
@@ -105,6 +107,7 @@ export default {
       selectedGroup: null,
       currentPage: 1,
       searchText: "",
+      appFilter:null,
       manageModal: {
         showing: false,
         service: {}
@@ -116,6 +119,7 @@ export default {
       "fetchGroups"
     ]),
     filterByApp: function(appGroup) {
+      this.appFilter = appGroup.Id;
       this.$api.serviceDiscovery.applicationGroupById(appGroup.Id, response => {
         this.selectedGroup = response.body;
         this.services = response.body.Services;
@@ -128,6 +132,7 @@ export default {
       this.updateData();
     },
     updateData: function() {
+      this.appFilter = null;
       serviceDiscoveryAPI.listServices(
         this.currentPage,
         this.searchText,

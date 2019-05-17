@@ -8,6 +8,14 @@
   </div>
 </template>
 <style>
+
+.clickable {
+cursor: pointer;
+}
+.clickable:hover{
+  background-color:#2196F3;
+  color: white;
+} 
 small,
 strong,
 p,

@@ -42,7 +42,7 @@
             title="More info"
             style="margin-right: 1em"
           >
-            <i class="fas fa-info-circle"></i>
+            <i class="fas fa-cog"></i>
           </router-link>
           <i
             class="fas fa-desktop text-success"
