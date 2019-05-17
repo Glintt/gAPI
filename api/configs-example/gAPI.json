@@ -1,7 +1,5 @@
 {
   "Authentication": {
-    "Username": "admin",
-    "Password": "admin",
     "TokenExpirationTime": 30,
     "TokenSigningKey": "SIGNING_KEY",
     "LDAP": {
@@ -20,10 +18,6 @@
   },
   "ServiceDiscovery": {
     "Type": "file"
-  },
-  "Urls": {
-    "SERVICE_DISCOVERY_GROUP": "/service-discovery",
-    "ANALYTICS_GROUP": "/analytics"
   },
   "Healthcheck": {
     "Active": true,
