@@ -32,7 +32,7 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 		remoteHost = string(c.Request.Host())
 	}
 
-	return models.RequestLogging{string(
+	return models.RequestLogging{"", string(
 		c.Method()),
 		string(c.Request.RequestURI()),
 		string(c.Request.Body()),

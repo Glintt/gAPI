@@ -1,6 +1,7 @@
 package models
 
 type RequestLogging struct {
+	Id          string
 	Method      string
 	Uri         string
 	RequestBody string
