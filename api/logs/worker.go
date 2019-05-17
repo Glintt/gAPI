@@ -1,9 +1,8 @@
 package logs
 
 import (
-	"strconv"
 	"gAPIManagement/api/utils"
-	
+	"strconv"
 )
 
 // NewWorker creates, and returns a new Worker object. Its only argument
@@ -37,12 +36,13 @@ func (w *Worker) Start() {
 
 			select {
 			case work := <-w.Work:
+				PublishLog(&work.LogToSave)
 				// Receive a work request.
-				work.LogToSave.Save()
+				//work.LogToSave.Save()
 
 			case <-w.QuitChan:
 				// We have been asked to stop.
-				utils.LogMessage("worker " + strconv.Itoa(w.ID) +" stopping\n", utils.DebugLogType)
+				utils.LogMessage("worker "+strconv.Itoa(w.ID)+" stopping\n", utils.DebugLogType)
 				return
 			}
 		}

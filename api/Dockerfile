@@ -65,7 +65,6 @@ RUN ln -s /usr/lib/oracle/12.1/client64/lib/libocci.so.12.1 /usr/lib/oracle/12.1
 COPY oci8.pc  /usr/lib/pkgconfig/
 
 # 2. Copy api runtime and configs
-COPY --from=builder /go/src/gAPIManagement/api/configs /go/src/gAPIManagement/api/configs
 COPY --from=builder /go/src/gAPIManagement/api/server /go/src/gAPIManagement/api/server
 COPY --from=builder /go/src/gAPIManagement/api/generate_config.sh /go/src/gAPIManagement/api/generate_config.sh
 
