@@ -7,6 +7,7 @@ do
           token_signing_key)              token_signing_key=${VALUE} ;;
           token_expiration_time)    token_expiration_time=${VALUE} ;;     
           logs_type)    logs_type=${VALUE} ;;     
+          queue_type)    queue_type=${VALUE} ;;     
           db)    db=${VALUE} ;;     
           matching_regex)    matching_regex=${VALUE} ;;     
           healthcheck_freq)    healthcheck_freq=${VALUE} ;;     
@@ -36,6 +37,10 @@ if [ -z "$logs_type" ]; then
     logs_type="Elastic"
 fi
 
+if [ -z "$queue_type" ]; then
+    queue_type= "Internal"
+fi
+
 if [ -z "$healthcheck_freq" ]; then
     healthcheck_freq=60
 fi
@@ -55,7 +60,8 @@ echo "
   },
   \"Logs\": {
     \"Active\": true,
-    \"Type\": \"$logs_type\"
+    \"Type\": \"$logs_type\",
+    \"Queue\": \"$queue_type\"
   },
   \"CORS\": {
     \"AllowedOrigins\": [\"http://localhost:8080\"],

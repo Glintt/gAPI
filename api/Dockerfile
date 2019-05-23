@@ -72,8 +72,9 @@ WORKDIR /go/src/gAPIManagement/api
 
 ARG db=mongo
 ARG logs_type=Elastic
+ARG queue_type=Internal
 
-RUN sh generate_config.sh db=$db logs_type=$logs_type
+RUN sh generate_config.sh db=$db logs_type=$logs_type queue_type=$queue_type
 RUN cat configs/gAPI.json
 
 CMD ["/go/src/gAPIManagement/api/server"]
