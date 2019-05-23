@@ -2,6 +2,7 @@ package logs
 
 import (
 	"encoding/json"
+	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/logs/models"
 	"gAPIManagement/api/logs/providers"
@@ -53,7 +54,11 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 func PublishLog(reqLogging *models.RequestLogging) {
 	defer utils.PreventCrash()
 
-	LoggingType[config.GApiConfiguration.Logs.Type].(func(*models.RequestLogging))(reqLogging)
+	if config.GApiConfiguration.Logs.Queue == apianalytics.LogRabbitQueueType {
+		PublishRabbit(reqLogging)
+	} else {
+		LoggingType[config.GApiConfiguration.Logs.Type].(func(*models.RequestLogging))(reqLogging)
+	}
 	return
 }
 

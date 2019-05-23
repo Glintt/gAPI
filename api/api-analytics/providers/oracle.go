@@ -13,37 +13,11 @@ import (
 const LOGS_QUERY_ORACLE = `SELECT id,method,uri,request_body,host,user_agent,remote_addr,remote_ip,headers,query_args,date_time,response,elapsed_time,status_code,service_name,index_name,request_grouper_date FROM gapi_request_logs
 where status_code >= 300
 `
-const ANALYTICS_QUERY_ORACLE = `  SELECT COUNT (*) total_requests,
-MAX (elapsed_time) max_elapsed_time,
-AVG (elapsed_time) avg_elapsed_time,
-MIN (elapsed_time) min_elapsed_time,
-(  SELECT LISTAGG (remote_addr || ' #||# ' || COUNT (remote_addr), ' #### ')
-			  WITHIN GROUP (ORDER BY remote_addr)
-			  AS remote_count
-	 FROM gapi_request_logs b
-	WHERE a.service_name = b.service_name
- GROUP BY remote_addr)
-	AS remote_count,
-(  SELECT LISTAGG (user_agent || ' #||# ' || COUNT (user_agent), ' #### ')
-			  WITHIN GROUP (ORDER BY user_agent)
-			  AS user_agent
-	 FROM gapi_request_logs b
-	WHERE a.service_name = b.service_name
- GROUP BY user_agent)
-	AS user_agent_count,
-	
-(  SELECT LISTAGG (status_code || ' #||# ' || COUNT (status_code), ' #### ')
-			  WITHIN GROUP (ORDER BY status_code)
-			  AS status_code
-	 FROM gapi_request_logs b
-	WHERE a.service_name = b.service_name
- GROUP BY status_code)
-	AS status_code_count,
-service_name
-FROM gapi_request_logs a
-where index_name <> 'gapi-api-logs'
-##WHERE_CLAUSE##
-GROUP BY service_name`
+const ANALYTICS_QUERY_ORACLE = `SELECT *
+FROM (SELECT a.*, ROWNUM r__
+		FROM (  SELECT * from gapi_api_analytics_view) a
+	   WHERE ROWNUM < 11)
+WHERE r__ >= 1 ##WHERE_CLAUSE##`
 
 func LogsOracle(apiEndpoint string) (string, int) {
 	var err error
@@ -113,10 +87,13 @@ func APIAnalyticsOracle(apiEndpoint string) (string, int) {
 		rows, err = db.Query(query)
 	}
 
-	apiAnalytics := RowsToApiAnalyticsModel(rows, true)
+	database.CloseOracleConnection(db)
+	if err != nil {
+		return `{"error": true, "msg": "` + err.Error() + `"}`, 500
+	}
+	apiAnalytics := RowsToApiAnalyticsModel(rows)
 
 	defer rows.Close()
-	database.CloseOracleConnection(db)
 
 	respString, _ := json.Marshal(apiAnalytics)
 	return `{"aggregations":{"api": {"buckets":` + string(respString) + ` }}}`, 200
@@ -156,11 +133,11 @@ type StatusCodeStruct struct {
 	Buckets []BucketStruct `json:"buckets"`
 }
 
-func RowsToApiAnalyticsModel(rows *sql.Rows, containsPagination bool) []ApiAnalytics {
+func RowsToApiAnalyticsModel(rows *sql.Rows) []ApiAnalytics {
 	var analytics []ApiAnalytics
 	for rows.Next() {
 		var a ApiAnalytics
-
+		var rNum int
 		var remoteCount, userAgentCount, statusCodeCount string
 
 		rows.Scan(&a.TotalRequests,
@@ -171,6 +148,7 @@ func RowsToApiAnalyticsModel(rows *sql.Rows, containsPagination bool) []ApiAnaly
 			&userAgentCount,
 			&statusCodeCount,
 			&a.Key,
+			&rNum,
 		)
 
 		a.RemoteAddr.Buckets = []BucketStruct{}

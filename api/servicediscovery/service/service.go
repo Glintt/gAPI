@@ -163,7 +163,7 @@ func FindServiceInList(s Service, services []Service) (Service, error) {
 		// ser, _ := json.Marshal(rs)
 
 		re := regexp.MustCompile(rs.MatchingURIRegex)
-		if re.MatchString(s.MatchingURI) || rs.Id == s.Id || rs.Identifier == s.Identifier {
+		if re.MatchString(s.MatchingURI) || rs.Id.Hex() == s.Id.Hex() || rs.Identifier == s.Identifier {
 			return rs, nil
 		}
 	}

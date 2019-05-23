@@ -1,9 +1,11 @@
 package logs
 
 import (
+	apianalytics "gAPIManagement/api/api-analytics"
+	"gAPIManagement/api/config"
 	"gAPIManagement/api/rabbit"
-	"strconv"
 	"gAPIManagement/api/utils"
+	"strconv"
 )
 
 var WorkQueue = make(chan LogWorkRequest, 1000)
@@ -15,7 +17,7 @@ func StartDispatcher(nworkers int) {
 
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		utils.LogMessage("Starting worker - " + strconv.Itoa(i+1), utils.InfoLogType)
+		utils.LogMessage("Starting worker - "+strconv.Itoa(i+1), utils.InfoLogType)
 		worker := NewWorker(i+1, LogWorkQueue)
 		worker.Start()
 	}
@@ -34,5 +36,7 @@ func StartDispatcher(nworkers int) {
 		}
 	}()
 
-	rabbit.InitPublishers(2)
+	if config.GApiConfiguration.Logs.Queue == apianalytics.LogRabbitQueueType {
+		rabbit.InitPublishers(2)
+	}
 }

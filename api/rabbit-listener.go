@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/database"
 	"gAPIManagement/api/logs"
+	logsModels "gAPIManagement/api/logs/models"
 	"gAPIManagement/api/rabbit"
 	"gAPIManagement/api/utils"
 	"os"
@@ -17,6 +20,11 @@ var ELASTICPORT string
 
 func main() {
 	config.LoadURLConstants()
+	config.LoadGApiConfig()
+
+	if config.GApiConfiguration.Logs.Type == apianalytics.LogOracleType {
+		database.InitDatabaseConnection()
+	}
 
 	workers := 1
 	if os.Getenv("RABBIT_LISTENER_WORKERS") != "" {
@@ -96,11 +104,13 @@ func StartListeningToRabbit(workerId int) {
 
 func ReceiveAndPublish(workerId int, msgs <-chan amqp.Delivery) {
 	for d := range msgs {
-		var reqLogging logs.RequestLogging
+		var reqLogging logsModels.RequestLogging
 		err := json.Unmarshal(d.Body, &reqLogging)
 		if err == nil {
 			utils.LogMessage("Publish to elasticsearch from #"+strconv.Itoa(workerId)+" - "+string(d.Body), utils.InfoLogType)
-			logs.PublishElastic(&reqLogging)
+			// logs.LoggingType[config.GApiConfiguration.Logs.Type].(func(*logsModels.RequestLogging))(&reqLogging)
+			logs.LoggingType[config.GApiConfiguration.Logs.Type].(func(*logsModels.RequestLogging))(&reqLogging)
+
 		} else {
 			utils.LogMessage("Error logging message: "+string(d.Body), utils.ErrorLogType)
 		}

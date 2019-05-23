@@ -6,6 +6,12 @@ import (
 
 const SERVICE_NAME = "api_analytics"
 
+const (
+	LogElasticType     = "Elastic"
+	LogOracleType      = "Oracle"
+	LogRabbitQueueType = "Rabbit"
+)
+
 var AnalyticsMethods = map[string]map[string]interface{}{
 	"Elastic": {
 		"logs":      providers.LogsElastic,
