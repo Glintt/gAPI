@@ -15,7 +15,7 @@ var APPLICATION_JSON = "application/json"
 
 var SOCKET_PORT_DEFAULT = "5000"
 
-var MATCHING_URI_REGEX = "((/*)|$)"
+var MATCHING_URI_REGEX = "((/([\\w?\\-=.&+#])*)*$)"
 
 func LoadConfigs() {
 	LoadGApiConfig()
