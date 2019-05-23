@@ -1,44 +1,25 @@
 package logs
 
 import (
+	"encoding/json"
+	apianalytics "gAPIManagement/api/api-analytics"
 	"gAPIManagement/api/config"
+	"gAPIManagement/api/logs/models"
+	"gAPIManagement/api/logs/providers"
 	"gAPIManagement/api/rabbit"
 	"gAPIManagement/api/utils"
-	"encoding/json"
 
 	// "github.com/streadway/amqp"
 
 	"github.com/valyala/fasthttp"
 )
-/* 
-var RabbitConnection *amqp.Connection
-var RabbitConnection *amqp.Connection
-var RabbitChannel *amqp.Channel
-var LogQueue amqp.Queue */
-
-type RequestLogging struct {
-	Method      string
-	Uri         string
-	RequestBody string
-	Host        string
-	UserAgent   string
-	RemoteAddr  string
-	RemoteIp    string
-	Headers     string
-	QueryArgs   string
-	DateTime    string
-	Response    string
-	ElapsedTime int64
-	StatusCode  int
-	ServiceName string
-	IndexName		string
-}
 
 var LoggingType = map[string]interface{}{
-	"Rabbit": PublishRabbit,
-	"Elastic": PublishElastic}
+	"Rabbit":  PublishRabbit,
+	"Elastic": providers.PublishElastic,
+	"Oracle":  providers.PublishOracle}
 
-func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte, currentDate string, elapsedTime int64, serviceName string, indexName string) RequestLogging {
+func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte, currentDate string, elapsedTime int64, serviceName string, indexName string) models.RequestLogging {
 	remoteAddress := string(c.Request.Header.Peek("X-Real-IP"))
 	remoteIpAddress := string(c.Request.Header.Peek("X-Real-IP"))
 
@@ -51,8 +32,8 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 	if remoteHost == "" {
 		remoteHost = string(c.Request.Host())
 	}
-	
-	return RequestLogging{string(
+
+	return models.RequestLogging{"", string(
 		c.Method()),
 		string(c.Request.RequestURI()),
 		string(c.Request.Body()),
@@ -70,51 +51,18 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 		indexName}
 }
 
-func (reqLogging *RequestLogging) Save() {	
-	go PublishLog(reqLogging)
-}
-
-func PublishLog(reqLogging *RequestLogging) {
+func PublishLog(reqLogging *models.RequestLogging) {
 	defer utils.PreventCrash()
 
-	LoggingType[config.GApiConfiguration.Logs.Type].(func(*RequestLogging))(reqLogging)
+	if config.GApiConfiguration.Logs.Queue == apianalytics.LogRabbitQueueType {
+		PublishRabbit(reqLogging)
+	} else {
+		LoggingType[config.GApiConfiguration.Logs.Type].(func(*models.RequestLogging))(reqLogging)
+	}
 	return
 }
 
-func PublishElastic(reqLogging *RequestLogging) {
-	utils.LogMessage("ELASTIC PUBLISH", utils.DebugLogType)
-	currentDate := utils.CurrentDate()
-	
-	indexName := config.ELASTICSEARCH_LOGS_INDEX
-	if reqLogging.IndexName != "" {
-		indexName = reqLogging.IndexName
-	}
-
-	logsURL := config.ELASTICSEARCH_URL + "/" + indexName + "/request-logs-" + currentDate
-
-
-	reqLoggingJson, _ := json.Marshal(reqLogging)
-
-	request := fasthttp.AcquireRequest()
-
-	request.SetRequestURI(logsURL)
-	request.Header.SetMethod("POST")
-
-	request.Header.SetContentType("application/json")
-	request.SetBody(reqLoggingJson)
-	client := fasthttp.Client{}
-
-	resp := fasthttp.AcquireResponse()
-	err := client.Do(request, resp)
-
-	if err != nil {
-		utils.LogMessage("ELASTIC PUBLISH - error:" + err.Error(), utils.DebugLogType)
-		
-		resp.SetStatusCode(400)
-	}
-}
-
-func PublishRabbit(reqLogging *RequestLogging) {
+func PublishRabbit(reqLogging *models.RequestLogging) {
 	reqLoggingJson, _ := json.Marshal(reqLogging)
 
 	/* if RabbitConnection == nil{
@@ -122,26 +70,26 @@ func PublishRabbit(reqLogging *RequestLogging) {
 	} */
 
 	// RabbitChannel := rabbit.CreateChannel(rabbit.RabbitConnection)
-	/* 
-	LogQueue, err := RabbitChannel.QueueDeclare(
-		rabbit.Queue(), // name
-		true,           // durable
-		false,          // delete when unused
-		false,          // exclusive
-		false,          	// no-wait
-		nil,            // arguments
-	)
-	rabbit.FailOnError(err, "Failed to declare queue")
- */
+	/*
+		LogQueue, err := RabbitChannel.QueueDeclare(
+			rabbit.Queue(), // name
+			true,           // durable
+			false,          // delete when unused
+			false,          // exclusive
+			false,          	// no-wait
+			nil,            // arguments
+		)
+		rabbit.FailOnError(err, "Failed to declare queue")
+	*/
 	/* err := rabbit.RabbitChannelGlobal.Publish(
-		"",            // exchange
-		rabbit.Queue(), // routing key
-		false,         // mandatory
-		false,         	// immediate
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        reqLoggingJson,
-		}) */
+	"",            // exchange
+	rabbit.Queue(), // routing key
+	false,         // mandatory
+	false,         	// immediate
+	amqp.Publishing{
+		ContentType: "application/json",
+		Body:        reqLoggingJson,
+	}) */
 
 	rabbit.PublishToRabbitMQ(reqLoggingJson)
 

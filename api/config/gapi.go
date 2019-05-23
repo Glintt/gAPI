@@ -54,6 +54,7 @@ type LDAPConfig struct {
 type GApiLogsConfig struct {
 	Active bool
 	Type   string
+	Queue  string
 }
 
 type GApiCorsConfig struct {
