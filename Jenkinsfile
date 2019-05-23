@@ -15,7 +15,7 @@ node{
 			// sh "docker image build --build-arg db=$DB --build-arg logs_type=$LOGS_TYPE -t $DOCKER_USER/gapi-backend -f Dockerfile ."
 		}
 
-		dir('logs-listener') {
+		dir('api') {
 			sh "docker image build --build-arg db=$DB --build-arg logs_type=$LOGS_TYPE --build-arg queue_type=Rabbit -t $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION -f Dockerfile-rabbitlistener ."
 			sh "docker image build -t $DOCKER_USER/gapi-rabbitlistener -f Dockerfile-rabbitlistener ."			
 		}
