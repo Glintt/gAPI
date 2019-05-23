@@ -12,13 +12,14 @@ RUN mkdir -p /gAPIManagement/api
 ADD . /go/src/gAPIManagement/api
 WORKDIR /go/src/gAPIManagement/api
 
-
-RUN ls /go/
-RUN ls /go/src
-RUN ls /go/src/gAPIManagement/
-
 RUN echo $GO_HOME
 RUN sh install.sh
 RUN go build -o rabbit-listener ./rabbit-listener.go 
+
+ARG db=mongo
+ARG logs_type=Elastic
+ARG queue_type=Internal
+
+RUN sh generate_config.sh db=$db logs_type=$logs_type queue_type=$queue_type
 
 CMD ["/go/src/gAPIManagement/api/rabbit-listener"]
