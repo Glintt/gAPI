@@ -16,8 +16,7 @@ node{
 		}
 
 		dir('api') {
-			sh "docker image build --build-arg db=$DB --build-arg logs_type=$LOGS_TYPE --build-arg queue_type=Rabbit -t $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION -f Dockerfile-rabbitlistener ."
-			sh "docker image build -t $DOCKER_USER/gapi-rabbitlistener -f Dockerfile-rabbitlistener ."			
+			sh "docker image build --build-arg db=$DB --build-arg logs_type=$LOGS_TYPE --build-arg queue_type=Rabbit -t $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION-$DB -f Dockerfile-rabbitlistener ."
 		}
 
 		dir('dashboard') {
@@ -27,24 +26,18 @@ node{
 	}
 
 	stage('Publish docker images') {
-		sh "docker push $DOCKER_USER/gapi-backend:$BUILD_VERSION"
-		sh "docker push $DOCKER_USER/gapi-backend"
+		sh "docker push $DOCKER_USER/gapi-backend:$BUILD_VERSION-$DB"
 		
-		sh "docker push $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION"
-		sh "docker push $DOCKER_USER/gapi-rabbitlistener"
+		sh "docker push $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION-$DB"
 		
 		sh "docker push $DOCKER_USER/gapi-dashboard:$BUILD_VERSION"
-		sh "docker push $DOCKER_USER/gapi-dashboard"	
 	}
 
 	stage('Remove docker images from build machine') {		
-		sh "docker image rm -f $DOCKER_USER/gapi-backend:$BUILD_VERSION"
-		sh "docker image rm -f $DOCKER_USER/gapi-backend"
+		sh "docker image rm -f $DOCKER_USER/gapi-backend:$BUILD_VERSION-$DB"
 				
-		sh "docker image rm -f $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION"
-		sh "docker image rm -f $DOCKER_USER/gapi-rabbitlistener"
+		sh "docker image rm -f $DOCKER_USER/gapi-rabbitlistener:$BUILD_VERSION-$DB"
 				
 		sh "docker image rm -f $DOCKER_USER/gapi-dashboard:$BUILD_VERSION"
-		sh "docker image rm -f $DOCKER_USER/gapi-dashboard"
 	}
 }

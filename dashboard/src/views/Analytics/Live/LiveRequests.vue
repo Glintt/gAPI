@@ -17,12 +17,13 @@ import io from "socket.io-client";
 export default {
   name: "live-requests",
   mounted() {
-    var socket = io.connect(this.$config.API.getSocketBaseUrl());
-    socket.on("logs", msg => {
+    window.socket = io(this.$config.API.getSocketBaseUrl(),  {transports: ['websocket']});
+    window.socket.on("logs", msg => {
+      console.log(msg)
       this.updateMonitorInfo(msg);
     });
 
-    socket.on("connect", () => {
+    window.socket.on("connect", () => {
       console.log("Connected to server!");
     });
 

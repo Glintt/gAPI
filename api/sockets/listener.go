@@ -1,16 +1,19 @@
 package sockets
 
 import (
+	"fmt"
 	"gAPIManagement/api/config"
 	"log"
 	"net/http"
 	"os"
 
-	socketio "github.com/googollee/go-socket.io"
 	"github.com/rs/cors"
+
+	gosocketio "github.com/graarh/golang-socketio"
+	"github.com/graarh/golang-socketio/transport"
 )
 
-var SocketsConnected []socketio.Conn
+var SocketsConnected []*gosocketio.Channel
 
 func SocketListen() {
 	port := os.Getenv("SOCKET_PORT")
@@ -19,28 +22,30 @@ func SocketListen() {
 		port = config.SOCKET_PORT_DEFAULT
 	}
 
-	server, err := socketio.NewServer(nil)
-	if err != nil {
-		log.Fatal(err)
-	}
+	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 
-	server.OnConnect("/", func(so socketio.Conn) error {
-		SocketsConnected = append(SocketsConnected, so)
-		return nil
+	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
+		SocketsConnected = append(SocketsConnected, c)
 	})
 
-	server.OnDisconnect("/", func(so socketio.Conn, msg string) {
-		var SocketsConnectedTemp []socketio.Conn
+	server.On(gosocketio.OnDisconnection, func(c *gosocketio.Channel) {
+		var SocketsConnectedTemp []*gosocketio.Channel
 		for _, element := range SocketsConnected {
-			if element.ID() != so.ID() {
+			if element.Id() != c.Id() {
 				SocketsConnectedTemp = append(SocketsConnectedTemp, element)
 			}
 			SocketsConnected = SocketsConnectedTemp
 		}
 	})
-
-	server.OnError("/", func(err error) {
-		log.Println("error:", err)
+	//error catching handler
+	server.On(gosocketio.OnError, func(c *gosocketio.Channel) {
+		var SocketsConnectedTemp []*gosocketio.Channel
+		for _, element := range SocketsConnected {
+			if element.Id() != c.Id() {
+				SocketsConnectedTemp = append(SocketsConnectedTemp, element)
+			}
+			SocketsConnected = SocketsConnectedTemp
+		}
 	})
 
 	mux := http.NewServeMux()
@@ -50,8 +55,8 @@ func SocketListen() {
 	})
 
 	handler := c.Handler(mux)
-
 	mux.Handle("/socket.io/", server)
 
+	fmt.Println("WS PORT = " + port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

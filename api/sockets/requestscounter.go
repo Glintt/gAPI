@@ -1,42 +1,41 @@
 package sockets
 
-
 import (
 	"gAPIManagement/api/utils"
-	
+
 	//"encoding/json"
-	"time"
 	"strconv"
+	"time"
 )
 
 var RequestsCount = 0
 
-func IncrementRequestCounter(){
+func IncrementRequestCounter() {
 	RequestsCount = RequestsCount + 1
 }
-func ResetCounter(){
+func ResetCounter() {
 	RequestsCount = 0
 }
 
-func PropagateToSockets(){
+func PropagateToSockets() {
 	for _, element := range SocketsConnected {
 		element.Emit("logs", string(strconv.Itoa(RequestsCount)))
 	}
-	
+
 	ResetCounter()
 }
 
-func StartRequestsCounterSender(){
+func StartRequestsCounterSender() {
 	PreventCrash()
 
-	ticker := time.NewTicker(1 * time.Second)
+	var ticker = time.NewTicker(1 * time.Second)
 	quit := make(chan struct{})
 	go func() {
 		for {
-		select {
-			case <- ticker.C:
+			select {
+			case <-ticker.C:
 				PropagateToSockets()
-			case <- quit:
+			case <-quit:
 				ticker.Stop()
 				return
 			}
@@ -44,7 +43,7 @@ func StartRequestsCounterSender(){
 	}()
 }
 
-func PreventCrash(){
+func PreventCrash() {
 	if r := recover(); r != nil {
 		utils.LogMessage("recover request counter", utils.DebugLogType)
 	}
