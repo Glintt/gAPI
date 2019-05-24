@@ -29,12 +29,12 @@
               Basic Configuration
             </a>
             </li>
-          <li class="nav-item">
+          <li v-show="isLoggedIn"  class="nav-item">
             <a class="nav-link" id="config-tab" data-toggle="tab" href="#config" role="tab" aria-controls="config" aria-selected="true">
               Api Configuration
             </a>
           </li>
-          <li class="nav-item">
+          <li v-show="isLoggedIn" class="nav-item">
             <a class="nav-link" id="mng-config-tab" data-toggle="tab" href="#mng-config" role="tab" aria-controls="mng-config" aria-selected="true">
               Management Configuration
             </a>
