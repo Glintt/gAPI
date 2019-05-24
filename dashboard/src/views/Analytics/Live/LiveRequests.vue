@@ -19,7 +19,6 @@ export default {
   mounted() {
     window.socket = io(this.$config.API.getSocketBaseUrl(),  {transports: ['websocket']});
     window.socket.on("logs", msg => {
-      console.log(msg)
       this.updateMonitorInfo(msg);
     });
 

@@ -352,9 +352,8 @@ export function deassociateServiceFromAppsGroup(groupId, serviceId, cb) {
 
 export function AppsGroupForService(serviceId, cb) {
   HTTP.GET(
-    HTTP.PathToCall(Endpoints.application_group_for_service).replace(
-      "<service_id>",
-      serviceId
+    HTTP.PathToCall(
+      Endpoints.application_group_for_service.replace("<service_id>", serviceId)
     ),
     {}
   ).then(

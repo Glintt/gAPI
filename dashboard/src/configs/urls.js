@@ -32,10 +32,9 @@ export const config = {
       var socketBaseUrl = this.getHeader("Socket-Base");
 
       if (socketBaseUrl == undefined || socketBaseUrl == null) {
-        socketBaseUrl = `${this.PROTOCOL}://${this.SOCKET_HOST}:${
-          this.SOCKET_PORT
-        }/`;
+        socketBaseUrl = `ws://${this.SOCKET_HOST}:${this.SOCKET_PORT}/`;
       }
+      console.log(socketBaseUrl);
       return socketBaseUrl;
     }
   }
