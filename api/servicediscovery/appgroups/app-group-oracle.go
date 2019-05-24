@@ -56,19 +56,20 @@ func GetApplicationGroupsOracle(page int, nameFilter string) []ApplicationGroup 
 	}
 
 	query := LIST_APPLICATION_GROUP_V2
-	query = `SELECT * FROM
-			(
-				SELECT a.*, rownum r__
-				FROM
-				(
-					` + query + `
-				) a
-				WHERE rownum < ((:page * 10) + 1 )
-			)
-			WHERE r__ >= (((:page-1) * 10) + 1)`
-	rows, err := db.Query(query, "%"+nameFilter+"%", page)
+	// query = `SELECT * FROM
+	// 		(
+	// 			SELECT a.*, rownum r__
+	// 			FROM
+	// 			(
+	// 				` + query + `
+	// 			) a
+	// 			WHERE rownum < ((:page * 50) + 1 )
+	// 		)
+	// 		WHERE r__ >= (((:page-1) * 50) + 1)`
+	//	rows, err := db.Query(query, "%"+nameFilter+"%", page)
+	rows, err := db.Query(query, "%"+nameFilter+"%")
 
-	groups := RowsToAppGroup(rows, true)
+	groups := RowsToAppGroup(rows, false)
 	database.CloseOracleConnection(db)
 
 	return groups
