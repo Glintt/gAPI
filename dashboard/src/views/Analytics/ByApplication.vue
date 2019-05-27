@@ -11,7 +11,8 @@
                 </div>
             </div>
         </div>
-        <ByApplication :selectedAPI="selectedAPI"/> 
+        <ByApplication :selectedAPI="selectedAPI" v-if="selectedAPI != null"/> 
+        <span v-if="selectedAPI == null">Select an application to get analytics</span> 
     </div>
 </template>
 
@@ -24,16 +25,9 @@ var analyticsAPI = require("@/api/analytics");
 export default {
   name: "analytics-by-application",
   mounted() {
-    analyticsAPI.byApplication({}, response => {
-      this.fullAnalytics = response.body.aggregations;
-      this.applicationsList = this.GetApplicationsList();
-    });
-
-      this.fetchGroups();
-
+    this.fetchGroups();
   },
   computed:{
-
     ...mapGetters("appsGroups", [
       "groups"
     ])
@@ -42,7 +36,6 @@ export default {
     return {
       fullAnalytics: {},
       selectedAPI: null,
-      applicationsList: []
     };
   },
   methods: {    
@@ -50,22 +43,12 @@ export default {
       "fetchGroups"
     ]),
     RemoveFilter: function() {
-      analyticsAPI.byApplication({}, response => {
-        this.fullAnalytics = response.body.aggregations.api.buckets;
-        this.selectedAPI = null;
-        this.UpdateTableData();
-      });
-    },
-    GetApplicationsList: function() {
-      var apis = [];
-      for (var i = 0; i < this.fullAnalytics.length; i++) {
-        apis.push(this.fullAnalytics[i].key);
-      }
-      return apis;
+      this.selectedAPI = null
+      this.UpdateTableData();
+      this.fullAnalytics = {}
     }
   },
-  components: {
-    
+  components: {    
     ByApplication
   }
 };
