@@ -39,13 +39,17 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 	authenticationToken := string(c.Request.Header.Peek("Authorization"))
 	var tokenParsedByte []byte
 	if authenticationToken != "" {
-		tokenParsed, _ := jwt.Parse(strings.Split(authenticationToken, " ")[1], nil)
-		tokenParsedByte, _ = json.Marshal(tokenParsed.Claims)
+		tokenParsed, err := jwt.Parse(strings.Split(authenticationToken, " ")[1], nil)
+		if err != nil {
+			tokenParsedByte = []byte("")
+		} else {
+			tokenParsedByte, _ = json.Marshal(tokenParsed.Claims)
+		}
 	} else {
 		tokenParsedByte = []byte("")
 	}
-	return models.RequestLogging{"", string(
-		c.Method()),
+	return models.RequestLogging{"",
+		string(c.Method()),
 		string(c.Request.RequestURI()),
 		string(c.Request.Body()),
 		remoteHost,

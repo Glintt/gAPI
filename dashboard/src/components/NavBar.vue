@@ -40,6 +40,7 @@
 
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <router-link to="/analytics/by-api" class="dropdown-item"><i class="fas fa-chart-pie text-info"></i> By API</router-link>
+                        <router-link to="/analytics/by-application" class="dropdown-item"><i class="fas fa-chart-pie text-info"></i> By Application</router-link>
                         <router-link to="/analytics/realtime" class="dropdown-item"><i class="fas fa-chart-area text-warning"></i> Realtime</router-link>
                     </div>
                 </li>

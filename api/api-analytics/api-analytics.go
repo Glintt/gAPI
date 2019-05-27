@@ -14,12 +14,14 @@ const (
 
 var AnalyticsMethods = map[string]map[string]interface{}{
 	"Elastic": {
-		"logs":      providers.LogsElastic,
-		"analytics": providers.APIAnalyticsElastic,
+		"logs":          providers.LogsElastic,
+		"analytics":     providers.APIAnalyticsElastic,
+		"app_analytics": providers.ApplicationAnalyticsElastic,
 	},
 
 	"Oracle": {
-		"logs":      providers.LogsOracle,
-		"analytics": providers.APIAnalyticsOracle,
+		"logs":          providers.LogsOracle,
+		"analytics":     providers.APIAnalyticsOracle,
+		"app_analytics": providers.ApplicationAnalyticsOracle,
 	},
 }
