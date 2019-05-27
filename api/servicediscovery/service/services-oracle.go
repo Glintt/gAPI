@@ -3,7 +3,6 @@ package service
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/utils"
 	"strings"
@@ -185,7 +184,6 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 	}
 
 	query = query + " order by a.id"
-	fmt.Println(query)
 	var rows *sql.Rows
 	var pagination = false
 	if page >= 0 {
@@ -206,7 +204,7 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 	}
 
 	if err != nil {
-		fmt.Println("Error running query")
+		utils.LogMessage("Error running query", utils.DebugLogType)
 		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return []Service{}
@@ -282,7 +280,7 @@ func NormalizeServicesOracle() error {
 
 	rows, err := db.Query(LIST_SERVICES_ORACLE, "%", "%")
 	if err != nil {
-		fmt.Println("Error running query")
+		utils.LogMessage("Error running query", utils.DebugLogType)
 		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return err
@@ -358,7 +356,7 @@ func ListAllAvailableHostsOracle() ([]string, error) {
 
 	rows, err := db.Query(SERVICE_DISTINCT_HOSTS_ORACLE)
 	if err != nil {
-		fmt.Println("Error running query")
+		utils.LogMessage("Error running query", utils.DebugLogType)
 		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return nil, err
