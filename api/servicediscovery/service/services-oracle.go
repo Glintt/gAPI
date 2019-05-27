@@ -3,7 +3,6 @@ package service
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/utils"
 	"strings"
@@ -20,7 +19,8 @@ var SERVICE_COLUMNS = ` a.id, a.identifier,
 	a.servicemanagementendpoints, a.hosts, a.protectedexclude, b.isreachable as groupreachable `
 
 var LIST_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS + ` 
-	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where upper(a.name) like upper(:name) or upper(a.matchinguri) like upper(:matchinguri)`
+	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where 
+	(upper(a.name) like upper(:name) or upper(a.matchinguri) like upper(:matchinguri))`
 
 var INSERT_SERVICE_ORACLE = `INSERT INTO gapi_services 
 (
@@ -204,7 +204,7 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 	}
 
 	if err != nil {
-		fmt.Println("Error running query")
+		utils.LogMessage("Error running query", utils.DebugLogType)
 		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return []Service{}
@@ -280,7 +280,7 @@ func NormalizeServicesOracle() error {
 
 	rows, err := db.Query(LIST_SERVICES_ORACLE, "%", "%")
 	if err != nil {
-		fmt.Println("Error running query")
+		utils.LogMessage("Error running query", utils.DebugLogType)
 		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return err
@@ -356,7 +356,7 @@ func ListAllAvailableHostsOracle() ([]string, error) {
 
 	rows, err := db.Query(SERVICE_DISTINCT_HOSTS_ORACLE)
 	if err != nil {
-		fmt.Println("Error running query")
+		utils.LogMessage("Error running query", utils.DebugLogType)
 		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return nil, err
