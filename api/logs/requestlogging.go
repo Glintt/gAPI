@@ -48,8 +48,8 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 	} else {
 		tokenParsedByte = []byte("")
 	}
-	return models.RequestLogging{"", string(
-		c.Method()),
+	return models.RequestLogging{"",
+		string(c.Method()),
 		string(c.Request.RequestURI()),
 		string(c.Request.Body()),
 		remoteHost,

@@ -141,8 +141,12 @@ func ApplicationAnalyticsOracle(applicationId string) (string, int) {
 
 	defer rows.Close()
 
-	respString, _ := json.Marshal(apiAnalytics)
-	return `{"aggregations":{"api": {"buckets":` + string(respString) + ` }}}`, 200
+	if len(apiAnalytics) == 0 {
+		return `{"hits":{"total":0}, "aggregations":{}}`, 404
+	}
+
+	respString, _ := json.Marshal(apiAnalytics[0])
+	return `{"hits":{"total":` + strconv.Itoa(apiAnalytics[0].TotalRequests) + `},"aggregations":` + string(respString) + ` }`, 200
 }
 
 type ApiAnalytics struct {

@@ -3,6 +3,9 @@ package providers
 import (
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/http"
+	"gAPIManagement/api/servicediscovery/appgroups"
+	"gAPIManagement/api/servicediscovery/constants"
+	"gAPIManagement/api/servicediscovery/service"
 	"regexp"
 	"strings"
 )
@@ -40,6 +43,15 @@ func APIAnalyticsElastic(apiEndpoint string) (string, int) {
 	}
 
 	response := http.MakeRequest(config.POST, LogsURL(), APIAnalyticsQuery(apiEndpoint), nil)
+
+	return string(response.Body()), response.StatusCode()
+}
+
+func ApplicationAnalyticsElastic(appGroupId string) (string, int) {
+	appGroup, _ := appgroups.ApplicationGroupMethods[constants.SD_TYPE]["getbyid"].(func(string) (appgroups.ApplicationGroup, error))(appGroupId)
+	appGroupServices, _ := appgroups.ApplicationGroupMethods[constants.SD_TYPE]["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(appGroup)
+
+	response := http.MakeRequest(config.POST, LogsURL(), ApplicationAnalyticsQuery(appGroupServices), nil)
 
 	return string(response.Body()), response.StatusCode()
 }
@@ -140,4 +152,86 @@ func APIAnalyticsQuery(apiEndpoint string) string {
 			}
 		}
 	}`
+}
+
+func ApplicationAnalyticsQuery(services []service.Service) string {
+	shouldQuery := ""
+	for _, s := range services {
+		if shouldQuery != "" {
+			shouldQuery = shouldQuery + ","
+		}
+		shouldQuery = shouldQuery + `{ "match": { "ServiceName": "` + s.MatchingURI + `" }}`
+	}
+	return `{
+		"size": 0,
+		"from": 0,
+		"query":{
+			"bool":{
+				"should": [` + shouldQuery + `
+				]
+				
+			}
+		},
+		"aggs": {
+			 "UserAgent": {
+													"terms": {
+															"field": "UserAgent.keyword",
+															"size": 5,
+															"order": {
+																	"_count": "desc"
+															}
+													}
+											},
+											"StatusCode": {
+													"terms": {
+															"field": "StatusCode",
+															"size": 5,
+															"order": {
+																	"_count": "desc"
+															}
+													},
+													"aggs": {
+															"Count": {
+																	"cardinality": {
+																			"field": "StatusCode"
+																	}
+															}
+													}
+											},
+											"RemoteAddr": {
+													"terms": {
+															"field": "RemoteIp.keyword",
+															"size": 5,
+															"order": {
+																	"_count": "desc"
+															}
+													},
+													"aggs": {
+															"Count": {
+																	"cardinality": {
+																			"field": "RemoteIp.keyword"
+																	}
+															}
+													}
+											},
+			"MaxElapsedTime": {
+					"max": {
+							"field": "ElapsedTime"
+					}
+			},
+			"MinElapsedTime": {
+					"min": {
+							"field": "ElapsedTime"
+					}
+			},
+			"AvgElapsedTime": {
+					"avg": {
+							"field": "ElapsedTime"
+					}
+			}
+	
+	
+		}
+	}
+	`
 }
