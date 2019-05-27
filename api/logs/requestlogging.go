@@ -8,6 +8,9 @@ import (
 	"gAPIManagement/api/logs/providers"
 	"gAPIManagement/api/rabbit"
 	"gAPIManagement/api/utils"
+	"strings"
+
+	jwt "github.com/dgrijalva/jwt-go"
 
 	// "github.com/streadway/amqp"
 
@@ -33,6 +36,9 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 		remoteHost = string(c.Request.Host())
 	}
 
+	authenticationToken := string(c.Request.Header.Peek("Authorization"))
+	tokenParsed, _ := jwt.Parse(strings.Split(authenticationToken, " ")[1], nil)
+	tokenParsedByte, _ := json.Marshal(tokenParsed.Claims)
 	return models.RequestLogging{"", string(
 		c.Method()),
 		string(c.Request.RequestURI()),
@@ -48,7 +54,8 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 		elapsedTime,
 		c.Response.StatusCode(),
 		serviceName,
-		indexName}
+		indexName,
+		string(tokenParsedByte)}
 }
 
 func PublishLog(reqLogging *models.RequestLogging) {

@@ -146,7 +146,9 @@ func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
 
 	elapsedTime := utils.CurrentTimeMilliseconds() - beginTime
 	queryArgs, _ := json.Marshal(http.GetQueryParamsFromRequestCtx(ctx))
-	headers, _ := json.Marshal(http.GetHeadersFromRequest(ctx.Request))
+	headersObject := http.GetHeadersFromRequest(ctx.Request)
+	delete(headersObject, "Authorization")
+	headers, _ := json.Marshal(headersObject)
 	logRequest := logs.NewRequestLogging(ctx, queryArgs, headers, utils.CurrentDateWithFormat(time.UnixDate), elapsedTime, string(service), indexName)
 	work := logs.LogWorkRequest{Name: "", LogToSave: logRequest}
 	logs.WorkQueue <- work
