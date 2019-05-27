@@ -20,7 +20,8 @@ var SERVICE_COLUMNS = ` a.id, a.identifier,
 	a.servicemanagementendpoints, a.hosts, a.protectedexclude, b.isreachable as groupreachable `
 
 var LIST_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS + ` 
-	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where upper(a.name) like upper(:name) or upper(a.matchinguri) like upper(:matchinguri)`
+	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where 
+	(upper(a.name) like upper(:name) or upper(a.matchinguri) like upper(:matchinguri))`
 
 var INSERT_SERVICE_ORACLE = `INSERT INTO gapi_services 
 (
@@ -184,6 +185,7 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 	}
 
 	query = query + " order by a.id"
+	fmt.Println(query)
 	var rows *sql.Rows
 	var pagination = false
 	if page >= 0 {
