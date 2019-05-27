@@ -27,3 +27,13 @@ func APIAnalytics(c *routing.Context) error {
 
 	return nil
 }
+
+func ApplicationGroupAnalytics(c *routing.Context) error {
+	applicationGroup := string(c.QueryArgs().Peek("app_id"))
+
+	res, status := apianalytics.AnalyticsMethods[config.GApiConfiguration.Logs.Type]["app_analytics"].(func(string) (string, int))(applicationGroup)
+
+	http.Response(c, res, status, apianalytics.SERVICE_NAME, config.APPLICATION_JSON)
+
+	return nil
+}

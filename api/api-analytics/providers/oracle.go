@@ -19,6 +19,22 @@ FROM (SELECT a.*, ROWNUM r__
 	   WHERE ROWNUM < 11)
 WHERE r__ >= 1 ##WHERE_CLAUSE##`
 
+const APP_ANALYTICS_QUERY_ORACLE = `
+SELECT   count(*) as total_requests,
+         MAX (elapsed_time) max_elapsed_time,
+         AVG (elapsed_time) avg_elapsed_time,
+		 MIN (elapsed_time) min_elapsed_time,
+		 '','','',
+		 c.name,
+		 1
+    FROM gapi_request_logs a,
+             gapi_services b
+         LEFT JOIN
+             gapi_services_apps_groups c
+         ON b.applicationgroupid = c.id
+   WHERE a.service_name = b.matchinguri ##WHERE_CLAUSE##
+GROUP BY c.name`
+
 func LogsOracle(apiEndpoint string) (string, int) {
 	var err error
 	var rows *sql.Rows
@@ -82,6 +98,36 @@ func APIAnalyticsOracle(apiEndpoint string) (string, int) {
 	if apiEndpoint != "" {
 		query = strings.Replace(query, "##WHERE_CLAUSE##", " and service_name = :serviceName", -1)
 		rows, err = db.Query(query, apiEndpoint)
+	} else {
+		query = strings.Replace(query, "##WHERE_CLAUSE##", "", -1)
+		rows, err = db.Query(query)
+	}
+
+	database.CloseOracleConnection(db)
+	if err != nil {
+		return `{"error": true, "msg": "` + err.Error() + `"}`, 500
+	}
+	apiAnalytics := RowsToApiAnalyticsModel(rows)
+
+	defer rows.Close()
+
+	respString, _ := json.Marshal(apiAnalytics)
+	return `{"aggregations":{"api": {"buckets":` + string(respString) + ` }}}`, 200
+}
+
+func ApplicationAnalyticsOracle(applicationId string) (string, int) {
+	var err error
+	var rows *sql.Rows
+
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + ` "}`, 500
+	}
+
+	query := APP_ANALYTICS_QUERY_ORACLE
+	if applicationId != "" {
+		query = strings.Replace(query, "##WHERE_CLAUSE##", " and c.name like :appId", -1)
+		rows, err = db.Query(query, applicationId)
 	} else {
 		query = strings.Replace(query, "##WHERE_CLAUSE##", "", -1)
 		rows, err = db.Query(query)

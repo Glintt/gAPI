@@ -19,7 +19,8 @@ var AnalyticsMethods = map[string]map[string]interface{}{
 	},
 
 	"Oracle": {
-		"logs":      providers.LogsOracle,
-		"analytics": providers.APIAnalyticsOracle,
+		"logs":          providers.LogsOracle,
+		"analytics":     providers.APIAnalyticsOracle,
+		"app_analytics": providers.ApplicationAnalyticsOracle,
 	},
 }

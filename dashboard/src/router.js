@@ -7,6 +7,7 @@ import NewService from "./views/ServiceDiscovery/NewService.vue";
 import ViewService from "./views/Service/ViewService.vue";
 import ServiceLogs from "./views/Service/ServiceLogs.vue";
 import ByApi from "./views/Analytics/ByApi.vue";
+import ByApplication from "./views/Analytics/ByApplication.vue";
 import Realtime from "./views/Analytics/Realtime.vue";
 import ListUsers from "./views/Users/ListUsers.vue";
 import EditUser from "./views/Users/EditUser.vue";
@@ -101,6 +102,12 @@ export default new Router({
       path: "/analytics/by-api",
       name: "analytics-by-api",
       component: ByApi,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/analytics/by-application",
+      name: "analytics-by-application",
+      component: ByApplication,
       beforeEnter: OAuthValidator.requireAdminAuth
     },
     {
