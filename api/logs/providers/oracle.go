@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"fmt"
 	"gAPIManagement/api/config"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/logs/models"
@@ -11,8 +10,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-const INSERT_LOG_ORACLE = `INSERT INTO gapi_request_logs(id,method,uri,request_body,host,user_agent,remote_addr,remote_ip,headers,query_args,date_time,response,elapsed_time,status_code,service_name,index_name,request_grouper_date) 
-VALUES(:id,:method,:uri,:request_body,:host,:user_agent,:remote_addr,:remote_ip,:headers,:query_args,:date_time,:response,:elapsed_time,:status_code,:service_name,:index_name,:request_grouper_date)`
+const INSERT_LOG_ORACLE = `INSERT INTO gapi_request_logs(id,method,uri,request_body,host,user_agent,remote_addr,remote_ip,headers,query_args,date_time,response,elapsed_time,status_code,service_name,index_name,request_grouper_date,other_info) 
+VALUES(:id,:method,:uri,:request_body,:host,:user_agent,:remote_addr,:remote_ip,:headers,:query_args,:date_time,:response,:elapsed_time,:status_code,:service_name,:index_name,:request_grouper_date,:other_info)`
 
 const dateFormat = "2-Jan-06 3:04:05.000000 PM"
 
@@ -51,14 +50,15 @@ func PublishOracle(reqLogging *models.RequestLogging) {
 		reqLogging.ServiceName,
 		indexName,
 		currentDate,
+		reqLogging.GetOtherInfo(),
 	)
 
 	if err != nil {
-		fmt.Println(dateTime)
-		fmt.Println(currentDate)
-		fmt.Println(err.Error())
+		utils.LogMessage("ORACLE LOGS PUBLISH ERROR - "+err.Error(), utils.DebugLogType)
+		tx.Rollback()
+	} else {
+		tx.Commit()
 	}
 
-	tx.Commit()
 	database.CloseOracleConnection(db)
 }

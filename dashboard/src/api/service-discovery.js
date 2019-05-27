@@ -19,7 +19,7 @@ const Endpoints = {
 
   store_application_group: "/apps-groups",
   get_application_group_by_id: "/apps-groups/<group_id>",
-  list_application_group: "/apps-groups",
+  list_application_group: "/apps-groups?page=-1",
   update_application_group: "/apps-groups/<group_id>",
   delete_application_group: "/apps-groups/<group_id>",
   associate_to_application_group: "/apps-groups/<group_id>/<service_id>",
