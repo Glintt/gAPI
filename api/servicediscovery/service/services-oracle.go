@@ -88,11 +88,14 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 	protectedexclude, _ := json.Marshal(service.ProtectedExclude)
 	tx, err := db.Begin()
 	if err != nil {
+		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
 	err = VerifyServiceMatchingCollision(service, tx)
 	if err != nil {
+		tx.Rollback()
+		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
@@ -177,11 +180,15 @@ func CreateServiceOracle(s Service) (string, int) {
 
 	tx, err := db.Begin()
 	if err != nil {
+		tx.Rollback()
+		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
 	err = VerifyServiceMatchingCollision(s, tx)
 	if err != nil {
+		tx.Rollback()
+		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
