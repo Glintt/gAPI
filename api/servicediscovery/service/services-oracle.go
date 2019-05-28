@@ -3,6 +3,7 @@ package service
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"gAPIManagement/api/database"
 	"gAPIManagement/api/utils"
 	"strings"
@@ -38,6 +39,9 @@ VALUES(:id, :identifier,:name, :matchinguri,:matchinguriregex,:touri,
 
 var FIND_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS +
 	` from gapi_services a left join gapi_services_groups b on a.groupid = b.id where (a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier) `
+
+var FIND_COLLISIONS = `select count(*) total 
+from gapi_services a where a.matchinguri like :newmatchinguri`
 
 var DELETE_SERVICES_ORACLE = `delete from gapi_services where id = :id`
 
@@ -83,6 +87,11 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 	hosts, _ := json.Marshal(service.Hosts)
 	protectedexclude, _ := json.Marshal(service.ProtectedExclude)
 	tx, err := db.Begin()
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
+
+	err = VerifyServiceMatchingCollision(service, tx)
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
@@ -135,13 +144,20 @@ func DeleteHostsFromService(s Service, tx *sql.Tx) error {
 	return nil
 }
 
-func CreateServiceOracle(s Service) (string, int) {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
-	}
+func VerifyServiceMatchingCollision(s Service, tx *sql.Tx) error {
+	res, _ := tx.Query(FIND_COLLISIONS, s.MatchingURI+"%")
+	for res.Next() {
+		var counter int
+		res.Scan(&counter)
 
-	tx, err := db.Begin()
+		if counter > 0 {
+			return errors.New("Matching URI already exists for another service.")
+		}
+	}
+	return nil
+}
+
+func CreateServiceOracle(s Service) (string, int) {
 
 	if s.ServiceManagementEndpoints == nil {
 		s.ServiceManagementEndpoints = make(map[string]string)
@@ -153,6 +169,21 @@ func CreateServiceOracle(s Service) (string, int) {
 	hosts, _ := json.Marshal(s.Hosts)
 	protectedexclude, _ := json.Marshal(s.ProtectedExclude)
 	s.Id = bson.NewObjectId()
+
+	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
+
+	err = VerifyServiceMatchingCollision(s, tx)
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
 
 	_, err = tx.Exec(INSERT_SERVICE_ORACLE,
 		s.Id.Hex(), s.GenerateIdentifier(), s.Name, s.MatchingURI, s.MatchingURIRegex, s.ToURI,
