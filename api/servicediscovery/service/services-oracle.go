@@ -41,7 +41,7 @@ var FIND_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS +
 	` from gapi_services a left join gapi_services_groups b on a.groupid = b.id where (a.id = :id or regexp_like(matchinguri, :matchinguriregex) or a.identifier = :identifier) `
 
 var FIND_COLLISIONS = `select count(*) total 
-from gapi_services a where a.matchinguri like :newmatchinguri`
+from gapi_services a where a.matchinguri like :newmatchinguri and a.matchinguri <> :matchinguri`
 
 var DELETE_SERVICES_ORACLE = `delete from gapi_services where id = :id`
 
@@ -148,7 +148,7 @@ func DeleteHostsFromService(s Service, tx *sql.Tx) error {
 }
 
 func VerifyServiceMatchingCollision(s Service, tx *sql.Tx) error {
-	res, _ := tx.Query(FIND_COLLISIONS, s.MatchingURI+"%")
+	res, _ := tx.Query(FIND_COLLISIONS, s.MatchingURI+"%", s.MatchingURI)
 	for res.Next() {
 		var counter int
 		res.Scan(&counter)
