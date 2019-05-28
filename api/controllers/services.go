@@ -87,13 +87,14 @@ func AutoRegisterHandler(c *routing.Context) error {
 	serviceFound, err := servicediscovery.ValidateServiceExists(serv)
 	var status int
 	if err != nil {
-		_, status = service.CreateServiceMongo(serv)
-
+		_, status = Methods()["create"].(func(service.Service) (string, int))(serv)
 	} else {
 		serviceFound.Hosts = append(serviceFound.Hosts, host)
-		_, status = service.UpdateMongo(serviceFound, serviceFound)
+		_, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
 	}
-	serv, _ = service.FindMongo(serv)
+	_, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
+
+	serv, _ = Methods()["get"].(func(service.Service) (service.Service, error))(serv)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_REGISTER", "application/json")
@@ -124,9 +125,9 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 		return nil
 	} else {
 		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
-		_, status = service.UpdateMongo(serviceFound, serviceFound)
+		_, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
 	}
-	serv, _ = service.FindMongo(serv)
+	serv, _ = Methods()["get"].(func(service.Service) (service.Service, error))(serv)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_DEREGISTER", "application/json")

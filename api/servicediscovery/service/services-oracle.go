@@ -83,6 +83,9 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 	hosts, _ := json.Marshal(service.Hosts)
 	protectedexclude, _ := json.Marshal(service.ProtectedExclude)
 	tx, err := db.Begin()
+	if err != nil {
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
 
 	_, err = tx.Exec(UPDATE_SERVICE_ORACLE,
 		service.GenerateIdentifier(),
@@ -98,11 +101,14 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 
 	err = DeleteHostsFromService(service, tx)
 	if err != nil {
+		tx.Rollback()
 		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 	err = AddHostsToService(service, tx)
 	if err != nil {
+		tx.Rollback()
+		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
@@ -115,7 +121,6 @@ func AddHostsToService(s Service, tx *sql.Tx) error {
 	for _, h := range s.Hosts {
 		_, err := tx.Exec(INSERT_SERVICE_HOSTS_ORACLE, s.Id.Hex(), h)
 		if err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
@@ -125,7 +130,6 @@ func AddHostsToService(s Service, tx *sql.Tx) error {
 func DeleteHostsFromService(s Service, tx *sql.Tx) error {
 	_, err := tx.Exec(DELETE_SERVICE_HOSTS_ORACLE, s.Id.Hex())
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	return nil
@@ -162,12 +166,15 @@ func CreateServiceOracle(s Service) (string, int) {
 
 	err = AddHostsToService(s, tx)
 
+	if err != nil {
+		tx.Rollback()
+		database.CloseOracleConnection(db)
+		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+	}
+
 	tx.Commit()
 	database.CloseOracleConnection(db)
 
-	if err != nil {
-		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
-	}
 	return `{"error" : false, "msg": "Service created successfuly."}`, 201
 }
 
@@ -231,13 +238,16 @@ func DeleteServiceOracle(s Service) (string, int) {
 		service.Id.Hex(),
 	)
 
+	if err != nil {
+		tx.Rollback()
+		database.CloseOracleConnection(db)
+		return `{"error": true, "msg": "Service could not be removed"}`, 404
+	}
+
 	tx.Commit()
 	database.CloseOracleConnection(db)
 
-	if err == nil {
-		return `{"error": false, "msg": "Removed successfully."}`, 200
-	}
-	return `{"error": true, "msg": "Service could not be removed"}`, 404
+	return `{"error": false, "msg": "Removed successfully."}`, 200
 }
 
 func FindOracle(s Service) (Service, error) {
