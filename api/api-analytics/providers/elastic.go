@@ -1,13 +1,14 @@
 package providers
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery/appgroups"
-	"gAPIManagement/api/servicediscovery/constants"
-	"gAPIManagement/api/servicediscovery/service"
 	"regexp"
 	"strings"
+
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery/appgroups"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
 )
 
 func LogsURL() string {

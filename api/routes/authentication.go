@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/qiangxue/fasthttp-routing"
-	"gAPIManagement/api/controllers"
+	"github.com/Glintt/gAPI/api/controllers"
 )
 
 func InitAuthenticationAPI(router *routing.Router) {

@@ -1,8 +1,8 @@
 package notifications
 
 import (
-	"gAPIManagement/api/utils"
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/utils"
+	"github.com/Glintt/gAPI/api/config"
 	"bytes"
 	"net/http"
 )

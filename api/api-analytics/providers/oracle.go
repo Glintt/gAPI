@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"gAPIManagement/api/database"
-	logsModels "gAPIManagement/api/logs/models"
 	"strconv"
 	"strings"
+
+	"github.com/Glintt/gAPI/api/database"
+	logsModels "github.com/Glintt/gAPI/api/logs/models"
 )
 
 const LOGS_QUERY_ORACLE = `SELECT id,method,uri,request_body,host,user_agent,remote_addr,remote_ip,headers,query_args,date_time,response,elapsed_time,status_code,service_name,index_name,request_grouper_date FROM gapi_request_logs

@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	apianalytics "gAPIManagement/api/api-analytics"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
+	apianalytics "github.com/Glintt/gAPI/api/api-analytics"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )

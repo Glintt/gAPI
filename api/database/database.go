@@ -1,8 +1,8 @@
 package database
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/database/migrations"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/database/migrations"
 	"os"
 )
 

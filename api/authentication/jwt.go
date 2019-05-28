@@ -2,9 +2,9 @@ package authentication
 
 import (
 	"errors"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/users"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/users"
+	"github.com/Glintt/gAPI/api/utils"
 	"strings"
 	"time"
 

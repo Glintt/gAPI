@@ -2,10 +2,10 @@ package cache
 
 import (
 	"encoding/json"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery/service"
-	"gAPIManagement/api/thirdpartyauthentication"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/thirdpartyauthentication"
+	"github.com/Glintt/gAPI/api/utils"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )

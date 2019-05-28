@@ -1,10 +1,10 @@
 package providers
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/logs/models"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/logs/models"
+	"github.com/Glintt/gAPI/api/utils"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"

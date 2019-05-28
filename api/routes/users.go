@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"gAPIManagement/api/users"
-	"gAPIManagement/api/controllers"
-	"gAPIManagement/api/authentication"
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/users"
+	"github.com/Glintt/gAPI/api/controllers"
+	"github.com/Glintt/gAPI/api/authentication"
+	"github.com/Glintt/gAPI/api/config"
 	"github.com/qiangxue/fasthttp-routing"
 )
 

@@ -2,7 +2,7 @@ package migrations
 
 import (
 	"database/sql"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/utils"
 	"io/ioutil"
 	"log"
 	"os"

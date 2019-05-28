@@ -8,9 +8,9 @@ ENV RABBITMQ_QUEUE gAPI-logqueue
 
 
 WORKDIR /go/src/
-RUN mkdir -p /gAPIManagement/api
-ADD . /go/src/gAPIManagement/api
-WORKDIR /go/src/gAPIManagement/api
+RUN mkdir -p /gAPI/api
+ADD . /go/src/gAPI/api
+WORKDIR /go/src/gAPI/api
 
 RUN echo $GO_HOME
 RUN sh install.sh
@@ -22,4 +22,4 @@ ARG queue_type=Internal
 
 RUN sh generate_config.sh db=$db logs_type=$logs_type queue_type=$queue_type
 
-CMD ["/go/src/gAPIManagement/api/rabbit-listener"]
+CMD ["/go/src/../rabbit-listener"]

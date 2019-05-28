@@ -1,11 +1,11 @@
 package ratelimiting
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/servicediscovery/service"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/utils"
 	"sync"
 	"time"
 

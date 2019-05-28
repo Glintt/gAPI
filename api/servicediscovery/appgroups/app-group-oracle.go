@@ -3,8 +3,8 @@ package appgroups
 import (
 	"database/sql"
 	"fmt"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"strings"
 
 	"gopkg.in/mgo.v2/bson"

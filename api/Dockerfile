@@ -23,10 +23,10 @@ FROM golang:1.9 as dependencies
 
 WORKDIR /go/src/
 
-RUN mkdir -p gAPIManagement/api
+RUN mkdir -p gAPI/api
 
-ADD . /go/src/gAPIManagement/api
-WORKDIR /go/src/gAPIManagement/api
+ADD . /go/src/gAPI/api
+WORKDIR /go/src/gAPI/api
 
 RUN sh install.sh
 
@@ -35,7 +35,7 @@ FROM golang:1.9 as builder
 
 COPY --from=dependencies /go/src /go/src
 
-WORKDIR /go/src/gAPIManagement/api
+WORKDIR /go/src/gAPI/api
 
 RUN go build -o server ./server.go 
 
@@ -65,10 +65,10 @@ RUN ln -s /usr/lib/oracle/12.1/client64/lib/libocci.so.12.1 /usr/lib/oracle/12.1
 COPY oci8.pc  /usr/lib/pkgconfig/
 
 # 2. Copy api runtime and configs
-COPY --from=builder /go/src/gAPIManagement/api/server /go/src/gAPIManagement/api/server
-COPY --from=builder /go/src/gAPIManagement/api/generate_config.sh /go/src/gAPIManagement/api/generate_config.sh
+COPY --from=builder /go/src/../server /go/src/../server
+COPY --from=builder /go/src/../generate_config.sh /go/src/../generate_config.sh
 
-WORKDIR /go/src/gAPIManagement/api
+WORKDIR /go/src/gAPI/api
 
 ARG db=mongo
 ARG logs_type=Elastic
@@ -77,4 +77,4 @@ ARG queue_type=Internal
 RUN sh generate_config.sh db=$db logs_type=$logs_type queue_type=$queue_type
 RUN cat configs/gAPI.json
 
-CMD ["/go/src/gAPIManagement/api/server"]
+CMD ["/go/src/../server"]

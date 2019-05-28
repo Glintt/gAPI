@@ -3,10 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/servicediscovery/servicegroup"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery"
+	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"

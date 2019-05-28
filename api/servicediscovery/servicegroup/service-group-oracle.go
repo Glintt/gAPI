@@ -3,8 +3,8 @@ package servicegroup
 import (
 	"database/sql"
 	"errors"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/utils"
 	"strings"
 
 	"gopkg.in/mgo.v2/bson"

@@ -3,8 +3,8 @@ package servicediscovery
 import (
 	"encoding/json"
 	"errors"
-	"gAPIManagement/api/servicediscovery/service"
-	"gAPIManagement/api/servicediscovery/servicegroup"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )

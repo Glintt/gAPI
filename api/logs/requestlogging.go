@@ -2,12 +2,12 @@ package logs
 
 import (
 	"encoding/json"
-	apianalytics "gAPIManagement/api/api-analytics"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/logs/models"
-	"gAPIManagement/api/logs/providers"
-	"gAPIManagement/api/rabbit"
-	"gAPIManagement/api/utils"
+	apianalytics "github.com/Glintt/gAPI/api/api-analytics"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/logs/models"
+	"github.com/Glintt/gAPI/api/logs/providers"
+	"github.com/Glintt/gAPI/api/rabbit"
+	"github.com/Glintt/gAPI/api/utils"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"

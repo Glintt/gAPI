@@ -1,12 +1,12 @@
 package healthcheck
 
 import (
-	"gAPIManagement/api/notifications"
-	"gAPIManagement/api/servicediscovery/service"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/notifications"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/utils"
 
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/servicediscovery"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/servicediscovery"
 	"net/http"
 	"time"
 )

@@ -2,8 +2,8 @@ package servicegroup
 
 import (
 	"errors"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

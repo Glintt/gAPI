@@ -1,7 +1,7 @@
 package notifications
 
 import (
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/config"
 )
 
 var Methods = map[string]interface{}{

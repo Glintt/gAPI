@@ -1,10 +1,10 @@
 package logs
 
 import (
-	apianalytics "gAPIManagement/api/api-analytics"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/rabbit"
-	"gAPIManagement/api/utils"
+	apianalytics "github.com/Glintt/gAPI/api/api-analytics"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/rabbit"
+	"github.com/Glintt/gAPI/api/utils"
 	"strconv"
 )
 

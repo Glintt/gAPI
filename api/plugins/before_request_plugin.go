@@ -2,9 +2,9 @@ package plugins
 
 import (
 	"errors"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/utils"
 	"path/filepath"
 
 	"github.com/manucorporat/try"

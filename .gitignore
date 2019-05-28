@@ -6,3 +6,6 @@ dashboard/node_modules
 **/package-lock.json
 .env
 !.env.example
+
+*.sum
+*.exe

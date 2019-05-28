@@ -1,7 +1,7 @@
 package users
 
 import (
-	"gAPIManagement/api/database"
+	"github.com/Glintt/gAPI/api/database"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

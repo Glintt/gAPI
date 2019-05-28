@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"strings"
 
 	"gopkg.in/mgo.v2/bson"
