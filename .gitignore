@@ -9,3 +9,6 @@ dashboard/node_modules
 
 *.sum
 *.exe
+
+.vagrant
+.vscode
