@@ -1,7 +1,7 @@
 package rabbit
 
 import (
-	"gAPIManagement/api/utils"	
+	"github.com/Glintt/gAPI/api/utils"	
 	"os"
 )
 

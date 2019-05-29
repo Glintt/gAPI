@@ -1,9 +1,9 @@
 package appgroups
 
 import (
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/servicediscovery/constants"
-	"gAPIManagement/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

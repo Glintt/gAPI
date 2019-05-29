@@ -1,7 +1,7 @@
 package plugins
 
 import (
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/config"
 	"path"
 )
 

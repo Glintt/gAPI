@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/config"
 	"regexp"
 	"strings"
 )

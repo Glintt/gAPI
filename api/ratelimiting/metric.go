@@ -1,8 +1,8 @@
 package ratelimiting
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )

@@ -17,31 +17,19 @@ RUN cp /tmp/instantclient_12_1/* /usr/lib/oracle/12.1/client64/lib/
 RUN cd /tmp && unzip instantclient-sdk-linux.x64-12.1.0.2.0.zip
 RUN cp /tmp/instantclient_12_1/sdk/include/* /usr/include/oracle/12.1/client64/ 
 
-
-### Download dependencies
-FROM golang:1.9 as dependencies
-
-WORKDIR /go/src/
-
-RUN mkdir -p gAPIManagement/api
-
-ADD . /go/src/gAPIManagement/api
-WORKDIR /go/src/gAPIManagement/api
-
-RUN sh install.sh
-
 ### Build API
-FROM golang:1.9 as builder
+FROM golang:1.12 as builder
 
-COPY --from=dependencies /go/src /go/src
+#COPY --from=dependencies /go/src /go/src
+ADD . /go/src/gAPI/api
 
-WORKDIR /go/src/gAPIManagement/api
+WORKDIR /go/src/gAPI/api/server
 
-RUN go build -o server ./server.go 
-
+ENV GO111MODULE on
+RUN go build -o server
 
 ### Create final image
-FROM golang:1.9
+FROM golang:1.12
 
 ENV RABBITMQ_HOST rabbit
 ENV RABBITMQ_PORT 5672
@@ -65,10 +53,10 @@ RUN ln -s /usr/lib/oracle/12.1/client64/lib/libocci.so.12.1 /usr/lib/oracle/12.1
 COPY oci8.pc  /usr/lib/pkgconfig/
 
 # 2. Copy api runtime and configs
-COPY --from=builder /go/src/gAPIManagement/api/server /go/src/gAPIManagement/api/server
-COPY --from=builder /go/src/gAPIManagement/api/generate_config.sh /go/src/gAPIManagement/api/generate_config.sh
+COPY --from=builder /go/src/gAPI/api/server/server /go/src/gAPI/api/server
+COPY --from=builder /go/src/gAPI/api/generate_config.sh /go/src/gAPI/api/generate_config.sh
 
-WORKDIR /go/src/gAPIManagement/api
+WORKDIR /go/src/gAPI/api
 
 ARG db=mongo
 ARG logs_type=Elastic
@@ -77,4 +65,4 @@ ARG queue_type=Internal
 RUN sh generate_config.sh db=$db logs_type=$logs_type queue_type=$queue_type
 RUN cat configs/gAPI.json
 
-CMD ["/go/src/gAPIManagement/api/server"]
+CMD ["/go/src/gAPI/api/server"]

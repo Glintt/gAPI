@@ -1,6 +1,6 @@
 package logs
 
-import "gAPIManagement/api/logs/models"
+import "github.com/Glintt/gAPI/api/logs/models"
 
 type LogWorkRequest struct {
 	Name      string

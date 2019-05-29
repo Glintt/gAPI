@@ -2,17 +2,17 @@ package service
 
 import (
 	"errors"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/servicediscovery/constants"
-	"gAPIManagement/api/servicediscovery/servicegroup"
-	sdUtils "gAPIManagement/api/servicediscovery/utils"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
+	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
+	"github.com/Glintt/gAPI/api/utils"
 	"math/rand"
 	"net"
 
 	"gopkg.in/mgo.v2/bson"
 
-	"gAPIManagement/api/http"
+	"github.com/Glintt/gAPI/api/http"
 	"regexp"
 	"strings"
 

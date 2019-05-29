@@ -2,8 +2,8 @@ package users
 
 import (
 	"database/sql"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )

@@ -2,11 +2,11 @@ package thirdpartyauthentication
 
 import (
 	"errors"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/utils"
 
-	// "gAPIManagement/api/config"
-	// "gAPIManagement/api/config"
-	"gAPIManagement/api/http"
+	// "github.com/Glintt/gAPI/api/config"
+	// "github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
 
 	"github.com/valyala/fasthttp"
 )

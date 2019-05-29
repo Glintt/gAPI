@@ -2,9 +2,9 @@ package providers
 
 import (
 	"encoding/json"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/logs/models"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/logs/models"
+	"github.com/Glintt/gAPI/api/utils"
 
 	"github.com/valyala/fasthttp"
 )

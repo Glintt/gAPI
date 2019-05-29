@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/users"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/users"
+	"github.com/Glintt/gAPI/api/utils"
 	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"

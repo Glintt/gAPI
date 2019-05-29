@@ -1,7 +1,7 @@
 package http
 
 import (
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/utils"
 	"strings"
 
 	routing "github.com/qiangxue/fasthttp-routing"

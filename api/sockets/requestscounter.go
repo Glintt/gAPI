@@ -1,7 +1,7 @@
 package sockets
 
 import (
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/utils"
 
 	//"encoding/json"
 	"strconv"

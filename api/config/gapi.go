@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"gAPIManagement/api/thirdpartyauthentication"
+	"github.com/Glintt/gAPI/api/thirdpartyauthentication"
 	"io/ioutil"
 	"os"
 	"strings"

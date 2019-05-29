@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"gAPIManagement/api/http"
+	"github.com/Glintt/gAPI/api/http"
 	"encoding/json"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/cpu"
 	"strconv"
 	"runtime"
-	"gAPIManagement/api/cache"
+	"github.com/Glintt/gAPI/api/cache"
 	"github.com/qiangxue/fasthttp-routing"
 )
 

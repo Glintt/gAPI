@@ -3,7 +3,7 @@ package database
 import (
 	"strconv"
 	"os"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/utils"
 	"gopkg.in/mgo.v2"
 )
 

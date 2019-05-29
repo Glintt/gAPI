@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/utils"
 
 	_ "gopkg.in/goracle.v2"
 )

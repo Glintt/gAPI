@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/utils"
 	"strings"
 
 	_ "gopkg.in/goracle.v2"

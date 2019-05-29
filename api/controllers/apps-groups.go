@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/database"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery/appgroups"
-	"gAPIManagement/api/servicediscovery/constants"
-	"gAPIManagement/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery/appgroups"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"

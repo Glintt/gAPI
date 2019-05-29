@@ -7,10 +7,10 @@ import (
 	"path"
 	"strings"
 
-	gapiHttp "gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery"
-	"gAPIManagement/api/servicediscovery/service"
-	"gAPIManagement/api/utils"
+	gapiHttp "github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery"
+	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/utils"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )

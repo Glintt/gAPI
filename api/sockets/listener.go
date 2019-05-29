@@ -2,7 +2,7 @@ package sockets
 
 import (
 	"fmt"
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/config"
 	"log"
 	"net/http"
 	"os"

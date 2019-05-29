@@ -2,7 +2,7 @@ package users
 
 import (
 	"fmt"
-	"gAPIManagement/api/config"
+	"github.com/Glintt/gAPI/api/config"
 
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2/bson"

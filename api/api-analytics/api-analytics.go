@@ -1,7 +1,7 @@
 package apianalytics
 
 import (
-	"gAPIManagement/api/api-analytics/providers"
+	"github.com/Glintt/gAPI/api/api-analytics/providers"
 )
 
 const SERVICE_NAME = "api_analytics"

@@ -1,8 +1,8 @@
 package authentication
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/utils"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/utils"
 	"github.com/go-ldap/ldap"
 )
 

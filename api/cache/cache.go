@@ -1,9 +1,9 @@
 package cache
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"strings"
 	"time"
 

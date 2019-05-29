@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"gAPIManagement/api/config"
-	"gAPIManagement/api/http"
-	"gAPIManagement/api/authentication"
-	auth "gAPIManagement/api/authentication"
-	"gAPIManagement/api/users"
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/authentication"
+	auth "github.com/Glintt/gAPI/api/authentication"
+	"github.com/Glintt/gAPI/api/users"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"strconv"
 	"encoding/json"
