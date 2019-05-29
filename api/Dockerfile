@@ -26,6 +26,9 @@ ADD . /go/src/gAPI/api
 WORKDIR /go/src/gAPI/api/server
 
 ENV GO111MODULE on
+
+RUN go mod download
+
 RUN go build -o server
 
 ### Create final image
