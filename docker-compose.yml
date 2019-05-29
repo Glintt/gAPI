@@ -18,7 +18,7 @@ services:
       - ${API_MANAGEMENT_PORT_EXT}:${API_MANAGEMENT_PORT}
       - ${SOCKET_PORT_EXT}:${SOCKET_PORT}
     volumes:
-      - ./api/configs:/go/src/gAPIManagement/api/configs/
+      - ./api/configs:/go/src/gAPI/api/configs/
 
   frontend: 
     build: 
@@ -35,7 +35,7 @@ services:
       dockerfile: Dockerfile-rabbitlistener
     env_file: .env
     volumes:
-      - ./api/configs:/go/src/gAPIManagement/api/configs/
+      - ./api/configs:/go/src/gAPI/api/configs/
 
   rabbit:
     restart: always

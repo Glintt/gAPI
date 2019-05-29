@@ -19,7 +19,7 @@ import (
 var ELASTIC_URL string
 var ELASTICPORT string
 
-func teste() {
+func main() {
 	config.LoadURLConstants()
 	config.LoadGApiConfig()
 
@@ -108,7 +108,9 @@ func ReceiveAndPublish(workerId int, msgs <-chan amqp.Delivery) {
 		var reqLogging logsModels.RequestLogging
 		err := json.Unmarshal(d.Body, &reqLogging)
 		if err == nil {
-			utils.LogMessage("Publish to elasticsearch from #"+strconv.Itoa(workerId)+" - "+string(d.Body), utils.InfoLogType)
+			utils.LogMessage("Publish to elasticsearch from #"+strconv.Itoa(workerId), utils.InfoLogType)
+			utils.LogMessage(string(d.Body), utils.DebugLogType)
+			utils.LogMessage("===============================================", utils.DebugLogType)
 			// logs.LoggingType[config.GApiConfiguration.Logs.Type].(func(*logsModels.RequestLogging))(&reqLogging)
 			logs.LoggingType[config.GApiConfiguration.Logs.Type].(func(*logsModels.RequestLogging))(&reqLogging)
 
