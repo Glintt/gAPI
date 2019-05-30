@@ -11,7 +11,7 @@ node{
 
 	last_version = sh (
       returnStdout: true,
-      script: 'git fetch --tags && git tag --points-at HEAD | awk NF'
+      script: 'git describe --abbrev=0 --tag'
     ).trim()
 
 	env.BUILD_VERSION_NAME = "$last_version"
