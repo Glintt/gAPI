@@ -1,6 +1,6 @@
 {
   "Authentication": {
-    "TokenExpirationTime": 30,
+    "TokenExpirationTime": 86400000,
     "TokenSigningKey": "SIGNING_KEY",
     "LDAP": {
       "Active": true,
@@ -10,14 +10,15 @@
   },
   "Logs": {
     "Active": true,
-    "Type": "Elastic"
+    "Type": "Elastic",
+    "Queue": "Rabbit"
   },
   "CORS": {
     "AllowedOrigins": ["http://localhost:8080"],
     "AllowCredentials": true
   },
   "ServiceDiscovery": {
-    "Type": "file"
+    "Type": "oracle"
   },
   "Healthcheck": {
     "Active": true,
@@ -37,18 +38,18 @@
     "Metrics": ["RemoteAddr", "MatchingUri"]
   },
   "ManagementTypes": {
-    "restart": {
-      "action": "restart",
-      "method": "POST",
-      "icon": "fas fa-sync",
-      "background": "info",
-      "description": "Restart service"
+    "logs" : {
+        "action": "logs",
+        "method": "GET",
+        "icon": "fas fa-file",
+        "background": "",
+        "description": "View service logs"
     }
   },
   "Protocol": {
     "Https": false,
-    "CertificateFile": "certificates/certificate.crt",
-    "CertificateKey": "certificates/privatekey.key"
+    "CertificateFile": "/certificates/certificate.crt",
+    "CertificateKey": "/certificates/privatekey.key"
   },
   "ThirdPartyOAuth": {
     "Host": "http://localhost",

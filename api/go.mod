@@ -12,11 +12,13 @@ require (
 	github.com/googollee/go-socket.io v1.4.1 // indirect
 	github.com/graarh/golang-socketio v0.0.0-20170510162725-2c44953b9b5f
 	github.com/manucorporat/try v0.0.0-20170609134256-2a0c6b941d52
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/qiangxue/fasthttp-routing v0.0.0-20160225050629-6ccdc2a18d87
 	github.com/rs/cors v1.6.0
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/shirou/w32 v0.0.0-20160930032740-bb4de0191aa4 // indirect
 	github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94
+	github.com/ulule/limiter v2.2.2+incompatible // indirect
 	github.com/valyala/fasthttp v1.3.0
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
