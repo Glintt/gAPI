@@ -12,10 +12,10 @@ RUN mv instantclient-basic-linux.x64-18.3.0.0.0dbru.zip /tmp/
 RUN mv instantclient-sdk-linux.x64-18.3.0.0.0dbru.zip /tmp/
 
 RUN cd /tmp && unzip instantclient-basic-linux.x64-18.3.0.0.0dbru.zip 
-RUN cp /tmp/instantclient_18_3/* /usr/lib/oracle/18.3/client64/lib/
+RUN cp -r /tmp/instantclient_18_3/* /usr/lib/oracle/18.3/client64/lib/
 
 RUN cd /tmp && unzip instantclient-sdk-linux.x64-18.3.0.0.0dbru.zip
-RUN cp /tmp/instantclient_18_3/sdk/include/* /usr/include/oracle/18.3/client64/ 
+RUN cp -r /tmp/instantclient_18_3/sdk/include/* /usr/include/oracle/18.3/client64/ 
 
 ### Build API
 FROM golang:1.12 as builder
