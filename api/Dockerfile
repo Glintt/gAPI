@@ -50,8 +50,8 @@ RUN mkdir -p /usr/lib/oracle/18.3/client64/lib && mkdir -p /usr/include/oracle/1
 COPY --from=base /usr/lib/oracle/ /usr/lib/oracle/
 COPY --from=base /usr/include/oracle/ /usr/include/oracle/
 
-RUN ln -s /usr/lib/oracle/18.3/client64/lib/libclntsh.so.18.3 /usr/lib/oracle/18.3/client64/lib/libclntsh.so
-RUN ln -s /usr/lib/oracle/18.3/client64/lib/libocci.so.18.3 /usr/lib/oracle/18.3/client64/lib/libocci.so
+#RUN ln -s /usr/lib/oracle/18.3/client64/lib/libclntsh.so.18.1 /usr/lib/oracle/18.3/client64/lib/libclntsh.so
+#RUN ln -s /usr/lib/oracle/18.3/client64/lib/libocci.so.18.1 /usr/lib/oracle/18.3/client64/lib/libocci.so
 
 COPY oci8.pc  /usr/lib/pkgconfig/
 
