@@ -8,6 +8,7 @@ import (
 	apianalytics "github.com/Glintt/gAPI/api/api-analytics"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/database"
+	migrations "github.com/Glintt/gAPI/api/database/migrations"
 	"github.com/Glintt/gAPI/api/logs"
 	logsModels "github.com/Glintt/gAPI/api/logs/models"
 	"github.com/Glintt/gAPI/api/rabbit"
@@ -24,6 +25,7 @@ func main() {
 	config.LoadGApiConfig()
 
 	if config.GApiConfiguration.Logs.Type == apianalytics.LogOracleType {
+		os.Setenv(migrations.RUN_MIGRATION_ENV_VAR, "false")
 		database.InitDatabaseConnection()
 	}
 
