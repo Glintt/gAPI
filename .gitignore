@@ -7,7 +7,6 @@ dashboard/node_modules
 .env
 !.env.example
 
-*.sum
 *.exe
 
 .vagrant

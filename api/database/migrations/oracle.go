@@ -2,10 +2,11 @@ package migrations
 
 import (
 	"database/sql"
-	"github.com/Glintt/gAPI/api/utils"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/Glintt/gAPI/api/utils"
 )
 
 const oracleMigrationFolder = "./migrations/oracle"
@@ -15,7 +16,7 @@ const (
 	CREATE_MIGRATIONS_TABLE = `create table gapi_migrations (
 		id VARCHAR2(255),
 		created_at DATE DEFAULT (sysdate)
-	) `
+	)`
 	ADD_RUN_MIGRATION = `insert into gapi_migrations(id, created_at) values (:id, DEFAULT)`
 )
 
@@ -35,7 +36,11 @@ func MigrateOracle(connectionString string) {
 
 	utils.LogMessage("==== RUNNING MIGRATIONS ====", utils.InfoLogType)
 
-	db.Exec(CREATE_MIGRATIONS_TABLE)
+	_, err = db.Exec(CREATE_MIGRATIONS_TABLE)
+	if err != nil {
+		utils.LogMessage("error creating migration table: "+err.Error(), utils.InfoLogType)
+		return
+	}
 
 	for _, f := range files {
 		migrationID := f.Name()
