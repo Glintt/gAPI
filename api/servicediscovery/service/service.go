@@ -2,19 +2,22 @@ package service
 
 import (
 	"errors"
+	"math/rand"
+	"net"
+	"net/url"
+
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
 	"github.com/Glintt/gAPI/api/utils"
-	"math/rand"
-	"net"
 
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/Glintt/gAPI/api/http"
 	"regexp"
 	"strings"
+
+	"github.com/Glintt/gAPI/api/http"
 
 	"github.com/valyala/fasthttp"
 )
@@ -162,8 +165,14 @@ func FindServiceInList(s Service, services []Service) (Service, error) {
 
 		// ser, _ := json.Marshal(rs)
 
+		matchinguriDecoded, err := url.QueryUnescape(s.MatchingURI)
+		if err != nil {
+			utils.LogMessage("@FindServiceInList - error decodig matchinguri.", utils.DebugLogType)
+			matchinguriDecoded = s.MatchingURI
+		}
+
 		re := regexp.MustCompile(rs.MatchingURIRegex)
-		if re.MatchString(s.MatchingURI) || rs.Id.Hex() == s.Id.Hex() || rs.Identifier == s.Identifier {
+		if re.MatchString(matchinguriDecoded) || rs.Id.Hex() == s.Id.Hex() || rs.Identifier == s.Identifier {
 			return rs, nil
 		}
 	}

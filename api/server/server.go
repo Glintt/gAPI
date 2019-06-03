@@ -2,12 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"runtime"
+	"strconv"
+
 	apianalytics "github.com/Glintt/gAPI/api/api-analytics"
 	"github.com/Glintt/gAPI/api/routes"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/users"
-	"runtime"
-	"strconv"
+
+	"os"
+	"time"
 
 	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/cache"
@@ -19,8 +23,7 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/sockets"
 	"github.com/Glintt/gAPI/api/utils"
-	"os"
-	"time"
+	"github.com/joho/godotenv"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
@@ -32,6 +35,11 @@ var router *routing.Router
 var defaultHttpsPort = "443"
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		utils.LogMessage("Error loading .env file", utils.ErrorLogType)
+	}
+
 	if os.Getenv("GO_MAX_PROCS") != "" {
 		maxProcs, err := strconv.Atoi(os.Getenv("GO_MAX_PROCS"))
 		if err != nil {
