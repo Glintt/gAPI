@@ -14,6 +14,7 @@ require (
 	github.com/manucorporat/try v0.0.0-20170609134256-2a0c6b941d52
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/qiangxue/fasthttp-routing v0.0.0-20160225050629-6ccdc2a18d87
+	github.com/robfig/cron v1.1.0
 	github.com/rs/cors v1.6.0
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/shirou/w32 v0.0.0-20160930032740-bb4de0191aa4 // indirect
