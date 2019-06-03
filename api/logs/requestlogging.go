@@ -2,13 +2,14 @@ package logs
 
 import (
 	"encoding/json"
+	"strings"
+
 	apianalytics "github.com/Glintt/gAPI/api/api-analytics"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/logs/models"
 	"github.com/Glintt/gAPI/api/logs/providers"
 	"github.com/Glintt/gAPI/api/rabbit"
 	"github.com/Glintt/gAPI/api/utils"
-	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 
@@ -37,17 +38,19 @@ func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte,
 	}
 
 	authenticationToken := string(c.Request.Header.Peek("Authorization"))
-	var tokenParsedByte []byte
+	var tokenParsedByte = []byte("")
 	if authenticationToken != "" {
-		tokenParsed, err := jwt.Parse(strings.Split(authenticationToken, " ")[1], nil)
-		if err != nil {
-			tokenParsedByte = []byte("")
-		} else {
-			tokenParsedByte, _ = json.Marshal(tokenParsed.Claims)
+		authorizationComponents := strings.Split(authenticationToken, " ")
+		if len(authorizationComponents) > 1 {
+			tokenParsed, err := jwt.Parse(authorizationComponents[1], nil)
+			if err != nil {
+				tokenParsedByte = []byte("")
+			} else {
+				tokenParsedByte, _ = json.Marshal(tokenParsed.Claims)
+			}
 		}
-	} else {
-		tokenParsedByte = []byte("")
 	}
+
 	return models.RequestLogging{"",
 		string(c.Method()),
 		string(c.Request.RequestURI()),
