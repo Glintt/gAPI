@@ -2,10 +2,11 @@ package appgroups
 
 import (
 	"database/sql"
-	"fmt"
+	"strings"
+
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
-	"strings"
+	"github.com/Glintt/gAPI/api/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -260,7 +261,7 @@ func UngroupedServicesOracle() []service.Service {
 
 	rows, err := db.Query(UNGROUPED_SERVICES)
 	if err != nil {
-		fmt.Println(err)
+		utils.LogMessage(err.Error(), utils.ErrorLogType)
 		return []service.Service{}
 	}
 

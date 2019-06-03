@@ -1,8 +1,8 @@
 package users
 
 import (
-	"fmt"
 	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/utils"
 
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2/bson"
@@ -29,7 +29,7 @@ func InitUsers() {
 
 	err := CreateUser(User{Username: "admin", Email: "admin@gapi.com", Password: "admin", IsAdmin: true})
 	if err != nil {
-		fmt.Println(err.Error())
+		utils.LogMessage(err.Error(), utils.ErrorLogType)
 	}
 }
 

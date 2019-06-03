@@ -1,11 +1,12 @@
 package sockets
 
 import (
-	"fmt"
-	"github.com/Glintt/gAPI/api/config"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/utils"
 
 	"github.com/rs/cors"
 
@@ -57,6 +58,6 @@ func SocketListen() {
 	handler := c.Handler(mux)
 	mux.Handle("/socket.io/", server)
 
-	fmt.Println("WS PORT = " + port)
+	utils.LogMessage("WS PORT = "+port, utils.InfoLogType)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

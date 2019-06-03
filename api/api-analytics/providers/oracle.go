@@ -3,7 +3,6 @@ package providers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -235,7 +234,7 @@ func RowsToApiAnalyticsModel(rows *sql.Rows) []ApiAnalytics {
 		statusCodeList := strings.Split(statusCodeCount, " #### ")
 		for _, r := range statusCodeList {
 			statusCodeCount := strings.Split(r, " #||# ")
-			fmt.Println(statusCodeCount)
+
 			if len(statusCodeCount) != 2 {
 				continue
 			}
