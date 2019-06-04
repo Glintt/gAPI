@@ -19,6 +19,7 @@ import (
 	"github.com/Glintt/gAPI/api/healthcheck"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/logs"
+	"github.com/Glintt/gAPI/api/plugins"
 	"github.com/Glintt/gAPI/api/proxy"
 	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/sockets"
@@ -133,7 +134,7 @@ func RequestCounterSocket(service []byte) {
 func IsGApiService(service []byte) bool {
 	serviceString := string(service)
 
-	if serviceString == constants.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME {
+	if serviceString == constants.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME || serviceString == plugins.SERVICE_NAME {
 		return true
 	}
 
