@@ -148,7 +148,7 @@ func LogRequest(ctx *fasthttp.RequestCtx, service []byte, beginTime int64) {
 
 	indexName := ""
 	if IsGApiService(service) {
-		indexName = "gapi-api-logs"
+		indexName = config.GAPI_API_LOGS_INDEX
 	}
 
 	utils.LogMessage("Log IndexName = "+indexName, utils.DebugLogType)

@@ -11,6 +11,8 @@ var DELETE = "DELETE"
 var PUT = "PUT"
 var PATCH = "PATCH"
 
+const GAPI_API_LOGS_INDEX = "gapi-api-logs"
+
 var APPLICATION_JSON = "application/json"
 
 var SOCKET_PORT_DEFAULT = "5000"

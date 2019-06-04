@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	constants "github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/database"
 	logsModels "github.com/Glintt/gAPI/api/logs/models"
 )
 
 const LOGS_QUERY_ORACLE = `SELECT id,method,uri,request_body,host,user_agent,remote_addr,remote_ip,headers,query_args,date_time,response,elapsed_time,status_code,service_name,index_name,request_grouper_date FROM gapi_request_logs
-where status_code >= 300
+where index_name <> '` + constants.GAPI_API_LOGS_INDEX + `' and status_code >= 300
 `
 const ANALYTICS_QUERY_ORACLE = `SELECT *
 FROM (SELECT a.*, ROWNUM r__
@@ -32,7 +33,7 @@ SELECT   count(*) as total_requests,
          LEFT JOIN
              gapi_services_apps_groups c
          ON b.applicationgroupid = c.id
-   WHERE a.service_name = b.matchinguri ##WHERE_CLAUSE##
+   WHERE a.index_name <> '` + constants.GAPI_API_LOGS_INDEX + `' and a.service_name = b.matchinguri ##WHERE_CLAUSE##
 GROUP BY c.name`
 
 func LogsOracle(apiEndpoint string) (string, int) {

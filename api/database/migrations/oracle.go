@@ -12,6 +12,7 @@ import (
 const oracleMigrationFolder = "./migrations/oracle"
 
 const (
+	MIGRATION_EXISTS        = `select * from gapi_migrations where rownum = 1`
 	MIGRATION_ALREADY_RUN   = `select COUNT(*) from gapi_migrations where id = :id`
 	CREATE_MIGRATIONS_TABLE = `create table gapi_migrations (
 		id VARCHAR2(255),
@@ -38,8 +39,11 @@ func MigrateOracle(connectionString string) {
 
 	_, err = db.Exec(CREATE_MIGRATIONS_TABLE)
 	if err != nil {
-		utils.LogMessage("error creating migration table: "+err.Error(), utils.InfoLogType)
-		return
+		_, err = db.Exec(MIGRATION_EXISTS)
+		if err != nil {
+			utils.LogMessage("error creating migration table: "+err.Error(), utils.InfoLogType)
+			return
+		}
 	}
 
 	for _, f := range files {
