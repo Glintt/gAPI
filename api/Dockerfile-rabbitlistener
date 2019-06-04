@@ -40,7 +40,7 @@ ENV RABBITMQ_USER guest
 ENV RABBITMQ_PASSWORD guest
 ENV RABBITMQ_QUEUE gAPI-logqueue
 
-ENV LD_LIBRARY_PATH /usr/lib:/usr/local/lib:/usr/lib/oracle/12.1/client64/lib
+ENV LD_LIBRARY_PATH /usr/lib:/usr/local/lib:/usr/lib/oracle/18.3/client64/lib
 
 RUN apt-get update && apt-get install -y pkg-config libaio1
 
@@ -49,8 +49,8 @@ RUN mkdir -p /usr/lib/oracle/18.3/client64/lib && mkdir -p /usr/include/oracle/1
 COPY --from=base /usr/lib/oracle/ /usr/lib/oracle/
 COPY --from=base /usr/include/oracle/ /usr/include/oracle/
 
-#RUN ln -s /usr/lib/oracle/12.1/client64/lib/libclntsh.so.12.1 /usr/lib/oracle/12.1/client64/lib/libclntsh.so
-#RUN ln -s /usr/lib/oracle/12.1/client64/lib/libocci.so.12.1 /usr/lib/oracle/12.1/client64/lib/libocci.so
+#RUN ln -s /usr/lib/oracle/18.3/client64/lib/libclntsh.so.18.1 /usr/lib/oracle/18.3/client64/lib/libclntsh.so
+#RUN ln -s /usr/lib/oracle/18.3/client64/lib/libocci.so.18.1 /usr/lib/oracle/18.3/client64/lib/libocci.so
 
 COPY oci8.pc  /usr/lib/pkgconfig/
 
