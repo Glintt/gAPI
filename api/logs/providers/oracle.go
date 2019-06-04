@@ -1,11 +1,12 @@
 package providers
 
 import (
+	"time"
+
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/logs/models"
 	"github.com/Glintt/gAPI/api/utils"
-	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -32,6 +33,11 @@ func PublishOracle(reqLogging *models.RequestLogging) {
 	dateTime, _ := time.Parse(time.UnixDate, reqLogging.DateTime)
 
 	tx, err := db.Begin()
+	if err != nil {
+		utils.LogMessage("Transaction creation failed: "+err.Error(), utils.DebugLogType)
+		return
+	}
+
 	_, err = tx.Exec(INSERT_LOG_ORACLE,
 		bson.NewObjectId().Hex(),
 		reqLogging.Method,
