@@ -16,7 +16,7 @@ where index_name <> '` + constants.GAPI_API_LOGS_INDEX + `' and status_code >= 3
 `
 const ANALYTICS_QUERY_ORACLE = `SELECT *
 FROM (SELECT a.*, ROWNUM r__
-		FROM (  SELECT * from gapi_api_analytics_view) a
+		FROM (  SELECT * from gapi_api_analytics) a
 	   WHERE ROWNUM < 11)
 WHERE r__ >= 1 ##WHERE_CLAUSE##`
 
