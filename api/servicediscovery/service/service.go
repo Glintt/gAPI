@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/rand"
 	"net"
-	"net/url"
 
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
@@ -164,12 +163,8 @@ func FindServiceInList(s Service, services []Service) (Service, error) {
 		// s.Identifier = s.GenerateIdentifier()
 
 		// ser, _ := json.Marshal(rs)
-
-		matchinguriDecoded, err := url.QueryUnescape(s.MatchingURI)
-		if err != nil {
-			utils.LogMessage("@FindServiceInList - error decodig matchinguri.", utils.DebugLogType)
-			matchinguriDecoded = s.MatchingURI
-		}
+		matchinguriWithoutQueryParams := strings.Split(s.MatchingURI, "?")
+		matchinguriDecoded := matchinguriWithoutQueryParams[0]
 
 		re := regexp.MustCompile(rs.MatchingURIRegex)
 		if re.MatchString(matchinguriDecoded) || rs.Id.Hex() == s.Id.Hex() || rs.Identifier == s.Identifier {
