@@ -11,7 +11,10 @@ var DELETE = "DELETE"
 var PUT = "PUT"
 var PATCH = "PATCH"
 
-const GAPI_API_LOGS_INDEX = "gapi-api-logs"
+const (
+	GAPI_API_LOGS_INDEX = "gapi-api-logs"
+	GAPI_SERVICE_NAME   = "GAPI_SERVICES"
+)
 
 var APPLICATION_JSON = "application/json"
 

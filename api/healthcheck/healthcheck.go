@@ -5,10 +5,11 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/utils"
 
-	"github.com/Glintt/gAPI/api/config"
-	"github.com/Glintt/gAPI/api/servicediscovery"
 	"net/http"
 	"time"
+
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/servicediscovery"
 )
 
 var sd *servicediscovery.ServiceDiscovery
@@ -56,6 +57,8 @@ func CheckServicesHealth() {
 
 		go func(healthcheckURL string, s service.Service) {
 			resp, err := http.Get(healthcheckURL)
+			isActive := s.IsActive
+
 			if err != nil || resp.StatusCode != 200 {
 				NotifyHealthDown(s)
 				if s.IsActive == true {
@@ -68,7 +71,13 @@ func CheckServicesHealth() {
 				s.IsActive = true
 			}
 
-			sd.UpdateService(s)
+			if isActive != s.IsActive {
+				service, _ := sd.FindService(s)
+				service.IsActive = s.IsActive
+				service.LastActiveTime = s.LastActiveTime
+				sd.UpdateService(service)
+			}
+
 			if resp != nil && resp.Body != nil {
 				resp.Body.Close()
 			}

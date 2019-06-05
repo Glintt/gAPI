@@ -134,7 +134,7 @@ func RequestCounterSocket(service []byte) {
 func IsGApiService(service []byte) bool {
 	serviceString := string(service)
 
-	if serviceString == constants.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME || serviceString == plugins.SERVICE_NAME {
+	if serviceString == constants.SERVICE_NAME || serviceString == proxy.SERVICE_NAME || serviceString == apianalytics.SERVICE_NAME || serviceString == authentication.SERVICE_NAME || serviceString == users.SERVICE_NAME || serviceString == plugins.SERVICE_NAME || serviceString == config.GAPI_SERVICE_NAME {
 		return true
 	}
 
