@@ -2,11 +2,13 @@ package authentication
 
 import (
 	"errors"
-	"github.com/Glintt/gAPI/api/config"
-	"github.com/Glintt/gAPI/api/users"
-	"github.com/Glintt/gAPI/api/utils"
 	"strings"
 	"time"
+
+	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/oauth_clients"
+	"github.com/Glintt/gAPI/api/users"
+	"github.com/Glintt/gAPI/api/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -202,5 +204,21 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 	}
 
 	c.Request.Header.Add("User", username)
+	return nil
+}
+
+func OAuthClientRequiredMiddleware(c *routing.Context) error {
+	clientId := string(c.Request.Header.Peek("ClientId"))
+	clientSecret := string(c.Request.Header.Peek("ClientSecret"))
+
+	oauthClient := oauth_clients.Find(clientId, clientSecret)
+
+	if oauthClient.ClientSecret != clientSecret {
+		UserNotAllowed(c)
+		c.Abort()
+		return nil
+	}
+
+	c.Request.Header.Add("User", clientId+"_"+clientSecret)
 	return nil
 }

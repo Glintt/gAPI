@@ -94,6 +94,7 @@ func listenAPI(router *routing.Router) {
 
 	if config.GApiConfiguration.Protocol.Https {
 		go func() {
+			utils.LogMessage("HTTPS Port: "+defaultHttpsPort, utils.InfoLogType)
 			panic(fasthttp.ListenAndServeTLS(":"+defaultHttpsPort, config.GApiConfiguration.Protocol.CertificateFile, config.GApiConfiguration.Protocol.CertificateKey, CORSHandle))
 		}()
 	}

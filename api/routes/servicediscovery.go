@@ -20,8 +20,8 @@ func InitServiceDiscoveryAPIRoutes(router *routing.Router) {
 	serviceDiscoveryAPIGroup.Delete("/services/<service_id>", authentication.AdminRequiredMiddleware, controllers.DeleteEndpointHandler)
 	serviceDiscoveryAPIGroup.Post("/services/manage", authentication.AuthorizationMiddleware, controllers.ManageServiceHandler)
 	serviceDiscoveryAPIGroup.Get("/services/manage/types", controllers.ManageServiceTypesHandler)
-	serviceDiscoveryAPIGroup.Post("/auto-register", authentication.AdminRequiredMiddleware, controllers.AutoRegisterHandler)
-	serviceDiscoveryAPIGroup.Post("/auto-deregister", authentication.AdminRequiredMiddleware, controllers.AutoDeRegisterHandler)
+	serviceDiscoveryAPIGroup.Post("/auto-register", authentication.OAuthClientRequiredMiddleware, controllers.AutoRegisterHandler)
+	serviceDiscoveryAPIGroup.Post("/auto-deregister", authentication.OAuthClientRequiredMiddleware, controllers.AutoDeRegisterHandler)
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" || config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
 		LoadDBSpecificEndpoints(serviceDiscoveryAPIGroup)
 	}
