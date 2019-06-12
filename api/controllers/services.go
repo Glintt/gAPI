@@ -82,8 +82,8 @@ func AutoRegisterHandler(c *routing.Context) error {
 		MatchingURI:      s["MatchingUri"],
 		ToURI:            s["ToUri"],
 		Name:             s["Name"],
-		HealthcheckUrl:   "http://" + host + "/" + s["HealthcheckUrl"],
-		APIDocumentation: "http://" + host + "/" + s["APIDocumentation"],
+		HealthcheckUrl:   "http://" + host + s["HealthcheckUrl"],
+		APIDocumentation: "http://" + host + s["APIDocumentation"],
 		IsReachable:      true,
 	}
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
