@@ -90,13 +90,18 @@ func AutoRegisterHandler(c *routing.Context) error {
 
 	serviceFound, err := servicediscovery.ValidateServiceExists(serv)
 	var status int
+	var msg string
 	if err != nil {
-		_, status = Methods()["create"].(func(service.Service) (string, int))(serv)
+		msg, status = Methods()["create"].(func(service.Service) (string, int))(serv)
 	} else {
 		serviceFound.Hosts = append(serviceFound.Hosts, host)
-		_, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
+		msg, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
 	}
-	_, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
+
+	if status > 300 {
+		http.Response(c, string(msg), status, "AUTO_REGISTER", "application/json")
+		return nil
+	}
 
 	serv, _ = Methods()["get"].(func(service.Service) (service.Service, error))(serv)
 	s2, _ := json.Marshal(serv)
