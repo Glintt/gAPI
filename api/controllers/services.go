@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"strconv"
+
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery"
@@ -9,7 +11,6 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
 	"github.com/Glintt/gAPI/api/utils"
-	"strconv"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gopkg.in/mgo.v2/bson"
@@ -77,10 +78,13 @@ func AutoRegisterHandler(c *routing.Context) error {
 	}
 	host := c.RemoteIP().String() + ":" + s["Port"]
 	serv := service.Service{
-		Hosts:       []string{host},
-		MatchingURI: s["MatchingUri"],
-		ToURI:       s["ToUri"],
-		Name:        s["Name"],
+		Hosts:            []string{host},
+		MatchingURI:      s["MatchingUri"],
+		ToURI:            s["ToUri"],
+		Name:             s["Name"],
+		HealthcheckUrl:   "http://" + host + "/" + s["HealthcheckUrl"],
+		APIDocumentation: "http://" + host + "/" + s["APIDocumentation"],
+		IsReachable:      true,
 	}
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
 
