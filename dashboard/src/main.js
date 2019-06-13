@@ -1,3 +1,6 @@
+import "es6-promise/auto";
+import "@babel/polyfill";
+import "url-polyfill";
 import Vue from "vue";
 import VueResource from "vue-resource";
 import App from "./App.vue";
@@ -6,6 +9,7 @@ import store from "./store";
 Vue.use(VueResource);
 
 require("bootstrap");
+require("./libs/string_utils");
 
 Vue.config.productionTip = false;
 
