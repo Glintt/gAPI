@@ -23,6 +23,11 @@ var LoggingType = map[string]interface{}{
 	"Elastic": providers.PublishElastic,
 	"Oracle":  providers.PublishOracle}
 
+var LoggingRemoveOld = map[string]interface{}{
+	"Oracle":  providers.RemoveOldLogsOracle,
+	"Elastic": providers.RemoveOldLogsElastic,
+}
+
 func NewRequestLogging(c *fasthttp.RequestCtx, queryArgs []byte, headers []byte, currentDate string, elapsedTime int64, serviceName string, indexName string) models.RequestLogging {
 	remoteAddress := string(c.Request.Header.Peek("X-Real-IP"))
 	remoteIpAddress := string(c.Request.Header.Peek("X-Real-IP"))

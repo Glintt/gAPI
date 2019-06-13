@@ -80,6 +80,7 @@ func InitServices() {
 	authentication.InitGAPIAuthenticationServer()
 	servicediscovery.InitServiceDiscovery()
 	healthcheck.InitHealthCheck()
+	logs.LoggingRemoveOld[config.GApiConfiguration.Logs.Type].(func())()
 }
 
 func listenAPI(router *routing.Router) {

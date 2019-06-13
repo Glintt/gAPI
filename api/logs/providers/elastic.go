@@ -2,6 +2,7 @@ package providers
 
 import (
 	"encoding/json"
+
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/logs/models"
 	"github.com/Glintt/gAPI/api/utils"
@@ -39,4 +40,8 @@ func PublishElastic(reqLogging *models.RequestLogging) {
 
 		resp.SetStatusCode(400)
 	}
+}
+
+func RemoveOldLogsElastic() {
+	// TODO
 }
