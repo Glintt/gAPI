@@ -3,7 +3,6 @@ package user_permission
 import (
 	"github.com/Glintt/gAPI/api/user_permission/providers"
 	"github.com/Glintt/gAPI/api/user_permission/models"
-	"fmt"
 )
 
 const (
@@ -48,9 +47,7 @@ func UpdatePermission(userId string, permissions []models.UserPermission) error{
 		repository.RollbackTransaction()
 		return err
 	}
-	fmt.Println("COMMIT TRANSACITON")
 	err = repository.CommitTransaction()
-	fmt.Println(err)
 	return nil
 }
 

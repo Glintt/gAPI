@@ -5,7 +5,6 @@ import (
 	"github.com/Glintt/gAPI/api/database"
 	"errors"
 	"database/sql"
-	"fmt"
 )
 
 type PermissionsOracleRepository struct {
@@ -103,7 +102,6 @@ func (por *PermissionsOracleRepository) Update(userId string, userPermission []m
 	
 	for _,v := range userPermission {
 		err = por.Add(v)
-		fmt.Println("HERE")
 		if err != nil {
 			return errors.New("Error updating user permissions")
 		}

@@ -223,8 +223,6 @@ func GetEndpointHandler(c *routing.Context) error {
 		return nil
 	}
 
-	utils.LogMessage("HERE", utils.DebugLogType)
-
 	service, err := ServiceDiscovery(user).GetEndpointForUri(string(matchingURI))
 
 	group, getGroupErr := service.GetGroup()
