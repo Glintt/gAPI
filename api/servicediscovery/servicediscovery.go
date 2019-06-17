@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
@@ -12,41 +13,30 @@ import (
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
 	"github.com/Glintt/gAPI/api/utils"
 	"strings"
-
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 type ServiceDiscovery struct {
 	isService          bool
 	registeredServices []service.Service
+	User users.User
 }
 
 var sd ServiceDiscovery
 
-var Methods = map[string]map[string]interface{}{
-	"mongo": {
-		"delete":        service.DeleteServiceMongo,
-		"update":        service.UpdateMongo,
-		"create":        service.CreateServiceMongo,
-		"list":          service.ListServicesMongo,
-		"get":           service.FindMongo,
-		"normalize":     service.NormalizeServicesMongo,
-		"distincthosts": service.ListAllAvailableHostsMongo},
-	"oracle": {
-		"delete":        service.DeleteServiceOracle,
-		"update":        service.UpdateOracle,
-		"create":        service.CreateServiceOracle,
-		"list":          service.ListServicesOracle,
-		"get":           service.FindOracle,
-		"normalize":     service.NormalizeServicesOracle,
-		"distincthosts": service.ListAllAvailableHostsOracle},
-	"file": {
-		"delete":    DeleteServiceFile,
-		"update":    UpdateFile,
-		"create":    CreateServiceFile,
-		"list":      ListServicesFile,
-		"get":       FindFile,
-		"normalize": NormalizeServicesFile}}
+func GetServicesRepository(user users.User) service.ServiceRepositoryInterface{
+	if constants.SD_TYPE == "mongo" {
+		return &service.ServiceMongoRepository{
+			User: user,
+		}
+	}
+	if constants.SD_TYPE == "oracle" {
+		return &service.ServiceOracleRepository{
+			User: user,
+		}
+	}
+	return nil
+}
 
 func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service) {
 	serviceDisc.registeredServices = rs
@@ -56,8 +46,11 @@ func ServiceGroupMethods() map[string]interface{} {
 	return servicegroup.ServiceGroupMethods[constants.SD_TYPE]
 }
 
-func GetServiceDiscoveryObject() *ServiceDiscovery {
-	return &sd
+func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
+	return &ServiceDiscovery{
+		isService: true,
+		User: user,
+	}
 }
 
 func InitServiceDiscovery() {
@@ -78,7 +71,7 @@ func InitServiceDiscovery() {
 }
 
 func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
-	hosts, _ := Methods[constants.SD_TYPE]["distincthosts"].(func() ([]string, error))()
+	hosts, _ := GetServicesRepository(users.User{}).ListAllAvailableHosts()
 
 	requestHost := requestContxt.RemoteIP().String()
 
@@ -147,7 +140,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error)
 		responseBody := resp.Body()
 		json.Unmarshal(responseBody, services)
 	} else {
-		services = Methods[constants.SD_TYPE]["list"].(func(int, string, bool) []service.Service)(-1, "", true)
+		services = GetServicesRepository(users.User{}).ListServices(-1, "")
 	}
 
 	return services, nil
@@ -175,7 +168,7 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (service.Serv
 }
 
 func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.Service, error) {
-	_, status := Methods[constants.SD_TYPE]["update"].(func(service.Service, service.Service) (string, int))(s, s)
+	_, status := GetServicesRepository(users.User{}).Update(s, s)
 	if status == 201 {
 		return s, nil
 	}
@@ -184,7 +177,7 @@ func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.S
 }
 
 func (serviceDisc *ServiceDiscovery) FindService(s service.Service) (service.Service, error) {
-	return Methods[constants.SD_TYPE]["get"].(func(service.Service) (service.Service, error))(s)
+	return GetServicesRepository(serviceDisc.User).Find(s)
 }
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (service.Service, error) {

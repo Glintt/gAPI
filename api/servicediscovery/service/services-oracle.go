@@ -1,11 +1,13 @@
 package service
 
 import (
+	"github.com/Glintt/gAPI/api/users"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/utils"
+	"github.com/Glintt/gAPI/api/user_permission"
 	"strings"
 
 	_ "gopkg.in/goracle.v2"
@@ -21,7 +23,7 @@ var SERVICE_COLUMNS = ` a.id, a.identifier,
 
 var LIST_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS + ` 
 	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where 
-	(upper(a.name) like upper(:name) or upper(a.matchinguri) like upper(:matchinguri))`
+	(upper(a.name) like upper(:name) or upper(a.matchinguri) like upper(:matchinguri)) `
 
 var INSERT_SERVICE_ORACLE = `INSERT INTO gapi_services 
 (
@@ -75,7 +77,11 @@ var SERVICE_DISTINCT_HOSTS_ORACLE = `SELECT distinct domain from gapi_services_h
 var DELETE_SERVICE_HOSTS_ORACLE = "delete from gapi_services_hosts where service_id = :sid"
 var INSERT_SERVICE_HOSTS_ORACLE = "INSERT INTO gapi_services_hosts(service_id, domain) VALUES(:sid, :domain)"
 
-func UpdateOracle(service Service, serviceExists Service) (string, int) {
+type ServiceOracleRepository struct {
+	User users.User
+}
+
+func (smo *ServiceOracleRepository) Update(service Service, serviceExists Service) (string, int) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
@@ -92,7 +98,7 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
-	err = VerifyServiceMatchingCollision(service, tx)
+	err = smo.VerifyServiceMatchingCollision(service, tx)
 	if err != nil {
 		tx.Rollback()
 		database.CloseOracleConnection(db)
@@ -111,13 +117,13 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 		service.Id.Hex(),
 	)
 
-	err = DeleteHostsFromService(service, tx)
+	err = smo.DeleteHostsFromService(service, tx)
 	if err != nil {
 		tx.Rollback()
 		database.CloseOracleConnection(db)
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
-	err = AddHostsToService(service, tx)
+	err = smo.AddHostsToService(service, tx)
 	if err != nil {
 		tx.Rollback()
 		database.CloseOracleConnection(db)
@@ -129,7 +135,7 @@ func UpdateOracle(service Service, serviceExists Service) (string, int) {
 	return `{"error" : false, "msg": "Service updated successfuly."}`, 201
 }
 
-func AddHostsToService(s Service, tx *sql.Tx) error {
+func (smo *ServiceOracleRepository) AddHostsToService(s Service, tx *sql.Tx) error {
 	for _, h := range s.Hosts {
 		_, err := tx.Exec(INSERT_SERVICE_HOSTS_ORACLE, s.Id.Hex(), h)
 		if err != nil {
@@ -139,7 +145,7 @@ func AddHostsToService(s Service, tx *sql.Tx) error {
 	return nil
 }
 
-func DeleteHostsFromService(s Service, tx *sql.Tx) error {
+func (smo *ServiceOracleRepository) DeleteHostsFromService(s Service, tx *sql.Tx) error {
 	_, err := tx.Exec(DELETE_SERVICE_HOSTS_ORACLE, s.Id.Hex())
 	if err != nil {
 		return err
@@ -147,7 +153,7 @@ func DeleteHostsFromService(s Service, tx *sql.Tx) error {
 	return nil
 }
 
-func VerifyServiceMatchingCollision(s Service, tx *sql.Tx) error {
+func (smo *ServiceOracleRepository) VerifyServiceMatchingCollision(s Service, tx *sql.Tx) error {
 	res, _ := tx.Query(FIND_COLLISIONS, s.MatchingURI+"%", s.MatchingURI)
 	for res.Next() {
 		var counter int
@@ -160,7 +166,7 @@ func VerifyServiceMatchingCollision(s Service, tx *sql.Tx) error {
 	return nil
 }
 
-func CreateServiceOracle(s Service) (string, int) {
+func (smo *ServiceOracleRepository) CreateService(s Service) (string, int) {
 
 	if s.ServiceManagementEndpoints == nil {
 		s.ServiceManagementEndpoints = make(map[string]string)
@@ -185,7 +191,7 @@ func CreateServiceOracle(s Service) (string, int) {
 		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
 	}
 
-	err = VerifyServiceMatchingCollision(s, tx)
+	err = smo.VerifyServiceMatchingCollision(s, tx)
 	if err != nil {
 		tx.Rollback()
 		database.CloseOracleConnection(db)
@@ -202,7 +208,7 @@ func CreateServiceOracle(s Service) (string, int) {
 		string(mgnendpoints), string(hosts), string(protectedexclude),
 	)
 
-	err = AddHostsToService(s, tx)
+	err = smo.AddHostsToService(s, tx)
 
 	if err != nil {
 		tx.Rollback()
@@ -216,32 +222,33 @@ func CreateServiceOracle(s Service) (string, int) {
 	return `{"error" : false, "msg": "Service created successfuly."}`, 201
 }
 
-func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []Service {
+func (smo *ServiceOracleRepository) ListServices(page int, filterQuery string) []Service {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
 		return nil
 	}
 
-	query := LIST_SERVICES_ORACLE
+	query := user_permission.AppendPermissionFilterToQuery(LIST_SERVICES_ORACLE, "a", smo.User)
 
-	if !viewAllPermission {
+	if smo.User.Username != "" {
 		query = query + " and (a.isreachable = 1 or (b.isreachable = 1 and a.usegroupattributes = 1)) "
 	}
-
+	
 	query = query + " order by a.id"
 	var rows *sql.Rows
 	var pagination = false
 	if page >= 0 {
 		query = `SELECT * FROM
+		(
+			SELECT a.*, rownum r__
+			FROM
 			(
-				SELECT a.*, rownum r__
-				FROM
-				(
-					` + query + `
+				` + query + `
 				) a
 				WHERE rownum < ((:page * 10) + 1 )
 			)
 			WHERE r__ >= (((:page-1) * 10) + 1)`
+		utils.LogMessage("Query: " + query, utils.InfoLogType)
 		rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%", page)
 		pagination = true
 	} else {
@@ -250,7 +257,7 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 
 	if err != nil {
 		utils.LogMessage("Error running query", utils.DebugLogType)
-		defer rows.Close()
+//		defer rows.Close()
 		database.CloseOracleConnection(db)
 		return []Service{}
 	}
@@ -260,8 +267,8 @@ func ListServicesOracle(page int, filterQuery string, viewAllPermission bool) []
 	return services
 }
 
-func DeleteServiceOracle(s Service) (string, int) {
-	service, err := FindOracle(s)
+func (smo *ServiceOracleRepository) DeleteService(s Service) (string, int) {
+	service, err := smo.Find(s)
 	if err != nil {
 		return `{"error": true, "msg": "Not found"}`, 404
 	}
@@ -270,7 +277,7 @@ func DeleteServiceOracle(s Service) (string, int) {
 
 	tx, err := db.Begin()
 
-	DeleteHostsFromService(s, tx)
+	smo.DeleteHostsFromService(s, tx)
 
 	_, err = tx.Exec(DELETE_SERVICES_ORACLE,
 		service.Id.Hex(),
@@ -288,7 +295,7 @@ func DeleteServiceOracle(s Service) (string, int) {
 	return `{"error": false, "msg": "Removed successfully."}`, 200
 }
 
-func FindOracle(s Service) (Service, error) {
+func (smo *ServiceOracleRepository) Find(s Service) (Service, error) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
 		return Service{}, err
@@ -306,7 +313,10 @@ func FindOracle(s Service) (Service, error) {
 		uriParts = append(uriParts, "")
 	}
 
-	rows, err := db.Query(FIND_SERVICES_ORACLE, s.Id.Hex(),
+	query := user_permission.AppendPermissionFilterToQuery(FIND_SERVICES_ORACLE, "a", smo.User)
+
+	utils.LogMessage("Query: "+ query, utils.InfoLogType)
+	rows, err := db.Query(query, s.Id.Hex(),
 		"/"+uriParts[0]+".*",
 		s.Identifier)
 	if err != nil {
@@ -320,7 +330,7 @@ func FindOracle(s Service) (Service, error) {
 	return FindServiceInList(s, services)
 }
 
-func NormalizeServicesOracle() error {
+func (smo *ServiceOracleRepository) NormalizeServices() error {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
 		return err
@@ -341,7 +351,7 @@ func NormalizeServicesOracle() error {
 	for _, rs := range services {
 		rs.NormalizeService()
 
-		go UpdateOracle(rs, rs)
+		go smo.Update(rs, rs)
 	}
 
 	return nil
@@ -396,7 +406,7 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 	return services
 }
 
-func ListAllAvailableHostsOracle() ([]string, error) {
+func (smo *ServiceOracleRepository)  ListAllAvailableHosts() ([]string, error) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
 		return nil, err

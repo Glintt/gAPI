@@ -24,6 +24,12 @@ const (
 
 var UsersList []User
 
+func GetInternalAPIUser() User{
+	return User{
+		IsAdmin: true,
+	}
+}
+
 func InitUsers() {
 	UserMethods[config.GApiConfiguration.ServiceDiscovery.Type]["init"].(func())()
 

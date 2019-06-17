@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 	"time"
-
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/oauth_clients"
 	"github.com/Glintt/gAPI/api/users"
@@ -157,7 +156,16 @@ func CheckUserMiddleware(c *routing.Context) error {
 	userClaims, validate := GetUserFromToken(c)
 
 	if validate == nil {
-		c.Request.Header.Add("User", userClaims["Username"].(string))
+		username := userClaims["Username"].(string)
+		user := users.GetUserByUsername(username)
+		if len(user) == 0 {
+			NotAuthorized(c)
+			c.Abort()
+			return nil
+		}
+		//userJson, _ := json.Marshal(user[0])
+		c.Set("User", user[0])
+		//c.Request.Header.Add("User", string(userJson))
 	}
 
 	return nil
@@ -221,4 +229,15 @@ func OAuthClientRequiredMiddleware(c *routing.Context) error {
 
 	c.Request.Header.Add("User", clientId+"_"+clientSecret)
 	return nil
+}
+
+
+func GetAuthenticatedUser (c *routing.Context) users.User{
+	userInt := c.Get("User")
+	var user users.User
+	if userInt != nil {
+		user = userInt.(users.User)
+	}
+
+	return user;
 }

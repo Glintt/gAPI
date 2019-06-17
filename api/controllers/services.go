@@ -5,9 +5,11 @@ import (
 	"strconv"
 
 	"github.com/Glintt/gAPI/api/config"
+	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
 	"github.com/Glintt/gAPI/api/utils"
@@ -16,16 +18,12 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Methods() map[string]interface{} {
-	return servicediscovery.Methods[constants.SD_TYPE]
-}
-
 func ServiceDiscoveryServiceName() string {
 	return constants.SERVICE_NAME
 }
 
-func ServiceDiscovery() *servicediscovery.ServiceDiscovery {
-	return servicediscovery.GetServiceDiscoveryObject()
+func ServiceDiscovery(user users.User) *servicediscovery.ServiceDiscovery {
+	return servicediscovery.GetServiceDiscoveryObject(user)
 }
 
 func ServiceNotFound(c *routing.Context) error {
@@ -34,7 +32,7 @@ func ServiceNotFound(c *routing.Context) error {
 }
 
 func NormalizeServices(c *routing.Context) error {
-	err := Methods()["normalize"].(func() error)()
+	err := servicediscovery.GetServicesRepository(users.User{}).NormalizeServices()
 	if err != nil {
 		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return err
@@ -61,7 +59,7 @@ func UpdateHandler(c *routing.Context) error {
 		return nil
 	}
 
-	resp, status := Methods()["update"].(func(service.Service, service.Service) (string, int))(s, serviceExists)
+	resp, status := servicediscovery.GetServicesRepository(users.User{}).Update(s, serviceExists)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
@@ -92,10 +90,10 @@ func AutoRegisterHandler(c *routing.Context) error {
 	var status int
 	var msg string
 	if err != nil {
-		msg, status = Methods()["create"].(func(service.Service) (string, int))(serv)
+		msg, status = servicediscovery.GetServicesRepository(users.User{}).CreateService(serv)
 	} else {
 		serviceFound.Hosts = append(serviceFound.Hosts, host)
-		msg, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
+		msg, status = servicediscovery.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
 	}
 
 	if status > 300 {
@@ -103,7 +101,7 @@ func AutoRegisterHandler(c *routing.Context) error {
 		return nil
 	}
 
-	serv, _ = Methods()["get"].(func(service.Service) (service.Service, error))(serv)
+	serv, _ = servicediscovery.GetServicesRepository(users.User{}).Find(serv)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_REGISTER", "application/json")
@@ -134,9 +132,9 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 		return nil
 	} else {
 		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
-		_, status = Methods()["update"].(func(service.Service, service.Service) (string, int))(serviceFound, serviceFound)
+		_, status = servicediscovery.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
 	}
-	serv, _ = Methods()["get"].(func(service.Service) (service.Service, error))(serv)
+	serv, _ = servicediscovery.GetServicesRepository(users.User{}).Find(serv)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_DEREGISTER", "application/json")
@@ -160,21 +158,21 @@ func RegisterHandler(c *routing.Context) error {
 	}
 
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
-	resp, status := Methods()["create"].(func(service.Service) (string, int))(serv)
+	resp, status := servicediscovery.GetServicesRepository(users.User{}).CreateService(serv)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
 func ListServicesHandler(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
 	var err error
 	page := 1
 	searchQuery := ""
-	user := string(c.Request.Header.Peek("User"))
 
 	if c.QueryArgs().Has("page") {
 		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
-
+		
 		if err != nil {
 			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 			return nil
@@ -183,13 +181,8 @@ func ListServicesHandler(c *routing.Context) error {
 	if c.QueryArgs().Has("q") {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
-
-	permissions := false
-	if user != "" {
-		permissions = true
-	}
-
-	services := Methods()["list"].(func(int, string, bool) []service.Service)(page, searchQuery, permissions)
+	
+	services := servicediscovery.GetServicesRepository(user).ListServices(page, searchQuery)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -210,6 +203,7 @@ func ListServicesHandler(c *routing.Context) error {
 }
 
 func GetEndpointHandler(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
 	matchingURI := c.QueryArgs().Peek("uri")
 
 	// If identifier is passed, search by identifier instead
@@ -219,7 +213,7 @@ func GetEndpointHandler(c *routing.Context) error {
 			Identifier: string(identifier),
 		}
 		var err error
-		serv, err = Methods()["get"].(func(service.Service) (service.Service, error))(serv)
+		serv, err = servicediscovery.GetServicesRepository(user).Find(serv)
 		if err == nil {
 			serviceJSON, _ := json.Marshal(serv)
 			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -229,7 +223,9 @@ func GetEndpointHandler(c *routing.Context) error {
 		return nil
 	}
 
-	service, err := ServiceDiscovery().GetEndpointForUri(string(matchingURI))
+	utils.LogMessage("HERE", utils.DebugLogType)
+
+	service, err := ServiceDiscovery(user).GetEndpointForUri(string(matchingURI))
 
 	group, getGroupErr := service.GetGroup()
 	if getGroupErr != nil {
@@ -255,17 +251,18 @@ func DeleteEndpointHandler(c *routing.Context) error {
 	// service := servicediscovery.Service{MatchingURI: string(matchingURI)}
 	s := service.Service{Id: bson.ObjectIdHex(serviceID)}
 
-	resp, status := Methods()["delete"].(func(service.Service) (string, int))(s)
+	resp, status := servicediscovery.GetServicesRepository(users.User{}).DeleteService(s)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
 func ManageServiceHandler(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
 	matchingURI := c.QueryArgs().Peek("service")
 	managementType := string(c.QueryArgs().Peek("action"))
 
-	service, err := ServiceDiscovery().GetEndpointForUri(string(matchingURI))
+	service, err := ServiceDiscovery(user).GetEndpointForUri(string(matchingURI))
 
 	if err == nil {
 		success, callResponse := service.ServiceManagementCall(managementType)

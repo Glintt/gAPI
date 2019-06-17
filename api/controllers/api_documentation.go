@@ -9,6 +9,7 @@ import (
 
 	gapiHttp "github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery"
+	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/utils"
 
@@ -59,7 +60,7 @@ func HandleServiceDocumentationJSRequest(c *routing.Context) error {
 }
 
 func GetServiceDocumentationUrl(serviceIdentifier string) (string, error) {
-	service, err := servicediscovery.GetServiceDiscoveryObject().FindService(service.Service{Identifier: serviceIdentifier})
+	service, err := servicediscovery.GetServiceDiscoveryObject(users.GetInternalAPIUser()).FindService(service.Service{Identifier: serviceIdentifier})
 	if err != nil {
 		return "", err
 	}

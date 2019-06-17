@@ -43,5 +43,5 @@ func PublishElastic(reqLogging *models.RequestLogging) {
 }
 
 func RemoveOldLogsElastic() {
-	// TODO
+	// TODO: Remove logs older than x on elasticsearch
 }
