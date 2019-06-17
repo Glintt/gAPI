@@ -6,7 +6,7 @@ import (
 	"net"
 
 	"github.com/Glintt/gAPI/api/config"
-	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
 	"github.com/Glintt/gAPI/api/utils"
@@ -144,7 +144,7 @@ func (service *Service) GetGroup() (servicegroup.ServiceGroup, error) {
 
 	groupId := service.GroupId.Hex()
 
-	servicesGroup, err := servicegroup.ServiceGroupMethods[constants.SD_TYPE]["getbyid"].(func(string) (servicegroup.ServiceGroup, error))(groupId)
+	servicesGroup, err := servicegroup.ServiceGroupMethods[database.SD_TYPE]["getbyid"].(func(string) (servicegroup.ServiceGroup, error))(groupId)
 
 	if err != nil {
 		return servicegroup.ServiceGroup{}, err

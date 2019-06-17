@@ -59,7 +59,7 @@ func HandleServiceDocumentationJSRequest(c *routing.Context) error {
 }
 
 func GetServiceDocumentationUrl(serviceIdentifier string) (string, error) {
-	service, err := servicediscovery.GetServiceDiscoveryObject().FindService(service.Service{Identifier: serviceIdentifier})
+	service, err := servicediscovery.GetInternalServiceDiscoveryObject().FindService(service.Service{Identifier: serviceIdentifier})
 	if err != nil {
 		return "", err
 	}

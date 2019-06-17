@@ -1,14 +1,20 @@
 package service
 
 import (
+	"github.com/Glintt/gAPI/api/users"
+	"strings"
+
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
-	"strings"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
-func UpdateMongo(service Service, serviceExists Service) (string, int) {
+type ServiceMongoRepository struct {
+	User users.User
+}
+
+func (smr *ServiceMongoRepository) Update(service Service, serviceExists Service) (string, int) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	err := db.C(constants.SERVICES_COLLECTION).UpdateId(service.Id, &service)
@@ -21,7 +27,7 @@ func UpdateMongo(service Service, serviceExists Service) (string, int) {
 	return `{"error" : false, "msg": "Service updated successfuly."}`, 201
 }
 
-func CreateServiceMongo(s Service) (string, int) {
+func (smr *ServiceMongoRepository) CreateService(s Service) (string, int) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	s.Id = bson.NewObjectId()
@@ -37,7 +43,7 @@ func CreateServiceMongo(s Service) (string, int) {
 	return `{"error" : false, "msg": "Service created successfuly."}`, 201
 }
 
-func ListServicesMongo(page int, filterQuery string, viewAllPermission bool) []Service {
+func (smr *ServiceMongoRepository) ListServices(page int, filterQuery string) []Service {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var services []Service
@@ -50,7 +56,7 @@ func ListServicesMongo(page int, filterQuery string, viewAllPermission bool) []S
 				bson.M{"matchinguri": bson.RegEx{Pattern: filterQuery + ".*", Options: "i"}}}},
 	}
 
-	if !viewAllPermission {
+	if smr.User.Username == "" {
 		visibilityQuery := bson.M{
 			"$or": []bson.M{
 				bson.M{"isreachable": true},
@@ -78,10 +84,10 @@ func ListServicesMongo(page int, filterQuery string, viewAllPermission bool) []S
 	return services
 }
 
-func DeleteServiceMongo(s Service) (string, int) {
+func (smr *ServiceMongoRepository) DeleteService(s Service) (string, int) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
-	service, err := FindMongo(s)
+	service, err := smr.Find(s)
 
 	if err != nil {
 		database.MongoDBPool.Close(session)
@@ -99,7 +105,7 @@ func DeleteServiceMongo(s Service) (string, int) {
 	return `{"error": true, "msg": "Not found"}`, 404
 }
 
-func FindMongo(s Service) (Service, error) {
+func (smr *ServiceMongoRepository) Find(s Service) (Service, error) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var services []Service
@@ -123,7 +129,7 @@ func FindMongo(s Service) (Service, error) {
 	return FindServiceInList(s, services)
 }
 
-func ListAllAvailableHostsMongo() ([]string, error) {
+func (smr *ServiceMongoRepository) ListAllAvailableHosts() ([]string, error) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var hosts []string
@@ -135,7 +141,7 @@ func ListAllAvailableHostsMongo() ([]string, error) {
 	return hosts, nil
 }
 
-func NormalizeServicesMongo() error {
+func (smr *ServiceMongoRepository) NormalizeServices() error {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	var services []Service

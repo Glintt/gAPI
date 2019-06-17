@@ -8,13 +8,15 @@ import (
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
+	"github.com/Glintt/gAPI/api/authentication"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gopkg.in/mgo.v2/bson"
 )
 
 func ListServiceGroupsHandler(c *routing.Context) error {
-	sg, err := ServiceDiscovery().GetListOfServicesGroup()
+	user := authentication.GetAuthenticatedUser(c)
+	sg, err := ServiceDiscovery(user).GetListOfServicesGroup()
 
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)

@@ -15,7 +15,7 @@ import (
 )
 
 func AppGroupMethods() map[string]interface{} {
-	return appgroups.ApplicationGroupMethods[constants.SD_TYPE]
+	return appgroups.ApplicationGroupMethods[database.SD_TYPE]
 }
 
 func CreateAppGroup(c *routing.Context) error {

@@ -40,6 +40,7 @@ func ValidateServiceBody(c *routing.Context) (service.Service, error) {
 }
 
 func ValidateServiceExists(s service.Service) (service.Service, error) {
+	sd := GetInternalServiceDiscoveryObject()
 	ser, err := sd.FindService(s)
 
 	if err != nil {
