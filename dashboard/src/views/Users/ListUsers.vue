@@ -54,7 +54,7 @@ export default {
       this.changeUser(user);
     },
     viewPermissions: function(user) {
-      console.log(user);
+      this.changeUser(user);
       this.$router.push("/user-permissions/" + user.Username);
     },
     closeEditing: function() {

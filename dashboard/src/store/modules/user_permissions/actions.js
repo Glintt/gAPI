@@ -1,7 +1,6 @@
 const userPermissionsAPI = require("@/api/user_permissions");
 
 export const get = ({ commit }, payload) => {
-  console.log(payload);
   userPermissionsAPI.get(payload, response => {
     commit("updatePermissions", response.body);
   });

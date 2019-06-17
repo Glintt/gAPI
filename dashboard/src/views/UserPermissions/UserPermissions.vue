@@ -47,15 +47,19 @@ var serviceDiscoveryAPI = require("@/api/service-discovery");
 export default {
   props: ["showingUser"],
   data() {
-    return { services: [], permited: [] };
+    return { services: [], permited: [], userId: null };
   },
   computed: {
-    ...mapGetters("user_permissions", ["permissions"])
+    ...mapGetters("user_permissions", ["permissions"]),
+    ...mapGetters("users", ["user", "usersList"])
   },
   mounted() {
     const username = this.$route.params.username;
     this.get({ Username: username });
     this.fetchServices();
+    if (this.user === null) {
+      this.updateList();
+    }
   },
   watch: {
     services: function() {
@@ -64,12 +68,14 @@ export default {
   },
   methods: {
     ...mapActions("user_permissions", ["update", "get"]),
+    ...mapActions("users", ["updateList", "changeUser"]),
     permitedUpdate() {
+      if (this.user === null) this.updateUser();
       for (var s in this.services) {
         for (var p in this.permissions) {
           if (this.services[s].Id === this.permissions[p].ServiceId) {
             this.permited.push({
-              UserId: this.permissions[p].UserId,
+              UserId: this.user.Id,
               ServiceId: this.permissions[p].ServiceId,
               Name: this.services[s].Name
             });
@@ -79,15 +85,17 @@ export default {
       return false;
     },
     addPermited(id, name) {
+      if (this.user === null) this.updateUser();
       this.permited.push({
-        UserId: this.permited[0].UserId,
+        UserId: this.user.Id,
         ServiceId: id,
         Name: name
       });
     },
 
     removePermited(id, name) {
-      var userId = this.permited[0].UserId;
+      if (this.user === null) this.updateUser();
+      var userId = this.user.Id;
       var temp = [];
       for (var i = 0; i < this.permited.length; i++) {
         if (this.permited[i].ServiceId !== id) {
@@ -98,7 +106,6 @@ export default {
           });
         }
       }
-      console.log(id);
       this.permited = temp;
     },
 
@@ -110,6 +117,15 @@ export default {
         }
         this.services = response.body;
       });
+    },
+
+    updateUser() {
+      var user = null;
+      for (var i = 0; i < this.usersList.length; i++) {
+        if (this.usersList[i].Username === this.$route.params.username)
+          user = this.usersList[i];
+      }
+      this.changeUser(user);
     }
   }
 };
