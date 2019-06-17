@@ -1,41 +1,87 @@
 <template>
-<div>
-  <div class="modal fade" tabindex="-1" role="dialog" :id="id">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title text-danger">{{ title }}</h5>
-          <button type="button" class="close" data-dismiss="modal"  @click="closeModal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-sm text-center" v-for="(type, index) in managementTypes" v-bind:key="index">
-              <button @click="manageService(service, type.action)" 
+  <div>
+    <div class="modal fade" tabindex="-1" role="dialog" :id="id">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title text-danger">{{ title }}</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              @click="closeModal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div
+                class="col-sm text-center"
+                v-for="(type, index) in managementTypes"
+                v-bind:key="index"
+              >
+                <button
+                  @click="manageService(service, type.action)"
                   :class="'btn btn-'+ type.background"
                   v-show="! $api.serviceDiscovery.CustomManagementActions.includes(type.action)"
-                  data-toggle="tooltip" data-placement="top" :title="type.description">
-                  <i :class="type.icon"></i> {{ type.description }}
-              </button>
-              <br/><br/>
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  :title="type.description"
+                >
+                  <i :class="type.icon"></i>
+                  {{ type.description }}
+                </button>
+                <br>
+                <br>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-dismiss="modal" @click="closeModal">Close</button>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-danger"
+              data-dismiss="modal"
+              @click="closeModal"
+            >Close</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <button :id="'openModal'+id" type="button" data-toggle="modal" data-backdrop="static" :data-target="'#'+id" style="display:none;">Launch modal</button>
-  
-  <ErrorMessage @modalClosed="statusModalClosed" :showing="statusMessage.showing && statusMessage.isError" :id="'requestError'" :error="statusMessage.msg" :title="'Error Occurred'"/>
-  <SuccessModal @modalClosed="statusModalClosed" :showing="statusMessage.showing && !statusMessage.isError" :id="'requestSuccess'" :msg="statusMessage.msg" :title="'Success'"/>
-  <ConfirmationModal @answerReceived="managementConfirmationReceived" @modalClosed="confirmationClosed" :showing="confirmation.showing" :id="'managementConfirm'" :msg="confirmation.msg" :title="confirmation.title"/>
-        
-</div>
+    <button
+      :id="'openModal'+id"
+      type="button"
+      data-toggle="modal"
+      data-backdrop="static"
+      :data-target="'#'+id"
+      style="display:none;"
+    >Launch modal</button>
+
+    <ErrorMessage
+      @modalClosed="statusModalClosed"
+      :showing="statusMessage.showing && statusMessage.isError"
+      :id="'requestError'"
+      :error="statusMessage.msg"
+      :title="'Error Occurred'"
+    />
+    <SuccessModal
+      @modalClosed="statusModalClosed"
+      :showing="statusMessage.showing && !statusMessage.isError"
+      :id="'requestSuccess'"
+      :msg="statusMessage.msg"
+      :title="'Success'"
+    />
+    <ConfirmationModal
+      @answerReceived="managementConfirmationReceived"
+      @modalClosed="confirmationClosed"
+      :showing="confirmation.showing"
+      :id="'managementConfirm'"
+      :msg="confirmation.msg"
+      :title="confirmation.title"
+    />
+  </div>
 </template>
 <script>
 import ConfirmationModal from "@/components/modals/ConfirmationModal";

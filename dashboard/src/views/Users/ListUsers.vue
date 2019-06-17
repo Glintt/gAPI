@@ -1,16 +1,21 @@
 <template>
-    <div>
-        <button class="offset-sm-11 btn btn-sm btn-warning" @click="closeEditing" v-if="user">Go back</button>
-        
-        <edit-user v-if="user" :showingUser="user"></edit-user>
-        
-        <data-table v-if="! user" 
-            :headers="headers"
-            :searchable="true"
-            v-on:changePage="changePage"
-            v-on:search="search"
-            :data="usersList" :actions="actions" v-on:editUser="editUser"></data-table>
-    </div>
+  <div>
+    <button class="offset-sm-11 btn btn-sm btn-warning" @click="closeEditing" v-if="user">Go back</button>
+
+    <edit-user v-if="user" :showingUser="user"></edit-user>
+
+    <data-table
+      v-if="! user"
+      :headers="headers"
+      :searchable="true"
+      v-on:changePage="changePage"
+      v-on:search="search"
+      :data="usersList"
+      :actions="actions"
+      v-on:editUser="editUser"
+      v-on:viewPermissions="viewPermissions"
+    ></data-table>
+  </div>
 </template>
 
 <script>
@@ -33,6 +38,10 @@ export default {
         edit: {
           name: "Edit",
           event: "editUser"
+        },
+        permissions: {
+          name: "Permissions",
+          event: "viewPermissions"
         }
       },
       searchQuery: "",
@@ -43,6 +52,10 @@ export default {
     ...mapActions("users", ["updateList", "changeUser"]),
     editUser: function(user) {
       this.changeUser(user);
+    },
+    viewPermissions: function(user) {
+      console.log(user);
+      this.$router.push("/user-permissions/" + user.Username);
     },
     closeEditing: function() {
       this.changeUser(null);
