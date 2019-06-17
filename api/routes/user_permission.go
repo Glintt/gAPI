@@ -15,4 +15,5 @@ func InitUserPermissionsService(router *routing.Router) {
 	userPermissionsGroup.Get("/<username>", authentication.AdminRequiredMiddleware, controllers.GetUserPermissionsHandler)
 	userPermissionsGroup.Put("/<username>", authentication.AdminRequiredMiddleware, controllers.UpdateUserPermissionHandler)
 	userPermissionsGroup.Post("/<username>/<application_id>", authentication.AdminRequiredMiddleware, controllers.AddPermissionToApplicationGroupHandler)	
+	userPermissionsGroup.Delete("/<username>/<application_id>", authentication.AdminRequiredMiddleware, controllers.RemovePermissionFromApplicationGroupHandler)	
 }
