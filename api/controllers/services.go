@@ -32,7 +32,7 @@ func ServiceNotFound(c *routing.Context) error {
 }
 
 func NormalizeServices(c *routing.Context) error {
-	err := servicediscovery.GetServicesRepository(users.User{}).NormalizeServices()
+	err := service.GetServicesRepository(users.User{}).NormalizeServices()
 	if err != nil {
 		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return err
@@ -59,7 +59,7 @@ func UpdateHandler(c *routing.Context) error {
 		return nil
 	}
 
-	resp, status := servicediscovery.GetServicesRepository(users.User{}).Update(s, serviceExists)
+	resp, status := service.GetServicesRepository(users.User{}).Update(s, serviceExists)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
@@ -90,10 +90,10 @@ func AutoRegisterHandler(c *routing.Context) error {
 	var status int
 	var msg string
 	if err != nil {
-		msg, status = servicediscovery.GetServicesRepository(users.User{}).CreateService(serv)
+		msg, status = service.GetServicesRepository(users.User{}).CreateService(serv)
 	} else {
 		serviceFound.Hosts = append(serviceFound.Hosts, host)
-		msg, status = servicediscovery.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
+		msg, status = service.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
 	}
 
 	if status > 300 {
@@ -101,7 +101,7 @@ func AutoRegisterHandler(c *routing.Context) error {
 		return nil
 	}
 
-	serv, _ = servicediscovery.GetServicesRepository(users.User{}).Find(serv)
+	serv, _ = service.GetServicesRepository(users.User{}).Find(serv)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_REGISTER", "application/json")
@@ -132,9 +132,9 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 		return nil
 	} else {
 		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
-		_, status = servicediscovery.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
+		_, status = service.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
 	}
-	serv, _ = servicediscovery.GetServicesRepository(users.User{}).Find(serv)
+	serv, _ = service.GetServicesRepository(users.User{}).Find(serv)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_DEREGISTER", "application/json")
@@ -158,7 +158,7 @@ func RegisterHandler(c *routing.Context) error {
 	}
 
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
-	resp, status := servicediscovery.GetServicesRepository(users.User{}).CreateService(serv)
+	resp, status := service.GetServicesRepository(users.User{}).CreateService(serv)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
@@ -182,7 +182,7 @@ func ListServicesHandler(c *routing.Context) error {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
 	
-	services := servicediscovery.GetServicesRepository(user).ListServices(page, searchQuery)
+	services := service.GetServicesRepository(user).ListServices(page, searchQuery)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -213,7 +213,7 @@ func GetEndpointHandler(c *routing.Context) error {
 			Identifier: string(identifier),
 		}
 		var err error
-		serv, err = servicediscovery.GetServicesRepository(user).Find(serv)
+		serv, err = service.GetServicesRepository(user).Find(serv)
 		if err == nil {
 			serviceJSON, _ := json.Marshal(serv)
 			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -251,7 +251,7 @@ func DeleteEndpointHandler(c *routing.Context) error {
 	// service := servicediscovery.Service{MatchingURI: string(matchingURI)}
 	s := service.Service{Id: bson.ObjectIdHex(serviceID)}
 
-	resp, status := servicediscovery.GetServicesRepository(users.User{}).DeleteService(s)
+	resp, status := service.GetServicesRepository(users.User{}).DeleteService(s)
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil

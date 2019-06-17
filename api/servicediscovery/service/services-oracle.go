@@ -7,7 +7,7 @@ import (
 	"errors"
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/utils"
-	"github.com/Glintt/gAPI/api/user_permission"
+	//"github.com/Glintt/gAPI/api/user_permission"
 	"strings"
 
 	_ "gopkg.in/goracle.v2"
@@ -80,6 +80,25 @@ var INSERT_SERVICE_HOSTS_ORACLE = "INSERT INTO gapi_services_hosts(service_id, d
 type ServiceOracleRepository struct {
 	User users.User
 }
+
+
+const USER_PERMISSION_CHECK = "id in (select service_id from gapi_user_services_permissions c where c.user_id = '##USER_ID##') or 1 = ##IS_USER_ADMIN##"
+
+func AppendPermissionFilterToQuery(query string, sTable string, sGTable string, user users.User) string {
+	query = query + " and "
+	permissionQuery := USER_PERMISSION_CHECK
+
+	permissionQuery = strings.Replace(permissionQuery, "##USER_ID##", user.Id.Hex(), -1)
+	isAdminValue := "0"
+	if user.IsAdmin {
+		isAdminValue = "1"
+	} 
+	permissionQuery = strings.Replace(permissionQuery, "##IS_USER_ADMIN##", isAdminValue, -1)
+
+	query = query + "(" + sTable + "." + permissionQuery + " or ("+sTable+".isreachable = 1 or ("+sGTable+".isreachable = 1 and "+sTable+".usegroupattributes = 1))" +  ")"
+	return query
+}
+
 
 func (smo *ServiceOracleRepository) Update(service Service, serviceExists Service) (string, int) {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
@@ -228,11 +247,7 @@ func (smo *ServiceOracleRepository) ListServices(page int, filterQuery string) [
 		return nil
 	}
 
-	query := user_permission.AppendPermissionFilterToQuery(LIST_SERVICES_ORACLE, "a", smo.User)
-
-	if smo.User.Username != "" {
-		query = query + " and (a.isreachable = 1 or (b.isreachable = 1 and a.usegroupattributes = 1)) "
-	}
+	query := AppendPermissionFilterToQuery(LIST_SERVICES_ORACLE, "a", "b",smo.User)
 	
 	query = query + " order by a.id"
 	var rows *sql.Rows
@@ -257,7 +272,7 @@ func (smo *ServiceOracleRepository) ListServices(page int, filterQuery string) [
 
 	if err != nil {
 		utils.LogMessage("Error running query", utils.DebugLogType)
-//		defer rows.Close()
+		//defer rows.Close()
 		database.CloseOracleConnection(db)
 		return []Service{}
 	}
@@ -313,7 +328,7 @@ func (smo *ServiceOracleRepository) Find(s Service) (Service, error) {
 		uriParts = append(uriParts, "")
 	}
 
-	query := user_permission.AppendPermissionFilterToQuery(FIND_SERVICES_ORACLE, "a", smo.User)
+	query :=AppendPermissionFilterToQuery(FIND_SERVICES_ORACLE, "a","b", smo.User)
 
 	utils.LogMessage("Query: "+ query, utils.InfoLogType)
 	rows, err := db.Query(query, s.Id.Hex(),

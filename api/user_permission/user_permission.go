@@ -1,24 +1,67 @@
 package user_permission
+
 import (
-	"github.com/Glintt/gAPI/api/users"
-	"strings"
+	"github.com/Glintt/gAPI/api/user_permission/providers"
+	"github.com/Glintt/gAPI/api/user_permission/models"
+	"fmt"
 )
 
 const (
-	USER_PERMISSION_CHECK = "id in (select service_id from gapi_user_services_permissions c where c.user_id = '##USER_ID##') or 1 = ##IS_USER_ADMIN##"
+	SERVICE_NAME = "USER_PERMISSION"
 )
 
-func AppendPermissionFilterToQuery(query string, table string, user users.User) string {
-	query = query + " and "
-	permissionQuery := USER_PERMISSION_CHECK
+func getRepositoryAndBeginTransaction() providers.PermissionsRepositoryInterface {
+	repository := providers.GetPermissionRepository()
+	repository.CreateTransaction()
+	return repository
+}
 
-	permissionQuery = strings.Replace(permissionQuery, "##USER_ID##", user.Id.Hex(), -1)
-	isAdminValue := "0"
-	if user.IsAdmin {
-		isAdminValue = "1"
-	} 
-	permissionQuery = strings.Replace(permissionQuery, "##IS_USER_ADMIN##", isAdminValue, -1)
+func GetUserPermissions(user_id string) ([]models.UserPermission, error){
+	repository := getRepositoryAndBeginTransaction()
+	
+	permissions,err := repository.Get(user_id)
+	if err != nil {
+		repository.RollbackTransaction()
+		return permissions,err
+	}
+	repository.CommitTransaction()
+	return permissions, nil
+}
 
-	query = query + "(" + table + "." + permissionQuery + ")"
-	return query
+func AddPermission(permission models.UserPermission) error {
+	repository := getRepositoryAndBeginTransaction()
+
+	err := repository.Add(permission)
+	if err != nil {
+		repository.RollbackTransaction()
+		return err
+	}
+	repository.CommitTransaction()
+	return nil
+}
+
+func UpdatePermission(userId string, permissions []models.UserPermission) error{
+	repository := getRepositoryAndBeginTransaction()	
+
+	err := repository.Update(userId, permissions)
+	if err != nil {
+		repository.RollbackTransaction()
+		return err
+	}
+	fmt.Println("COMMIT TRANSACITON")
+	err = repository.CommitTransaction()
+	fmt.Println(err)
+	return nil
+}
+
+func DeletePermission(userId string, permissionId string) error{
+	repository := getRepositoryAndBeginTransaction()	
+
+	err := repository.Delete(userId, permissionId)
+	if err != nil {
+		repository.RollbackTransaction()
+		return err
+	}
+	repository.CommitTransaction()
+	return nil
 }

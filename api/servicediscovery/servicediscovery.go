@@ -7,7 +7,6 @@ import (
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/http"
-	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
@@ -22,28 +21,13 @@ type ServiceDiscovery struct {
 	User users.User
 }
 
-var sd ServiceDiscovery
-
-func GetServicesRepository(user users.User) service.ServiceRepositoryInterface{
-	if constants.SD_TYPE == "mongo" {
-		return &service.ServiceMongoRepository{
-			User: user,
-		}
-	}
-	if constants.SD_TYPE == "oracle" {
-		return &service.ServiceOracleRepository{
-			User: user,
-		}
-	}
-	return nil
-}
 
 func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service) {
 	serviceDisc.registeredServices = rs
 }
 
 func ServiceGroupMethods() map[string]interface{} {
-	return servicegroup.ServiceGroupMethods[constants.SD_TYPE]
+	return servicegroup.ServiceGroupMethods[database.SD_TYPE]
 }
 
 func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
@@ -52,26 +36,28 @@ func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
 		User: user,
 	}
 }
+func GetInternalServiceDiscoveryObject() *ServiceDiscovery {
+	user := users.GetInternalAPIUser()
+	return &ServiceDiscovery{
+		isService: true,
+		User: user,
+	}
+}
 
 func InitServiceDiscovery() {
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" || config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
-		constants.SD_TYPE = config.GApiConfiguration.ServiceDiscovery.Type
+		database.SD_TYPE = config.GApiConfiguration.ServiceDiscovery.Type
 
 		if !database.IsConnectionDone {
 			if err := database.InitDatabaseConnection(); err != nil {
 				panic(err.Error())
 			}
 		}
-	} else {
-		servicesConfig := LoadServicesConfiguration()
-		sd.registeredServices = servicesConfig.Services
 	}
-
-	sd.isService = true
 }
 
-func (service *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
-	hosts, _ := GetServicesRepository(users.User{}).ListAllAvailableHosts()
+func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
+	hosts, _ := service.GetServicesRepository(users.User{}).ListAllAvailableHosts()
 
 	requestHost := requestContxt.RemoteIP().String()
 
@@ -140,7 +126,7 @@ func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error)
 		responseBody := resp.Body()
 		json.Unmarshal(responseBody, services)
 	} else {
-		services = GetServicesRepository(users.User{}).ListServices(-1, "")
+		services = service.GetServicesRepository(users.User{}).ListServices(-1, "")
 	}
 
 	return services, nil
@@ -168,7 +154,7 @@ func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (service.Serv
 }
 
 func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.Service, error) {
-	_, status := GetServicesRepository(users.User{}).Update(s, s)
+	_, status := service.GetServicesRepository(users.User{}).Update(s, s)
 	if status == 201 {
 		return s, nil
 	}
@@ -177,7 +163,7 @@ func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.S
 }
 
 func (serviceDisc *ServiceDiscovery) FindService(s service.Service) (service.Service, error) {
-	return GetServicesRepository(serviceDisc.User).Find(s)
+	return service.GetServicesRepository(serviceDisc.User).Find(s)
 }
 
 func (serviceDisc *ServiceDiscovery) FindServiceWithMatchingPrefix(uri string) (service.Service, error) {

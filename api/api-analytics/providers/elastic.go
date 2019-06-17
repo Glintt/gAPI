@@ -7,7 +7,7 @@ import (
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery/appgroups"
-	"github.com/Glintt/gAPI/api/servicediscovery/constants"
+	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 )
 
@@ -49,8 +49,8 @@ func APIAnalyticsElastic(apiEndpoint string) (string, int) {
 }
 
 func ApplicationAnalyticsElastic(appGroupId string) (string, int) {
-	appGroup, _ := appgroups.ApplicationGroupMethods[constants.SD_TYPE]["getbyid"].(func(string) (appgroups.ApplicationGroup, error))(appGroupId)
-	appGroupServices, _ := appgroups.ApplicationGroupMethods[constants.SD_TYPE]["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(appGroup)
+	appGroup, _ := appgroups.ApplicationGroupMethods[database.SD_TYPE]["getbyid"].(func(string) (appgroups.ApplicationGroup, error))(appGroupId)
+	appGroupServices, _ := appgroups.ApplicationGroupMethods[database.SD_TYPE]["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(appGroup)
 
 	response := http.MakeRequest(config.POST, LogsURL(), ApplicationAnalyticsQuery(appGroupServices), nil)
 

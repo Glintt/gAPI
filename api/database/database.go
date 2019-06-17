@@ -10,6 +10,8 @@ var MONGO_HOST string
 var MONGO_DB string
 var MONGO_PORT string
 
+var SD_TYPE = "file"
+
 var ORACLE_CONNECTION_STRING string
 
 var IsConnectionDone = false
