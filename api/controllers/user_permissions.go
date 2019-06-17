@@ -10,7 +10,6 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	user_permission_models "github.com/Glintt/gAPI/api/user_permission/models"
 	"gopkg.in/mgo.v2/bson"
-	"fmt"
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
@@ -76,7 +75,6 @@ func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
 		http.Response(c, `{"error" : true, "msg": "Error getting user permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	fmt.Println(applicationId)
 
 	group := appgroups.ApplicationGroup{Id: bson.ObjectIdHex(string(applicationId)) }
 	servicesList, err := AppGroupMethods()["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(group)
@@ -130,7 +128,7 @@ func RemovePermissionFromApplicationGroupHandler(c *routing.Context) error {
 
 
 	for _, u := range userPermissions {
-		// Se nao estiver na lista de servicos, adiciona a lista de permissoes 
+		// If not on the list of group's services, add it to the user permissions
 		if (!ContainsService(servicesList, u)) {
 			finalUserPermissions = append(finalUserPermissions, u)
 		}
