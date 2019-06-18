@@ -1,26 +1,22 @@
 package servicediscovery
 
 import (
-	"encoding/json"
-	"errors"
+	"strings"
+
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/database"
-	"github.com/Glintt/gAPI/api/users"
-	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
+	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/utils"
-	"strings"
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 type ServiceDiscovery struct {
-	isService          bool
 	registeredServices []service.Service
-	User users.User
+	User               users.User
 }
-
 
 func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service) {
 	serviceDisc.registeredServices = rs
@@ -32,14 +28,12 @@ func ServiceGroupMethods() map[string]interface{} {
 
 func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
 	return &ServiceDiscovery{
-		isService: true,
 		User: user,
 	}
 }
 func GetInternalServiceDiscoveryObject() *ServiceDiscovery {
 	user := users.GetInternalAPIUser()
 	return &ServiceDiscovery{
-		isService: true,
 		User: user,
 	}
 }
@@ -57,7 +51,7 @@ func InitServiceDiscovery() {
 }
 
 func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
-	hosts, _ := service.GetServicesRepository(users.User{}).ListAllAvailableHosts()
+	hosts, _ := service.GetServicesRepository(s.User).ListAllAvailableHosts()
 
 	requestHost := requestContxt.RemoteIP().String()
 
@@ -74,14 +68,6 @@ func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) boo
 		}
 	}
 	return true
-}
-
-func (service *ServiceDiscovery) SetIsService(isServ bool) {
-	service.isService = isServ
-}
-
-func (service *ServiceDiscovery) IsService() bool {
-	return service.isService
 }
 
 func (sd *ServiceDiscovery) GetListOfServicesGroup() ([]servicegroup.ServiceGroup, error) {
@@ -115,51 +101,39 @@ func IsServiceReachableFromExternal(service service.Service, sd ServiceDiscovery
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error) {
 	var services []service.Service
-
-	if serviceDisc.isService == false {
-		resp := http.MakeRequest(config.GET, config.SERVICE_DISCOVERY_URL+config.SERVICE_DISCOVERY_GROUP+"/services?page=-1", "", nil)
-
-		if resp.StatusCode() != 200 {
-			return []service.Service{}, errors.New("Not found.")
-		}
-
-		responseBody := resp.Body()
-		json.Unmarshal(responseBody, services)
-	} else {
-		services = service.GetServicesRepository(users.User{}).ListServices(-1, "")
-	}
+	services = service.GetServicesRepository(serviceDisc.User).ListServices(-1, "")
 
 	return services, nil
 }
 
+func (serviceDisc *ServiceDiscovery) ListServices(page int, searchQuery string) []service.Service {
+	return service.GetServicesRepository(serviceDisc.User).ListServices(page, searchQuery)
+}
+
+func (serviceDisc *ServiceDiscovery) DeleteService(s service.Service) error {
+	return service.GetServicesRepository(serviceDisc.User).DeleteService(s)
+}
+
 func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (service.Service, error) {
+	service := service.Service{MatchingURI: uri}
+	return serviceDisc.FindService(service)
+}
 
-	if serviceDisc.isService == false {
-		resp := http.MakeRequest(config.GET, config.SERVICE_DISCOVERY_URL+config.SERVICE_DISCOVERY_GROUP+"/endpoint?uri="+uri, "", nil)
+func (serviceDisc *ServiceDiscovery) NormalizeServices() error {
+	return service.GetServicesRepository(serviceDisc.User).NormalizeServices()
+}
 
-		if resp.StatusCode() != 200 {
-			return service.Service{}, errors.New("Not found.")
-		}
-
-		responseBody := resp.Body()
-		var service service.Service
-		json.Unmarshal(responseBody, &service)
-
-		return service, nil
-
-	} else {
-		service := service.Service{MatchingURI: uri}
-		return serviceDisc.FindService(service)
-	}
+func (serviceDisc *ServiceDiscovery) CreateService(s service.Service) (service.Service, error) {
+	return service.GetServicesRepository(serviceDisc.User).CreateService(s)
 }
 
 func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.Service, error) {
-	_, status := service.GetServicesRepository(users.User{}).Update(s, s)
-	if status == 201 {
+	_, err := service.GetServicesRepository(serviceDisc.User).Update(s, s)
+	if err == nil {
 		return s, nil
 	}
 
-	return service.Service{}, errors.New("Not found.")
+	return service.Service{}, err
 }
 
 func (serviceDisc *ServiceDiscovery) FindService(s service.Service) (service.Service, error) {

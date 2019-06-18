@@ -1,12 +1,14 @@
 package service
 
 import (
-	"github.com/Glintt/gAPI/api/users"
 	"strings"
+
+	"github.com/Glintt/gAPI/api/users"
+
+	"errors"
 
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
-
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -14,7 +16,7 @@ type ServiceMongoRepository struct {
 	User users.User
 }
 
-func (smr *ServiceMongoRepository) Update(service Service, serviceExists Service) (string, int) {
+func (smr *ServiceMongoRepository) Update(service Service, serviceExists Service) (int, error) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	err := db.C(constants.SERVICES_COLLECTION).UpdateId(service.Id, &service)
@@ -22,12 +24,12 @@ func (smr *ServiceMongoRepository) Update(service Service, serviceExists Service
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+		return 400, err
 	}
-	return `{"error" : false, "msg": "Service updated successfuly."}`, 201
+	return 201, nil
 }
 
-func (smr *ServiceMongoRepository) CreateService(s Service) (string, int) {
+func (smr *ServiceMongoRepository) CreateService(s Service) (Service, error) {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	s.Id = bson.NewObjectId()
@@ -38,9 +40,9 @@ func (smr *ServiceMongoRepository) CreateService(s Service) (string, int) {
 	database.MongoDBPool.Close(session)
 
 	if err != nil {
-		return `{"error" : true, "msg": "` + err.Error() + `"}`, 400
+		return Service{}, err
 	}
-	return `{"error" : false, "msg": "Service created successfuly."}`, 201
+	return s, nil
 }
 
 func (smr *ServiceMongoRepository) ListServices(page int, filterQuery string) []Service {
@@ -84,25 +86,20 @@ func (smr *ServiceMongoRepository) ListServices(page int, filterQuery string) []
 	return services
 }
 
-func (smr *ServiceMongoRepository) DeleteService(s Service) (string, int) {
+func (smr *ServiceMongoRepository) DeleteService(s Service) error {
 	session, db := database.GetSessionAndDB(database.MONGO_DB)
 
 	service, err := smr.Find(s)
 
 	if err != nil {
 		database.MongoDBPool.Close(session)
-
-		return `{"error": true, "msg": "Not found"}`, 404
+		return errors.New("Service not found")
 	}
 
 	err = db.C(constants.SERVICES_COLLECTION).Remove(&service)
 
 	database.MongoDBPool.Close(session)
-
-	if err == nil {
-		return `{"error": false, "msg": "Removed successfully."}`, 200
-	}
-	return `{"error": true, "msg": "Not found"}`, 404
+	return err
 }
 
 func (smr *ServiceMongoRepository) Find(s Service) (Service, error) {

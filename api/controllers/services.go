@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/config"
-	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
-	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
+	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/utils"
 
 	routing "github.com/qiangxue/fasthttp-routing"
@@ -25,14 +25,21 @@ func ServiceDiscoveryServiceName() string {
 func ServiceDiscovery(user users.User) *servicediscovery.ServiceDiscovery {
 	return servicediscovery.GetServiceDiscoveryObject(user)
 }
+func InternalServiceDiscovery() *servicediscovery.ServiceDiscovery {
+	return servicediscovery.GetInternalServiceDiscoveryObject()
+}
 
 func ServiceNotFound(c *routing.Context) error {
 	http.Response(c, `{"error":true, "msg": "Not found."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
+/*
+Normalize all services
+*/
 func NormalizeServices(c *routing.Context) error {
-	err := service.GetServicesRepository(users.User{}).NormalizeServices()
+	user := authentication.GetAuthenticatedUser(c)
+	err := ServiceDiscovery(user).NormalizeServices()
 	if err != nil {
 		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return err
@@ -42,30 +49,35 @@ func NormalizeServices(c *routing.Context) error {
 }
 
 func UpdateHandler(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
 	serviceID := c.Param("service_id")
+
 	s, err := servicediscovery.ValidateServiceBody(c)
-
-	s.Id = bson.ObjectIdHex(serviceID)
-
 	if err != nil {
 		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
-	serviceExists, err1 := servicediscovery.ValidateServiceExists(s)
+	s.Id = bson.ObjectIdHex(serviceID)
 
-	if err1 != nil {
-		http.Response(c, string(err1.Error()), 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+	_, err = servicediscovery.ValidateServiceExists(s)
+	if err != nil {
+		http.Response(c, string(err.Error()), 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
-	resp, status := service.GetServicesRepository(users.User{}).Update(s, serviceExists)
+	s, err = ServiceDiscovery(user).UpdateService(s)
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg":"`+err.Error()+`"`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
 
-	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
+	http.Response(c, `{"error" : false, "msg": "Service updated successfuly"}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
 func AutoRegisterHandler(c *routing.Context) error {
+	serviceDiscovery := InternalServiceDiscovery()
 	var s map[string]string
 	json.Unmarshal(c.Request.Body(), &s)
 
@@ -87,28 +99,28 @@ func AutoRegisterHandler(c *routing.Context) error {
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
 
 	serviceFound, err := servicediscovery.ValidateServiceExists(serv)
-	var status int
-	var msg string
 	if err != nil {
-		msg, status = service.GetServicesRepository(users.User{}).CreateService(serv)
+		// TODO: create service on service discovery
+		serviceFound, err = serviceDiscovery.CreateService(serv)
 	} else {
 		serviceFound.Hosts = append(serviceFound.Hosts, host)
-		msg, status = service.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
+		serviceFound, err = serviceDiscovery.UpdateService(serviceFound)
 	}
 
-	if status > 300 {
-		http.Response(c, string(msg), status, "AUTO_REGISTER", "application/json")
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "`+err.Error()+`"}`, 400, "AUTO_REGISTER", "application/json")
 		return nil
 	}
 
-	serv, _ = service.GetServicesRepository(users.User{}).Find(serv)
+	serv, _ = serviceDiscovery.FindService(serviceFound)
 	s2, _ := json.Marshal(serv)
 
-	http.Response(c, string(s2), status, "AUTO_REGISTER", "application/json")
+	http.Response(c, string(s2), 201, "AUTO_REGISTER", "application/json")
 	return nil
 }
 
 func AutoDeRegisterHandler(c *routing.Context) error {
+	serviceDiscovery := InternalServiceDiscovery()
 	var s map[string]string
 	json.Unmarshal(c.Request.Body(), &s)
 
@@ -132,9 +144,9 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 		return nil
 	} else {
 		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
-		_, status = service.GetServicesRepository(users.User{}).Update(serviceFound, serviceFound)
+		serviceFound, err = serviceDiscovery.UpdateService(serviceFound)
 	}
-	serv, _ = service.GetServicesRepository(users.User{}).Find(serv)
+	serv, _ = serviceDiscovery.FindService(serviceFound)
 	s2, _ := json.Marshal(serv)
 
 	http.Response(c, string(s2), status, "AUTO_DEREGISTER", "application/json")
@@ -142,6 +154,7 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 }
 
 func RegisterHandler(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
 	serv, err := servicediscovery.ValidateServiceBody(c)
 
 	if err != nil {
@@ -158,7 +171,14 @@ func RegisterHandler(c *routing.Context) error {
 	}
 
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
-	resp, status := service.GetServicesRepository(users.User{}).CreateService(serv)
+	serv, err = ServiceDiscovery(user).CreateService(serv)
+
+	resp := `{"error": true, "msg": "Service registered successfuly"}`
+	status := 201
+	if err != nil {
+		resp = `{"error": true, "msg": "` + err.Error() + `"}`
+		status = 400
+	}
 
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
@@ -166,13 +186,14 @@ func RegisterHandler(c *routing.Context) error {
 
 func ListServicesHandler(c *routing.Context) error {
 	user := authentication.GetAuthenticatedUser(c)
+	serviceDiscovery := ServiceDiscovery(user)
 	var err error
 	page := 1
 	searchQuery := ""
 
 	if c.QueryArgs().Has("page") {
 		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
-		
+
 		if err != nil {
 			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 			return nil
@@ -181,8 +202,7 @@ func ListServicesHandler(c *routing.Context) error {
 	if c.QueryArgs().Has("q") {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
-	
-	services := service.GetServicesRepository(user).ListServices(page, searchQuery)
+	services := serviceDiscovery.ListServices(page, searchQuery)
 
 	if len(services) == 0 {
 		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -204,6 +224,7 @@ func ListServicesHandler(c *routing.Context) error {
 
 func GetEndpointHandler(c *routing.Context) error {
 	user := authentication.GetAuthenticatedUser(c)
+	serviceDiscovery := ServiceDiscovery(user)
 	matchingURI := c.QueryArgs().Peek("uri")
 
 	// If identifier is passed, search by identifier instead
@@ -213,7 +234,7 @@ func GetEndpointHandler(c *routing.Context) error {
 			Identifier: string(identifier),
 		}
 		var err error
-		serv, err = service.GetServicesRepository(user).Find(serv)
+		serv, err = serviceDiscovery.FindService(serv)
 		if err == nil {
 			serviceJSON, _ := json.Marshal(serv)
 			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
@@ -223,7 +244,7 @@ func GetEndpointHandler(c *routing.Context) error {
 		return nil
 	}
 
-	service, err := ServiceDiscovery(user).GetEndpointForUri(string(matchingURI))
+	service, err := serviceDiscovery.GetEndpointForUri(string(matchingURI))
 
 	group, getGroupErr := service.GetGroup()
 	if getGroupErr != nil {
@@ -243,14 +264,20 @@ func GetEndpointHandler(c *routing.Context) error {
 }
 
 func DeleteEndpointHandler(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
 	serviceID := c.Param("service_id")
-	// matchingURI := c.QueryArgs().Peek("uri")
-
-	// service := servicediscovery.Service{MatchingURI: string(matchingURI)}
+	serviceDiscovery := ServiceDiscovery(user)
+	
 	s := service.Service{Id: bson.ObjectIdHex(serviceID)}
 
-	resp, status := service.GetServicesRepository(users.User{}).DeleteService(s)
+	err := serviceDiscovery.DeleteService(s)
 
+	resp := `{"error": true, "msg": "Service deleted successfuly"}`
+	status := 200
+	if err != nil {
+		resp = `{"error": true, "msg": "` + err.Error() + `"}`
+		status = 404
+	}
 	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 	return nil
 }
