@@ -138,6 +138,17 @@ func (serviceDisc *ServiceDiscovery) UpdateService(s service.Service) (service.S
 	return service.Service{}, err
 }
 
+func (serviceDisc *ServiceDiscovery) FindByIdentifierOrMatchingUri(identifier string, matchingURI string) (service.Service, error) {
+	if identifier != "" {
+		return serviceDisc.FindService(
+			service.Service{
+				Identifier: string(identifier),
+			})
+	}else {
+		return serviceDisc.GetEndpointForUri(string(matchingURI))
+	}
+}
+
 func (serviceDisc *ServiceDiscovery) FindService(s service.Service) (service.Service, error) {
 	return service.GetServicesRepository(serviceDisc.User).Find(s)
 }

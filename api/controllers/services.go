@@ -48,6 +48,7 @@ func NormalizeServices(c *routing.Context) error {
 	return http.OkFormated(c, "Normalization done.", ServiceDiscoveryServiceName())
 }
 
+
 // UpdateHandler updates the service
 func UpdateHandler(c *routing.Context) error {
 	// Get service discovery object
@@ -55,16 +56,9 @@ func UpdateHandler(c *routing.Context) error {
 
 	serviceID := c.Param("service_id")
 
-	s, err := servicediscovery.ValidateServiceBody(c)
+	s, status, err := servicediscovery.ValidateServiceBodyAndServiceExists(c, serviceID)
 	if err != nil {
-		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
-	}
-
-	s.Id = bson.ObjectIdHex(serviceID)
-
-	_, err = servicediscovery.ValidateServiceExists(s)
-	if err != nil {
-		return http.Error(c, err.Error(), 404, ServiceDiscoveryServiceName())
+		return http.Error(c, err.Error(), status, ServiceDiscoveryServiceName())
 	}
 
 	s, err = serviceDiscovery.UpdateService(s)
@@ -154,15 +148,14 @@ func RegisterHandler(c *routing.Context) error {
 	// Get service discovery object
 	serviceDiscovery := ServiceDiscovery(c)
 
+	// Validate if request body is valid
 	serv, err := servicediscovery.ValidateServiceBody(c)
-
 	if err != nil {
 		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
+	// Validate if service already exists
 	_, err = servicediscovery.ValidateServiceExists(serv)
-
-	// if service exists, return error
 	if err == nil {
 		return http.Error(c, `Service already exists.`, 400, ServiceDiscoveryServiceName())
 	}
@@ -175,7 +168,6 @@ func RegisterHandler(c *routing.Context) error {
 	}
 	return http.Created(c, "Service registered successfuly", ServiceDiscoveryServiceName())
 }
-
 
 // parseListServicesHandlerParameters parses page and search query parameters for GET /services  
 func parseListServicesHandlerParameters(c *routing.Context) (string, int, error){
@@ -224,40 +216,29 @@ func GetEndpointHandler(c *routing.Context) error {
 	// create service discovery object with authenticated user
 	serviceDiscovery := ServiceDiscovery(c)
 
-	matchingURI := c.QueryArgs().Peek("uri")
-
-	// If identifier is passed, search by identifier instead
+	// get query parameters
+	matchingURI := string(c.QueryArgs().Peek("uri"))
 	identifier := string(c.QueryArgs().Peek("identifier"))
-	if identifier != "" {
-		serv := service.Service{
-			Identifier: string(identifier),
-		}
-		var err error
-		serv, err = serviceDiscovery.FindService(serv)
-		if err == nil {
-			serviceJSON, _ := json.Marshal(serv)
-			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-			return nil
-		}
+
+	// Search service by identifier or matchingURI. If error, throw not found response
+	serv, err := serviceDiscovery.FindByIdentifierOrMatchingUri(identifier, matchingURI)
+	if err != nil {
 		return ServiceNotFound(c)
 	}
 
-	service, err := serviceDiscovery.GetEndpointForUri(string(matchingURI))
-
-	group, getGroupErr := service.GetGroup()
+	// get group visibility
+	group, getGroupErr := serv.GetGroup()
 	if getGroupErr != nil {
-		service.GroupVisibility = service.IsReachable
+		serv.GroupVisibility = serv.IsReachable
 	} else {
-		service.GroupVisibility = group.IsReachable
+		serv.GroupVisibility = group.IsReachable
 	}
 
-	serviceJSON, err1 := json.Marshal(service)
-
-	if err == nil && err1 == nil {
-		http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+	serviceJSON, err := json.Marshal(serv)
+	if err != nil {
+		return ServiceNotFound(c)
 	}
-	return ServiceNotFound(c)
+	return http.Ok(c, string(serviceJSON), ServiceDiscoveryServiceName())
 }
 
 // DeleteEndpointHandler handles DELETE /service/<service_id> request
