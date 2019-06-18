@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
-
 	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
@@ -11,80 +11,80 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
-	"github.com/Glintt/gAPI/api/users"
 	"github.com/Glintt/gAPI/api/utils"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gopkg.in/mgo.v2/bson"
 )
 
+// ServiceDiscoveryServiceName Name of group of services to use on log storage
 func ServiceDiscoveryServiceName() string {
 	return constants.SERVICE_NAME
 }
 
-func ServiceDiscovery(user users.User) *servicediscovery.ServiceDiscovery {
+
+// ServiceDiscovery return service discovery object with user context, only with access to user's resources
+func ServiceDiscovery(c *routing.Context) *servicediscovery.ServiceDiscovery {
+	user := authentication.GetAuthenticatedUser(c)
 	return servicediscovery.GetServiceDiscoveryObject(user)
 }
+
+// InternalServiceDiscovery return service discovery object as internal, with access to everything
 func InternalServiceDiscovery() *servicediscovery.ServiceDiscovery {
 	return servicediscovery.GetInternalServiceDiscoveryObject()
 }
 
+// ServiceNotFound return Service not found response
 func ServiceNotFound(c *routing.Context) error {
-	http.Response(c, `{"error":true, "msg": "Not found."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.NotFound(c,"Service not found.", ServiceDiscoveryServiceName())
 }
 
-/*
-Normalize all services
-*/
+// NormalizeServices normalizes all services so theyt match the specified rules
 func NormalizeServices(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
-	err := ServiceDiscovery(user).NormalizeServices()
+	err := ServiceDiscovery(c).NormalizeServices()
 	if err != nil {
-		http.Response(c, `{"error":true, "msg": "Normalization failed."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return err
+		return http.Error(c, "Normalization failed", 400, ServiceDiscoveryServiceName())
 	}
-	http.Response(c, `{"error":false, "msg": "Normalization done."}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.OkFormated(c, "Normalization done.", ServiceDiscoveryServiceName())
 }
 
+// UpdateHandler updates the service
 func UpdateHandler(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
+	// Get service discovery object
+	serviceDiscovery := ServiceDiscovery(c)
+
 	serviceID := c.Param("service_id")
 
 	s, err := servicediscovery.ValidateServiceBody(c)
 	if err != nil {
-		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
 	s.Id = bson.ObjectIdHex(serviceID)
 
 	_, err = servicediscovery.ValidateServiceExists(s)
 	if err != nil {
-		http.Response(c, string(err.Error()), 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, err.Error(), 404, ServiceDiscoveryServiceName())
 	}
 
-	s, err = ServiceDiscovery(user).UpdateService(s)
+	s, err = serviceDiscovery.UpdateService(s)
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg":"`+err.Error()+`"`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
-	http.Response(c, `{"error" : false, "msg": "Service updated successfuly"}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Created(c, "Service updated successfuly", ServiceDiscoveryServiceName())
 }
 
+// AutoRegisterHandler handles auto register post request
 func AutoRegisterHandler(c *routing.Context) error {
+	// Create internal service discovery object with internal api user, which has access to everything
 	serviceDiscovery := InternalServiceDiscovery()
+
 	var s map[string]string
 	json.Unmarshal(c.Request.Body(), &s)
 
 	if s["MatchingUri"] == "" || s["ToUri"] == "" || s["Name"] == "" || s["Port"] == "" {
-		http.Response(c, `{"error" : true, "msg": "Missing body parameters."}`,
-			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, "Missing body parameters.", 400, ServiceDiscoveryServiceName())
 	}
 	host := c.RemoteIP().String() + ":" + s["Port"]
 	serv := service.Service{
@@ -108,26 +108,24 @@ func AutoRegisterHandler(c *routing.Context) error {
 	}
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "`+err.Error()+`"}`, 400, "AUTO_REGISTER", "application/json")
-		return nil
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
 	serv, _ = serviceDiscovery.FindService(serviceFound)
 	s2, _ := json.Marshal(serv)
-
+	
 	http.Response(c, string(s2), 201, "AUTO_REGISTER", "application/json")
 	return nil
 }
 
+// AutoDeRegisterHandler handles auto deregister post request
 func AutoDeRegisterHandler(c *routing.Context) error {
 	serviceDiscovery := InternalServiceDiscovery()
 	var s map[string]string
 	json.Unmarshal(c.Request.Body(), &s)
 
 	if s["MatchingUri"] == "" || s["Port"] == "" {
-		http.Response(c, `{"error" : true, "msg": "Missing body parameters."}`,
-			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, "Missing body parameters.", 400, ServiceDiscoveryServiceName())
 	}
 	host := c.RemoteIP().String() + ":" + s["Port"]
 
@@ -139,9 +137,7 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 	serviceFound, err := servicediscovery.ValidateServiceExists(serv)
 	var status int
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "Service not found."}`,
-			400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return ServiceNotFound(c)
 	} else {
 		serviceFound.Hosts = utils.RemoveStringFromArray(serviceFound.Hosts, host)
 		serviceFound, err = serviceDiscovery.UpdateService(serviceFound)
@@ -153,78 +149,81 @@ func AutoDeRegisterHandler(c *routing.Context) error {
 	return nil
 }
 
+// RegisterHandler handles register post request
 func RegisterHandler(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
+	// Get service discovery object
+	serviceDiscovery := ServiceDiscovery(c)
+
 	serv, err := servicediscovery.ValidateServiceBody(c)
 
 	if err != nil {
-		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
 	_, err = servicediscovery.ValidateServiceExists(serv)
 
 	// if service exists, return error
 	if err == nil {
-		http.Response(c, `{"error":true, "msg": "Service already exists."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, `Service already exists.`, 400, ServiceDiscoveryServiceName())
 	}
 
 	serv.MatchingURIRegex = sdUtils.GetMatchingURIRegex(serv.MatchingURI)
-	serv, err = ServiceDiscovery(user).CreateService(serv)
+	serv, err = serviceDiscovery.CreateService(serv)
 
-	resp := `{"error": true, "msg": "Service registered successfuly"}`
-	status := 201
 	if err != nil {
-		resp = `{"error": true, "msg": "` + err.Error() + `"}`
-		status = 400
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
-
-	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Created(c, "Service registered successfuly", ServiceDiscoveryServiceName())
 }
 
-func ListServicesHandler(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
-	serviceDiscovery := ServiceDiscovery(user)
-	var err error
+
+// parseListServicesHandlerParameters parses page and search query parameters for GET /services  
+func parseListServicesHandlerParameters(c *routing.Context) (string, int, error){
 	page := 1
 	searchQuery := ""
 
 	if c.QueryArgs().Has("page") {
-		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
-
+		page, err := strconv.Atoi(string(c.QueryArgs().Peek("page")))
 		if err != nil {
-			http.Response(c, `{"error" : true, "msg": "Invalid page provided."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-			return nil
+			return "", page, errors.New("Invalid page")
 		}
 	}
 	if c.QueryArgs().Has("q") {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
-	services := serviceDiscovery.ListServices(page, searchQuery)
 
-	if len(services) == 0 {
-		http.Response(c, `[]`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		c.Response.Header.SetContentType("application/json")
-		return nil
-	}
-
-	list, jsonErr := json.Marshal(services)
-
-	if jsonErr != nil {
-		http.Response(c, `{"error" : true, "msg": "Error parsing body."}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
-	}
-
-	http.Response(c, string(list), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	c.Response.Header.SetContentType("application/json")
-	return nil
+	return searchQuery, page, nil
 }
 
+// ListServicesHandler handles /services get request
+func ListServicesHandler(c *routing.Context) error {
+	// create service discovery object with authenticated user
+	serviceDiscovery := ServiceDiscovery(c)
+	
+	// Get page and search query parameters
+	searchQuery, page, err := parseListServicesHandlerParameters(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
+
+	services := serviceDiscovery.ListServices(page, searchQuery)
+	if len(services) == 0 {
+	 	return http.Ok(c, `[]`, ServiceDiscoveryServiceName())
+	}
+
+	list, err := json.Marshal(services)
+	if err != nil {
+		return http.Error(c, `Error parsing body.`, 400, ServiceDiscoveryServiceName())
+	}
+
+	return http.Ok(c, string(list), ServiceDiscoveryServiceName())
+}
+
+// GetEndpointHandler handles GET /endpoint request
 func GetEndpointHandler(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
-	serviceDiscovery := ServiceDiscovery(user)
+	// create service discovery object with authenticated user
+	serviceDiscovery := ServiceDiscovery(c)
+
 	matchingURI := c.QueryArgs().Peek("uri")
 
 	// If identifier is passed, search by identifier instead
@@ -240,8 +239,7 @@ func GetEndpointHandler(c *routing.Context) error {
 			http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 			return nil
 		}
-		http.Response(c, `{"error": true, "msg": "Not found"}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return ServiceNotFound(c)
 	}
 
 	service, err := serviceDiscovery.GetEndpointForUri(string(matchingURI))
@@ -259,60 +257,57 @@ func GetEndpointHandler(c *routing.Context) error {
 		http.Response(c, string(serviceJSON), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return ServiceNotFound(c)
 }
 
+// DeleteEndpointHandler handles DELETE /service/<service_id> request
 func DeleteEndpointHandler(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
+	// create service discovery object with authenticated user
+	serviceDiscovery := ServiceDiscovery(c)
+
+	// Get uri parameter
 	serviceID := c.Param("service_id")
-	serviceDiscovery := ServiceDiscovery(user)
-	
-	s := service.Service{Id: bson.ObjectIdHex(serviceID)}
 
-	err := serviceDiscovery.DeleteService(s)
+	err := serviceDiscovery.DeleteService(
+		service.Service{
+			Id: bson.ObjectIdHex(serviceID),
+		})
 
-	resp := `{"error": true, "msg": "Service deleted successfuly"}`
-	status := 200
 	if err != nil {
-		resp = `{"error": true, "msg": "` + err.Error() + `"}`
-		status = 404
+		return http.NotFound(c, err.Error(), ServiceDiscoveryServiceName())
 	}
-	http.Response(c, resp, status, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Deleted(c, `Service deleted successfuly`, ServiceDiscoveryServiceName())
 }
 
+// ManageServiceHandler call management service
 func ManageServiceHandler(c *routing.Context) error {
-	user := authentication.GetAuthenticatedUser(c)
+	// create service discovery object with authenticated user
+	serviceDiscovery := ServiceDiscovery(c)
+
+	// Get query parameters
 	matchingURI := c.QueryArgs().Peek("service")
 	managementType := string(c.QueryArgs().Peek("action"))
 
-	service, err := ServiceDiscovery(user).GetEndpointForUri(string(matchingURI))
+	service, err := serviceDiscovery.GetEndpointForUri(string(matchingURI))
 
 	if err == nil {
 		success, callResponse := service.ServiceManagementCall(managementType)
 
 		if success {
-			http.Response(c, `{"error": false, "msg": "Service `+managementType+` successfuly.", "service_response": `+strconv.Quote(callResponse)+`}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-			return nil
+			return http.Ok(c,`{"error": false, "msg": "Service `+managementType+` successfuly.", "service_response": `+strconv.Quote(callResponse)+`}`, ServiceDiscoveryServiceName())
 		}
-		http.Response(c, `{"error": true, "msg": "Service could not be `+managementType+`."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, `Service could not be `+managementType+`.`, 400, ServiceDiscoveryServiceName())
 	}
-	http.Response(c, `{"error": true, "msg": "Not found"}`, 404, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return ServiceNotFound(c)
 }
 
+// ManageServiceTypesHandler call management service
 func ManageServiceTypesHandler(c *routing.Context) error {
-	managementTypesJson, err := json.Marshal(config.GApiConfiguration.ManagementTypes)
+	managementTypesJSON, err := json.Marshal(config.GApiConfiguration.ManagementTypes)
 
-	response := string(managementTypesJson)
-	statusCode := 200
 	if err != nil {
-		response = `{"error": true, "msg": "Not found"}`
-		statusCode = 404
+		return ServiceNotFound(c)
 	}
 
-	http.Response(c, response, statusCode, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Ok(c, string(managementTypesJSON), ServiceDiscoveryServiceName())
 }

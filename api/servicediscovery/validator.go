@@ -22,7 +22,7 @@ func ValidateServiceGroupBody(c *routing.Context) (servicegroup.ServiceGroup, er
 
 	return s, nil
 }
-
+// ValidateServiceBody validate service request body
 func ValidateServiceBody(c *routing.Context) (service.Service, error) {
 	var s service.Service
 	err := json.Unmarshal(c.Request.Body(), &s)

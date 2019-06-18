@@ -13,24 +13,25 @@ import (
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
+// ServiceDiscovery object with service discovery logic
 type ServiceDiscovery struct {
 	registeredServices []service.Service
 	User               users.User
 }
 
-func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service) {
-	serviceDisc.registeredServices = rs
-}
-
+// ServiceGroupMethods methods to access service group's repository
 func ServiceGroupMethods() map[string]interface{} {
 	return servicegroup.ServiceGroupMethods[database.SD_TYPE]
 }
 
+// GetServiceDiscoveryObject return service discovery object with request user context 
 func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
 	return &ServiceDiscovery{
 		User: user,
 	}
 }
+
+// GetInternalServiceDiscoveryObject return service discovery object with internal user 
 func GetInternalServiceDiscoveryObject() *ServiceDiscovery {
 	user := users.GetInternalAPIUser()
 	return &ServiceDiscovery{
@@ -38,6 +39,7 @@ func GetInternalServiceDiscoveryObject() *ServiceDiscovery {
 	}
 }
 
+// InitServiceDiscovery initializes all components required for service discovery to work
 func InitServiceDiscovery() {
 	if config.GApiConfiguration.ServiceDiscovery.Type == "mongo" || config.GApiConfiguration.ServiceDiscovery.Type == "oracle" {
 		database.SD_TYPE = config.GApiConfiguration.ServiceDiscovery.Type
@@ -48,6 +50,29 @@ func InitServiceDiscovery() {
 			}
 		}
 	}
+}
+
+// IsServiceReachableFromExternal check if service is reachable from external
+func IsServiceReachableFromExternal(service service.Service, sd ServiceDiscovery) bool {
+	if !service.UseGroupAttributes || service.GroupId == "" {
+		return service.IsReachable
+	}
+
+	sgList, err := sd.GetListOfServicesGroup()
+	if err != nil {
+		return false
+	}
+
+	for _, sg := range sgList {
+		if sg.Contains(service.Id) {
+			return sg.IsReachable
+		}
+	}
+	return false
+}
+
+func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service) {
+	serviceDisc.registeredServices = rs
 }
 
 func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
@@ -74,29 +99,6 @@ func (sd *ServiceDiscovery) GetListOfServicesGroup() ([]servicegroup.ServiceGrou
 	servicesGroup, err := ServiceGroupMethods()["list"].(func() ([]servicegroup.ServiceGroup, error))()
 
 	return servicesGroup, err
-}
-
-// func (sd *ServiceDiscovery) AddServiceToGroup(serviceGroupId string, serviceId string) error {
-// 	err := ServiceGroupMethods()["addservicetogroup"].(func(string, string) error)(serviceGroupId, serviceId)
-// 	return err
-// }
-
-func IsServiceReachableFromExternal(service service.Service, sd ServiceDiscovery) bool {
-	if !service.UseGroupAttributes || service.GroupId == "" {
-		return service.IsReachable
-	}
-
-	sgList, err := sd.GetListOfServicesGroup()
-	if err != nil {
-		return false
-	}
-
-	for _, sg := range sgList {
-		if sg.Contains(service.Id) {
-			return sg.IsReachable
-		}
-	}
-	return false
 }
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error) {
