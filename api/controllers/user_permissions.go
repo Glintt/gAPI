@@ -2,25 +2,25 @@ package controllers
 
 import (
 	"encoding/json"
+
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
-	"github.com/Glintt/gAPI/api/users"
-	"github.com/Glintt/gAPI/api/user_permission"
 	"github.com/Glintt/gAPI/api/servicediscovery/appgroups"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/user_permission"
 	user_permission_models "github.com/Glintt/gAPI/api/user_permission/models"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/Glintt/gAPI/api/users"
 	routing "github.com/qiangxue/fasthttp-routing"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func PermissionsServiceName() string {
 	return user_permission.SERVICE_NAME
 }
 
-
 func GetUserPermissionsHandler(c *routing.Context) error {
 	user := users.GetUserByUsername(c.Param("username"))
-	
+
 	if len(user) == 0 {
 		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
@@ -28,7 +28,7 @@ func GetUserPermissionsHandler(c *routing.Context) error {
 
 	userPermissions, err := user_permission.GetUserPermissions(user[0].Id.Hex())
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": "Error getting user permissions: `+ err.Error()+`"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
+		http.Response(c, `{"error" : true, "msg": "Error getting user permissions: `+err.Error()+`"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 	userPermissionsJson, _ := json.Marshal(userPermissions)
@@ -39,7 +39,7 @@ func GetUserPermissionsHandler(c *routing.Context) error {
 
 func UpdateUserPermissionHandler(c *routing.Context) error {
 	user := users.GetUserByUsername(c.Param("username"))
-	
+
 	if len(user) == 0 {
 		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
@@ -64,20 +64,25 @@ func UpdateUserPermissionHandler(c *routing.Context) error {
 func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
 	user := users.GetUserByUsername(c.Param("username"))
 	applicationId := c.Param("application_id")
-	
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
+
 	if len(user) == 0 {
 		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	
+
 	userPermissions, err := user_permission.GetUserPermissions(user[0].Id.Hex())
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": "Error getting user permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
-	group := appgroups.ApplicationGroup{Id: bson.ObjectIdHex(string(applicationId)) }
-	servicesList, err := AppGroupMethods()["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(group)
+	group := appgroups.ApplicationGroup{Id: bson.ObjectIdHex(string(applicationId))}
+	servicesList, err := appGroupService.GetServicesForApplicationGroup(group)
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": "Error getting application group service's permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
@@ -85,7 +90,7 @@ func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
 
 	for _, s := range servicesList {
 		userPermissions = append(userPermissions, user_permission_models.UserPermission{
-			UserId: user[0].Id.Hex(), 
+			UserId:    user[0].Id.Hex(),
 			ServiceId: s.Id.Hex(),
 		})
 	}
@@ -95,41 +100,41 @@ func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
 		http.Response(c, `{"error" : true, "msg": "Error updating user permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	
+
 	http.Response(c, `{"error" : false, "msg": "User permissions updated"}`, 201, PermissionsServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
-
-
 func RemovePermissionFromApplicationGroupHandler(c *routing.Context) error {
 	user := users.GetUserByUsername(c.Param("username"))
 	applicationId := c.Param("application_id")
-	
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
+
 	if len(user) == 0 {
 		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	
+
 	userPermissions, err := user_permission.GetUserPermissions(user[0].Id.Hex())
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": "Error getting user permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
-	group := appgroups.ApplicationGroup{Id: bson.ObjectIdHex(string(applicationId)) }
-	servicesList, err := AppGroupMethods()["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(group)
+	group := appgroups.ApplicationGroup{Id: bson.ObjectIdHex(string(applicationId))}
+	servicesList, err := appGroupService.GetServicesForApplicationGroup(group)
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": "Error getting application group service's permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
 	var finalUserPermissions []user_permission_models.UserPermission
-
-
 	for _, u := range userPermissions {
 		// If not on the list of group's services, add it to the user permissions
-		if (!ContainsService(servicesList, u)) {
+		if !ContainsService(servicesList, u) {
 			finalUserPermissions = append(finalUserPermissions, u)
 		}
 	}
@@ -139,14 +144,14 @@ func RemovePermissionFromApplicationGroupHandler(c *routing.Context) error {
 		http.Response(c, `{"error" : true, "msg": "Error updating user permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
-	
+
 	http.Response(c, `{"error" : false, "msg": "User permissions updated"}`, 201, PermissionsServiceName(), config.APPLICATION_JSON)
 	return nil
 }
 
-func ContainsService(servicesList []service.Service, permission user_permission_models.UserPermission) bool{
-	for _, s:= range servicesList{
-		if s.Id.Hex() == permission.ServiceId{
+func ContainsService(servicesList []service.Service, permission user_permission_models.UserPermission) bool {
+	for _, s := range servicesList {
+		if s.Id.Hex() == permission.ServiceId {
 			return true
 		}
 	}

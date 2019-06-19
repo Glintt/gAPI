@@ -24,14 +24,14 @@ func ServiceGroupMethods() map[string]interface{} {
 	return servicegroup.ServiceGroupMethods[database.SD_TYPE]
 }
 
-// GetServiceDiscoveryObject return service discovery object with request user context 
+// GetServiceDiscoveryObject return service discovery object with request user context
 func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
 	return &ServiceDiscovery{
 		User: user,
 	}
 }
 
-// GetInternalServiceDiscoveryObject return service discovery object with internal user 
+// GetInternalServiceDiscoveryObject return service discovery object with internal user
 func GetInternalServiceDiscoveryObject() *ServiceDiscovery {
 	user := users.GetInternalAPIUser()
 	return &ServiceDiscovery{
@@ -144,7 +144,7 @@ func (serviceDisc *ServiceDiscovery) FindByIdentifierOrMatchingUri(identifier st
 			service.Service{
 				Identifier: string(identifier),
 			})
-	}else {
+	} else {
 		return serviceDisc.GetEndpointForUri(string(matchingURI))
 	}
 }

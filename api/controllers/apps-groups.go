@@ -15,30 +15,40 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func AppGroupMethods() map[string]interface{} {
-	return appgroups.ApplicationGroupMethods[database.SD_TYPE]
+func getAppGroupService(c *routing.Context) (appgroups.ApplicationGroupService, error) {
+	return appgroups.NewApplicationGroupService(c)
 }
 
+// CreateAppGroup handle POST /apps-groups
 func CreateAppGroup(c *routing.Context) error {
-	var bodyMap appgroups.ApplicationGroup
-	err := json.Unmarshal(c.Request.Body(), &bodyMap)
+	var appGroup appgroups.ApplicationGroup
 
+	// Parse body to object
+	err := json.Unmarshal(c.Request.Body(), &appGroup)
 	if err != nil {
 		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
-	if bodyMap.Name == "" {
+	// Validate if name is not empty
+	if appGroup.Name == "" {
 		return http.Error(c, `Invalid body. Missing body parameter`, 400, ServiceDiscoveryServiceName())
 	}
 
-	err = AppGroupMethods()["create"].(func(appgroups.ApplicationGroup) error)(bodyMap)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	// Create application group
+	err = appGroupService.CreateApplicationGroup(appGroup)
 	if err != nil {
 		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
 	return http.Created(c, `Service created successfuly`, ServiceDiscoveryServiceName())
 }
 
+// GetAppGroups handle GET /apps-groups
 func GetAppGroups(c *routing.Context) error {
 	nameFilter := ""
 	if c.QueryArgs().Has("name") {
@@ -51,8 +61,13 @@ func GetAppGroups(c *routing.Context) error {
 		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
 	}
 
-	appGroups := AppGroupMethods()["list"].(func(int, string) []appgroups.ApplicationGroup)(page, nameFilter)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	appGroups := appGroupService.GetApplicationGroups(page, nameFilter)
 	if len(appGroups) == 0 {
 		return http.Ok(c, `[]`, constants.SERVICE_NAME)
 	}
@@ -68,8 +83,13 @@ func DeleteAppGroup(c *routing.Context) error {
 		return http.Error(c, "Group id not valid.", 400, ServiceDiscoveryServiceName())
 	}
 
-	err := AppGroupMethods()["delete"].(func(string) error)(appGroupID)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	err = appGroupService.DeleteApplicationGroup(appGroupID)
 	if err != nil {
 		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
@@ -86,14 +106,20 @@ func GetAppGroupByID(c *routing.Context) error {
 		return http.Error(c, "Group id not valid.", 400, ServiceDiscoveryServiceName())
 	}
 
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
+
 	// Get application group by id
-	group, err := AppGroupMethods()["getbyid"].(func(string) (appgroups.ApplicationGroup, error))(appGroupID)
+	group, err := appGroupService.GetApplicationGroupByID(appGroupID)
 	if err != nil {
 		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
 
 	// Get all services associated to applicaiton group
-	servicesList, err := AppGroupMethods()["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(group)
+	servicesList, err := appGroupService.GetServicesForApplicationGroup(group)
 	if err != nil {
 		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
@@ -108,7 +134,6 @@ func GetAppGroupByID(c *routing.Context) error {
 	}
 
 	gjson, _ := json.Marshal(responseMap)
-
 	return http.Ok(c, string(gjson), ServiceDiscoveryServiceName())
 }
 
@@ -119,11 +144,18 @@ func UpdateAppGroup(c *routing.Context) error {
 		return http.Error(c, "Group id not valid.", 400, ServiceDiscoveryServiceName())
 	}
 
+	// Parse body
 	var aGroup appgroups.ApplicationGroup
 	json.Unmarshal(c.Request.Body(), &aGroup)
 
-	err := AppGroupMethods()["update"].(func(string, appgroups.ApplicationGroup) error)(appGroupID, aGroup)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	// Update application group
+	err = appGroupService.UpdateApplicationGroup(appGroupID, aGroup)
 	if err != nil {
 		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
@@ -139,8 +171,13 @@ func DeassociateServiceFromApplicationGroup(c *routing.Context) error {
 		return http.Error(c, "Service/Group id not valid.", 400, ServiceDiscoveryServiceName())
 	}
 
-	err := AppGroupMethods()["removeappfromgroup"].(func(string, string) error)(appGroupID, serviceID)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	err = appGroupService.RemoveServiceFromGroup(appGroupID, serviceID)
 	if err != nil {
 		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
@@ -156,8 +193,13 @@ func AssociateServiceToAppGroup(c *routing.Context) error {
 		return http.Error(c, "Service/Group id not valid.", 400, ServiceDiscoveryServiceName())
 	}
 
-	err := AppGroupMethods()["addapptogroup"].(func(string, string) error)(appGroupID, serviceID)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	err = appGroupService.AddServiceToGroup(appGroupID, serviceID)
 	if err != nil {
 		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
@@ -171,13 +213,19 @@ func FindAppGroupForService(c *routing.Context) error {
 		return http.Error(c, "Service id not valid.", 400, ServiceDiscoveryServiceName())
 	}
 
-	appGroup := AppGroupMethods()["getappforservice"].(func(string) appgroups.ApplicationGroup)(serviceID)
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
 
+	// Find application group for service
+	appGroup := appGroupService.FindServiceApplicationGroup(serviceID)
 	if appGroup.Name == "" {
 		return http.Error(c, "Service is not associated to an application group.", 400, ServiceDiscoveryServiceName())
 	}
-	jsonAppGroup, _ := json.Marshal(appGroup)
 
+	jsonAppGroup, _ := json.Marshal(appGroup)
 	return http.Ok(c, string(jsonAppGroup), ServiceDiscoveryServiceName())
 }
 
@@ -214,7 +262,13 @@ func AppGroupsMatches(c *routing.Context) error {
 
 // UngroupedApps handles GET /apps-groups/ungrouped api endpoint. Gets all services that don't have an application group
 func UngroupedApps(c *routing.Context) error {
-	servicesThatMatch := AppGroupMethods()["ungroupedservices"].(func() []service.Service)()
+	// Get application group service
+	appGroupService, err := getAppGroupService(c)
+	if err != nil {
+		return http.Error(c, err.Error(), 400, ServiceDiscoveryServiceName())
+	}
+
+	servicesThatMatch := appGroupService.UngroupedServices()
 
 	servicesThatMatchJSON, _ := json.Marshal(servicesThatMatch)
 	return http.Ok(c, string(servicesThatMatchJSON), ServiceDiscoveryServiceName())
