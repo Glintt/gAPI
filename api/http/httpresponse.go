@@ -57,3 +57,9 @@ func NotFound(c *routing.Context, msg string, service string) error {
 	Response(c, `{"error": true, "msg": "`+msg+`"}`, 404, service, "application/json")
 	return nil
 }
+
+func NotAuthorized(c *routing.Context, service string) error{
+	Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, service, "application/json")
+	return nil
+
+}

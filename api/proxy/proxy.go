@@ -58,8 +58,7 @@ func HandleRequest(c *routing.Context) error {
 		utils.LogMessage("IsReachableFromExternal = "+strconv.FormatBool(servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)), utils.DebugLogType)
 
 		if err != nil || (sd.IsExternalRequest(c) && !servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)) {
-			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME, config.APPLICATION_JSON)
-			return nil
+			return http.NotFound(c, "Resource not found", SERVICE_NAME)
 		}
 
 		cachedRequest.UpdateServiceCache = true
@@ -73,8 +72,7 @@ func HandleRequest(c *routing.Context) error {
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
 		if cachedRequest.Protection.Error != nil {
-			http.Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, cachedRequest.Service.MatchingURI, config.APPLICATION_JSON)
-			return nil
+			return http.NotAuthorized(c, cachedRequest.Service.MatchingURI)
 		}
 
 		cachedRequest.UpdateProtectionCache = true
