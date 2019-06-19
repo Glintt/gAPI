@@ -19,11 +19,6 @@ type ServiceDiscovery struct {
 	User               users.User
 }
 
-// ServiceGroupMethods methods to access service group's repository
-func ServiceGroupMethods() map[string]interface{} {
-	return servicegroup.ServiceGroupMethods[database.SD_TYPE]
-}
-
 // GetServiceDiscoveryObject return service discovery object with request user context
 func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
 	return &ServiceDiscovery{
@@ -58,7 +53,12 @@ func IsServiceReachableFromExternal(service service.Service, sd ServiceDiscovery
 		return service.IsReachable
 	}
 
-	sgList, err := sd.GetListOfServicesGroup()
+	serviceGroupService, err := servicegroup.NewServiceGroupServiceWithUser(users.GetInternalAPIUser())
+	if err != nil {
+		return false
+	}
+	
+	sgList, err := serviceGroupService.GetServiceGroups()
 	if err != nil {
 		return false
 	}
@@ -95,11 +95,6 @@ func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) boo
 	return true
 }
 
-func (sd *ServiceDiscovery) GetListOfServicesGroup() ([]servicegroup.ServiceGroup, error) {
-	servicesGroup, err := ServiceGroupMethods()["list"].(func() ([]servicegroup.ServiceGroup, error))()
-
-	return servicesGroup, err
-}
 
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error) {
 	var services []service.Service

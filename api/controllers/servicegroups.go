@@ -10,133 +10,139 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 
 	routing "github.com/qiangxue/fasthttp-routing"
-	"gopkg.in/mgo.v2/bson"
 )
 
-func ListServiceGroupsHandler(c *routing.Context) error {
-	sg, err := ServiceDiscovery(c).GetListOfServicesGroup()
+func getServiceGroupsService(c *routing.Context) (servicegroup.ServiceGroupService, error) {
+	return servicegroup.NewServiceGroupService(c)
+}
 
+// ListServiceGroupsHandler handle GET /service-groups
+func ListServiceGroupsHandler(c *routing.Context) error {
+	serviceGroupService, _ := getServiceGroupsService(c)
+
+	sg, err := serviceGroupService.GetServiceGroups()
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
 
 	json, _ := json.Marshal(sg)
-	http.Response(c, string(json), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Ok(c, string(json), ServiceDiscoveryServiceName())
 }
 
+// RegisterServiceGroupHandler handle POST /service-groups
 func RegisterServiceGroupHandler(c *routing.Context) error {
-
+	// Validate post body
 	serviceGroup, err := servicediscovery.ValidateServiceGroupBody(c)
 	if err != nil {
-		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
+	
+	// get service group service
+	serviceGroupService, _ := getServiceGroupsService(c)
 
-	serviceGroup.Id = bson.NewObjectId()
-
-	err = servicediscovery.ServiceGroupMethods()["create"].(func(servicegroup.ServiceGroup) error)(serviceGroup)
-
+	// Create service group
+	err = serviceGroupService.CreateServiceGroup(serviceGroup)
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
-	http.Response(c, `{"error" : false, "msg": "Service created successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Created(c, "Service created successfuly", ServiceDiscoveryServiceName())
 }
 
+// AddServiceToGroupHandler handle POST /service-groups
 func AddServiceToGroupHandler(c *routing.Context) error {
-	serviceGroupId := c.Param("group_id")
+	serviceGroupID := c.Param("group_id")
 
+	// Try to parse body
 	var bodyMap map[string]string
 	err := json.Unmarshal(c.Request.Body(), &bodyMap)
-
 	if err != nil {
-		http.Response(c, err.Error(), 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
+
+	// Validate body
 	if _, ok := bodyMap["service_id"]; !ok {
-		http.Response(c, `{"error": "Invalid body. Missing service_id."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, "Invalid body. Missing service_id", 400, ServiceDiscoveryServiceName())
 	}
-	if serviceGroupId == "null" || bodyMap["service_id"] == "null" || bodyMap["service_id"] == "" {
-		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+	if serviceGroupID == "null" || bodyMap["service_id"] == "null" || bodyMap["service_id"] == "" {
+		return http.Error(c, "Invalid body", 400, ServiceDiscoveryServiceName())
 	}
 
-	err = servicediscovery.ServiceGroupMethods()["addservicetogroup"].(func(string, string) error)(serviceGroupId, bodyMap["service_id"])
+	// Create service group service
+	serviceGroupService, _ := getServiceGroupsService(c)
 
+	err = serviceGroupService.AddServiceToGroup(serviceGroupID, bodyMap["service_id"])
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
-	http.Response(c, `{"error" : false, "msg": "Service added to group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Created(c, "Service added to group successfuly", ServiceDiscoveryServiceName())
 }
 
+// DeassociateServiceFromGroup handle DELETE /
 func DeassociateServiceFromGroup(c *routing.Context) error {
-	serviceGroupId := c.Param("group_id")
-	serviceId := c.Param("service_id")
+	serviceGroupID := c.Param("group_id")
+	serviceID := c.Param("service_id")
 
-	if serviceGroupId == "null" || serviceId == "null" || serviceId == "" {
+	if serviceGroupID == "null" || serviceID == "null" || serviceID == "" {
 		http.Response(c, `{"error": "Invalid body."}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
 		return nil
 	}
 
-	err := servicediscovery.ServiceGroupMethods()["removeservicefromgroup"].(func(string, string) error)(serviceGroupId, serviceId)
+	// Create service group service
+	serviceGroupService, _ := getServiceGroupsService(c)
+	
+	err := serviceGroupService.RemoveServiceFromGroup(serviceGroupID, serviceID)
 
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
-	http.Response(c, `{"error" : false, "msg": "Service deassociated from group successfuly."}`, 201, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Created(c, "Service deassociated from group successfuly", ServiceDiscoveryServiceName())
 }
 
+// UpdateServicecGroup handle PUT /
 func UpdateServiceGroup(c *routing.Context) error {
-	serviceGroupId := c.Param("group_id")
+	serviceGroupID := c.Param("group_id")
 
 	var sGroup servicegroup.ServiceGroup
 	sgNew := c.Request.Body()
 	json.Unmarshal(sgNew, &sGroup)
 
-	err := servicediscovery.ServiceGroupMethods()["update"].(func(string, servicegroup.ServiceGroup) error)(
-		serviceGroupId, sGroup)
-
+	// Create service group service
+	serviceGroupService, _ := getServiceGroupsService(c)
+	
+	err := serviceGroupService.UpdateServiceGroup(serviceGroupID, sGroup)
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
-	http.Response(c, `{"error" : false, "msg": "Service group update successfuly."}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Ok(c, "Service group updated successfuly", ServiceDiscoveryServiceName())
 }
 
+// RemoveServiceGroup handle DELETE /
 func RemoveServiceGroup(c *routing.Context) error {
-	serviceGroupId := c.Param("group_id")
+	serviceGroupID := c.Param("group_id")
 
-	err := servicediscovery.ServiceGroupMethods()["delete"].(func(string) error)(serviceGroupId)
-
+	// Create service group service
+	serviceGroupService, _ := getServiceGroupsService(c)
+	
+	err := serviceGroupService.DeleteServiceGroup(serviceGroupID)
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
 
-	http.Response(c, `{"error" : false, "msg": "Service group removed successfuly."}`, 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Ok(c, "Service group removed successfuly", ServiceDiscoveryServiceName())
 }
 
+// GetServiceGroupHandler handle GET /
 func GetServiceGroupHandler(c *routing.Context) error {
-	serviceGroup := string(c.Param("group"))
+	serviceGroupID := string(c.Param("group"))
 
-	sg, err := servicediscovery.ServiceGroupMethods()["getbyid"].(func(string) (servicegroup.ServiceGroup, error))(serviceGroup)
-
+	// Create service group service
+	serviceGroupService, _ := getServiceGroupsService(c)
+	
+	sg, err := serviceGroupService.GetServiceGroupById(serviceGroupID)
 	if err != nil {
-		http.Response(c, `{"error" : true, "msg": `+strconv.Quote(err.Error())+`}`, 400, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-		return nil
+		return http.Error(c, strconv.Quote(err.Error()), 400, ServiceDiscoveryServiceName())
 	}
 
 	sgByte, _ := json.Marshal(sg)
-	http.Response(c, string(sgByte), 200, ServiceDiscoveryServiceName(), config.APPLICATION_JSON)
-	return nil
+	return http.Ok(c, string(sgByte), ServiceDiscoveryServiceName())
 }

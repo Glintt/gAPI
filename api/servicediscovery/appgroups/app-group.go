@@ -41,7 +41,6 @@ func releaseConnection(apgs *ApplicationGroupService) {
 	apgs.AppGroupRepos.Release()
 }
 
-// UpdateApplicationGroup update application group
 func (apgs *ApplicationGroupService) createRepositoryAndBeginTransaction() error {
 	apgs.AppGroupRepos = NewAppGroupRepository(apgs.User)
 	if apgs.AppGroupRepos == nil {

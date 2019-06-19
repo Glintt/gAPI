@@ -3,9 +3,10 @@ package servicegroup
 import (
 	"database/sql"
 	"errors"
+	"strings"
+
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/utils"
-	"strings"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -24,114 +25,96 @@ on b.groupid = a.id  where a.id = :id or a.name = :name group by (a.id, a.name, 
 	DELETE_SERVICE_GROUP      = `delete from gapi_services_groups where id = :id`
 )
 
-func GetServiceGroupsOracle() ([]ServiceGroup, error) {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return []ServiceGroup{}, err
-	}
-
-	rows, err := db.Query(LIST_SERVICE_GROUP_V2)
-	if err != nil {
-		return []ServiceGroup{}, err
-	}
-
-	groups := RowsToServiceGroup(rows, false)
-	database.CloseOracleConnection(db)
-
-	return groups, nil
+type ServiceGroupOracleRepository struct {
+	Db      *sql.DB
+	DbError error
+	Tx      *sql.Tx
 }
 
-func GetServiceGroupByIdOracle(serviceGroup string) (ServiceGroup, error) {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
+func (agmr *ServiceGroupOracleRepository) OpenTransaction() error {
+	tx, err := agmr.Db.Begin()
+	agmr.Tx = tx
+	return err
+}
+
+func (agmr *ServiceGroupOracleRepository) CommitTransaction() {
+	agmr.Tx.Commit()
+}
+
+func (agmr *ServiceGroupOracleRepository) RollbackTransaction() {
+	agmr.Tx.Rollback()
+}
+
+func (agmr *ServiceGroupOracleRepository) Release() {
+	database.CloseOracleConnection(agmr.Db)
+}
+
+// GetServiceGroups get list of service groups
+func (sgor *ServiceGroupOracleRepository) GetServiceGroups() ([]ServiceGroup, error) {
+	rows, err := sgor.Tx.Query(LIST_SERVICE_GROUP_V2)
 	if err != nil {
-		return ServiceGroup{}, err
+		return []ServiceGroup{}, err
 	}
 
-	rows, err := db.Query(GET_SERVICE_GROUP_BY_ID_OR_NAME, serviceGroup, serviceGroup)
+	return RowsToServiceGroup(rows, false), nil
+}
+
+// GetServiceGroupById get service groups by id
+func (sgor *ServiceGroupOracleRepository) GetServiceGroupById(serviceGroup string) (ServiceGroup, error) {
+	rows, err := sgor.Tx.Query(GET_SERVICE_GROUP_BY_ID_OR_NAME, serviceGroup, serviceGroup)
 	if err != nil {
 		return ServiceGroup{}, err
 	}
 
 	groups := RowsToServiceGroup(rows, false)
-	database.CloseOracleConnection(db)
-
 	if len(groups) == 0 {
-		return ServiceGroup{}, errors.New("Service group not found.")
+		return ServiceGroup{}, errors.New("Service group not found")
 	}
 
 	return groups[0], nil
 }
 
-func AddServiceToGroupOracle(serviceGroupId string, serviceId string) error {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(ADD_SERVICE_TO_GROUP,
-		serviceGroupId, serviceId,
+// AddServiceToGroup add new service to a group
+func (sgor *ServiceGroupOracleRepository) AddServiceToGroup(serviceGroupID string, serviceID string) error {
+	_, err := sgor.Tx.Exec(ADD_SERVICE_TO_GROUP,
+		serviceGroupID, serviceID,
 	)
-
-	database.CloseOracleConnection(db)
 	return err
 }
 
-func RemoveServiceFromGroupOracle(serviceGroupId string, serviceId string) error {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(REMOVE_SERVICE_FROM_GROUP,
-		serviceId,
+// RemoveServiceFromGroup remove a service from a group
+func (sgor *ServiceGroupOracleRepository) RemoveServiceFromGroup(serviceGroupID string, serviceID string) error {
+	_, err := sgor.Tx.Exec(REMOVE_SERVICE_FROM_GROUP,
+		serviceID,
 	)
-
-	database.CloseOracleConnection(db)
 	return err
 }
 
-func CreateServiceGroupOracle(serviceGroup ServiceGroup) error {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(CREATE_SERVICE_GROUP,
+// CreateServiceGroup create a new service group
+func (sgor *ServiceGroupOracleRepository) CreateServiceGroup(serviceGroup ServiceGroup) error {
+	_, err := sgor.Tx.Exec(CREATE_SERVICE_GROUP,
 		serviceGroup.Id.Hex(), serviceGroup.Name, utils.BoolToInt(serviceGroup.IsReachable),
 	)
-
-	database.CloseOracleConnection(db)
 	return err
 }
 
-func UpdateServiceGroupOracle(serviceGroupId string, serviceGroup ServiceGroup) error {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(UPDATE_SERVICE_GROUP,
-		serviceGroup.Name, utils.BoolToInt(serviceGroup.IsReachable), serviceGroupId,
+// UpdateServiceGroup update an already existing service group
+func (sgor *ServiceGroupOracleRepository) UpdateServiceGroup(serviceGroupID string, serviceGroup ServiceGroup) error {
+	_, err := sgor.Tx.Exec(UPDATE_SERVICE_GROUP,
+		serviceGroup.Name, utils.BoolToInt(serviceGroup.IsReachable), serviceGroupID,
 	)
-
-	database.CloseOracleConnection(db)
 	return err
 }
 
-func DeleteServiceGroupOracle(serviceGroupId string) error {
-	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(DELETE_SERVICE_GROUP,
-		serviceGroupId,
+// DeleteServiceGroup delete a service group
+func (sgor *ServiceGroupOracleRepository) DeleteServiceGroup(serviceGroupID string) error {
+	_, err := sgor.Db.Exec(DELETE_SERVICE_GROUP,
+		serviceGroupID,
 	)
-
-	database.CloseOracleConnection(db)
 	return err
 }
 
+// RowsToServiceGroup convert sql rows to service group list
 func RowsToServiceGroup(rows *sql.Rows, containsPagination bool) []ServiceGroup {
 	var serviceGroups []ServiceGroup
 	for rows.Next() {
