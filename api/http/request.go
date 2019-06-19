@@ -6,6 +6,7 @@ import (
 
 	routing "github.com/qiangxue/fasthttp-routing"
 	"github.com/valyala/fasthttp"
+	"crypto/tls"
 )
 
 func GetHeadersFromRequest(request fasthttp.Request) map[string]string {
@@ -79,6 +80,8 @@ func addQueryParamsToRequest(request *fasthttp.Request, queryParams map[string]s
 }
 
 func MakeRequest(method string, url string, body string, headers map[string]string) *fasthttp.Response {
+	
+
 	request := fasthttp.AcquireRequest()
 	request.SetRequestURI(url)
 	request.Header.SetMethod(method)
@@ -95,7 +98,9 @@ func MakeRequest(method string, url string, body string, headers map[string]stri
 	utils.LogMessage("             ---- Headers: "+request.Header.String(), utils.DebugLogType)
 	utils.LogMessage("=============================================================", utils.DebugLogType)
 
-	client := fasthttp.Client{}
+	client := fasthttp.Client{
+		TLSConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 
 	resp := fasthttp.AcquireResponse()
 	err := client.Do(request, resp)
