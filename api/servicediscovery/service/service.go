@@ -6,7 +6,7 @@ import (
 	"net"
 
 	"github.com/Glintt/gAPI/api/config"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
 	"github.com/Glintt/gAPI/api/utils"
@@ -143,7 +143,7 @@ func ValidateURL(url string) bool {
 func (service *Service) GetGroup() (servicegroup.ServiceGroup, error) {
 	groupID := service.GroupId.Hex()
 	// Create service group service 
-	serviceGroupService, err := servicegroup.NewServiceGroupServiceWithUser(users.GetInternalAPIUser())
+	serviceGroupService, err := servicegroup.NewServiceGroupServiceWithUser(userModels.GetInternalAPIUser())
 	if err != nil {
 		return servicegroup.ServiceGroup{}, err
 	}

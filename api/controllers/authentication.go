@@ -5,7 +5,6 @@ import (
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/authentication"
 	auth "github.com/Glintt/gAPI/api/authentication"
-	"github.com/Glintt/gAPI/api/users"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"strconv"
 	"encoding/json"
@@ -39,7 +38,9 @@ func MeHandler(c *routing.Context) error {
 	}
 
 	username := tokenClaims["Username"].(string)
-	usersList := users.GetUserByUsername(username)
+
+	userService := getUserService(c)
+	usersList := userService.GetUserByUsername(username)
 	
 	if len(usersList) == 0 || len(usersList) > 1 {
 		http.Response(c, `{"error":true, "msg":"User not found."}`, 404, authentication.SERVICE_NAME, config.APPLICATION_JSON)

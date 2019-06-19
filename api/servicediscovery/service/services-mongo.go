@@ -3,7 +3,7 @@ package service
 import (
 	"strings"
 
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 
 	"errors"
 
@@ -13,7 +13,7 @@ import (
 )
 
 type ServiceMongoRepository struct {
-	User users.User
+	User userModels.User
 }
 
 func (smr *ServiceMongoRepository) Update(service Service, serviceExists Service) (int, error) {

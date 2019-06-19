@@ -7,7 +7,7 @@ import (
 	"github.com/Glintt/gAPI/api/plugins"
 	"github.com/Glintt/gAPI/api/ratelimiting"
 	"github.com/Glintt/gAPI/api/servicediscovery"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	thirdpartyauthentication "github.com/Glintt/gAPI/api/thirdpartyauthentication"
 	"github.com/Glintt/gAPI/api/utils"
@@ -36,7 +36,7 @@ func StartProxy(router *routing.Router) {
 func HandleRequest(c *routing.Context) error {
 	user := authentication.GetAuthenticatedUser(c)
 	if user.Username == "" {
-		user = users.GetInternalAPIUser()
+		user = userModels.GetInternalAPIUser()
 	}
 
 	sd := *servicediscovery.GetServiceDiscoveryObject(user)

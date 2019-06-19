@@ -8,7 +8,7 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/utils"
 	routing "github.com/qiangxue/fasthttp-routing"
 )
@@ -16,11 +16,11 @@ import (
 // ServiceDiscovery object with service discovery logic
 type ServiceDiscovery struct {
 	registeredServices []service.Service
-	User               users.User
+	User               userModels.User
 }
 
 // GetServiceDiscoveryObject return service discovery object with request user context
-func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
+func GetServiceDiscoveryObject(user userModels.User) *ServiceDiscovery {
 	return &ServiceDiscovery{
 		User: user,
 	}
@@ -28,7 +28,7 @@ func GetServiceDiscoveryObject(user users.User) *ServiceDiscovery {
 
 // GetInternalServiceDiscoveryObject return service discovery object with internal user
 func GetInternalServiceDiscoveryObject() *ServiceDiscovery {
-	user := users.GetInternalAPIUser()
+	user := userModels.GetInternalAPIUser()
 	return &ServiceDiscovery{
 		User: user,
 	}
@@ -53,7 +53,7 @@ func IsServiceReachableFromExternal(service service.Service, sd ServiceDiscovery
 		return service.IsReachable
 	}
 
-	serviceGroupService, err := servicegroup.NewServiceGroupServiceWithUser(users.GetInternalAPIUser())
+	serviceGroupService, err := servicegroup.NewServiceGroupServiceWithUser(userModels.GetInternalAPIUser())
 	if err != nil {
 		return false
 	}

@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/Glintt/gAPI/api/database"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/utils"
 
 	//"github.com/Glintt/gAPI/api/user_permission"
@@ -80,12 +80,12 @@ var DELETE_SERVICE_HOSTS_ORACLE = "delete from gapi_services_hosts where service
 var INSERT_SERVICE_HOSTS_ORACLE = "INSERT INTO gapi_services_hosts(service_id, domain) VALUES(:sid, :domain)"
 
 type ServiceOracleRepository struct {
-	User users.User
+	User userModels.User
 }
 
 const USER_PERMISSION_CHECK = "id in (select service_id from gapi_user_services_permissions c where c.user_id = '##USER_ID##') or 1 = ##IS_USER_ADMIN##"
 
-func AppendPermissionFilterToQuery(query string, sTable string, sGTable string, user users.User) string {
+func AppendPermissionFilterToQuery(query string, sTable string, sGTable string, user userModels.User) string {
 	query = query + " and "
 	permissionQuery := USER_PERMISSION_CHECK
 

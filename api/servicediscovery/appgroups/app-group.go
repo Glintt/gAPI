@@ -5,7 +5,7 @@ import (
 
 	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -17,7 +17,7 @@ type ApplicationGroup struct {
 }
 
 type ApplicationGroupService struct {
-	User          users.User
+	User          userModels.User
 	AppGroupRepos AppGroupRepository
 }
 
@@ -25,14 +25,14 @@ type ApplicationGroupService struct {
 func NewApplicationGroupService(c *routing.Context) (ApplicationGroupService, error) {
 	user := authentication.GetAuthenticatedUser(c)
 	appGroupServ := ApplicationGroupService{User: user}
-	err := appGroupServ.createRepositoryAndBeginTransaction()
+	err := appGroupServ.createRepository()
 	return appGroupServ, err
 }
 
 // NewApplicationGroupServiceWithUser create application group service
-func NewApplicationGroupServiceWithUser(user users.User) (ApplicationGroupService, error) {
+func NewApplicationGroupServiceWithUser(user userModels.User) (ApplicationGroupService, error) {
 	appGroupServ := ApplicationGroupService{User: user}
-	err := appGroupServ.createRepositoryAndBeginTransaction()
+	err := appGroupServ.createRepository()
 	return appGroupServ, err
 }
 
@@ -41,17 +41,17 @@ func releaseConnection(apgs *ApplicationGroupService) {
 	apgs.AppGroupRepos.Release()
 }
 
-func (apgs *ApplicationGroupService) createRepositoryAndBeginTransaction() error {
+func (apgs *ApplicationGroupService) createRepository() error {
 	apgs.AppGroupRepos = NewAppGroupRepository(apgs.User)
 	if apgs.AppGroupRepos == nil {
 		return errors.New("Could not get application group repository")
 	}
-	apgs.AppGroupRepos.OpenTransaction()
 	return nil
 }
 
 // UpdateApplicationGroup update application group
 func (apgs *ApplicationGroupService) UpdateApplicationGroup(appGroupID string, newGroup ApplicationGroup) error {
+	apgs.AppGroupRepos.OpenTransaction()
 	err := apgs.AppGroupRepos.UpdateApplicationGroup(appGroupID, newGroup)
 	releaseConnection(apgs)
 	return err
@@ -59,6 +59,7 @@ func (apgs *ApplicationGroupService) UpdateApplicationGroup(appGroupID string, n
 
 // FindServiceApplicationGroup find application group for a service
 func (apgs *ApplicationGroupService) FindServiceApplicationGroup(serviceID string) ApplicationGroup {
+	apgs.AppGroupRepos.OpenTransaction()
 	appGroup := apgs.AppGroupRepos.FindServiceApplicationGroup(serviceID)
 	releaseConnection(apgs)
 	return appGroup
@@ -66,6 +67,7 @@ func (apgs *ApplicationGroupService) FindServiceApplicationGroup(serviceID strin
 
 // CreateApplicationGroup create application group
 func (apgs *ApplicationGroupService) CreateApplicationGroup(bodyMap ApplicationGroup) error {
+	apgs.AppGroupRepos.OpenTransaction()
 	err := apgs.AppGroupRepos.CreateApplicationGroup(bodyMap)
 	releaseConnection(apgs)
 	return err
@@ -73,6 +75,7 @@ func (apgs *ApplicationGroupService) CreateApplicationGroup(bodyMap ApplicationG
 
 // GetApplicationGroups get list of application groups
 func (apgs *ApplicationGroupService) GetApplicationGroups(page int, nameFilter string) []ApplicationGroup {
+	apgs.AppGroupRepos.OpenTransaction()
 	appGroups := apgs.AppGroupRepos.GetApplicationGroups(page, nameFilter)
 	releaseConnection(apgs)
 	return appGroups
@@ -80,6 +83,7 @@ func (apgs *ApplicationGroupService) GetApplicationGroups(page int, nameFilter s
 
 // GetApplicationGroupByID get application group by id
 func (apgs *ApplicationGroupService) GetApplicationGroupByID(appGroupID string) (ApplicationGroup, error) {
+	apgs.AppGroupRepos.OpenTransaction()
 	appGroup, err := apgs.AppGroupRepos.GetApplicationGroupByID(appGroupID)
 	releaseConnection(apgs)
 	return appGroup, err
@@ -88,6 +92,7 @@ func (apgs *ApplicationGroupService) GetApplicationGroupByID(appGroupID string) 
 
 // GetServicesForApplicationGroup get application group's services
 func (apgs *ApplicationGroupService) GetServicesForApplicationGroup(appGroup ApplicationGroup) ([]service.Service, error) {
+	apgs.AppGroupRepos.OpenTransaction()
 	services, err := apgs.AppGroupRepos.GetServicesForApplicationGroup(appGroup)
 	releaseConnection(apgs)
 	return services, err
@@ -95,6 +100,7 @@ func (apgs *ApplicationGroupService) GetServicesForApplicationGroup(appGroup App
 
 // DeleteApplicationGroup delete applicaiton group
 func (apgs *ApplicationGroupService) DeleteApplicationGroup(appGroupID string) error {
+	apgs.AppGroupRepos.OpenTransaction()
 	err := apgs.AppGroupRepos.DeleteApplicationGroup(appGroupID)
 	releaseConnection(apgs)
 	return err
@@ -102,6 +108,7 @@ func (apgs *ApplicationGroupService) DeleteApplicationGroup(appGroupID string) e
 
 // AddServiceToGroup add srevice to group
 func (apgs *ApplicationGroupService) AddServiceToGroup(appGroupID string, serviceID string) error {
+	apgs.AppGroupRepos.OpenTransaction()
 	err := apgs.AppGroupRepos.AddServiceToGroup(appGroupID, serviceID)
 	releaseConnection(apgs)
 	return err
@@ -109,6 +116,7 @@ func (apgs *ApplicationGroupService) AddServiceToGroup(appGroupID string, servic
 
 // RemoveServiceFromGroup get application group by id
 func (apgs *ApplicationGroupService) RemoveServiceFromGroup(appGroupID string, serviceID string) error {
+	apgs.AppGroupRepos.OpenTransaction()
 	err := apgs.AppGroupRepos.RemoveServiceFromGroup(appGroupID, serviceID)
 	releaseConnection(apgs)
 	return err
@@ -116,6 +124,7 @@ func (apgs *ApplicationGroupService) RemoveServiceFromGroup(appGroupID string, s
 
 // UngroupedServices get application group by id
 func (apgs *ApplicationGroupService) UngroupedServices() []service.Service {
+	apgs.AppGroupRepos.OpenTransaction()
 	services := apgs.AppGroupRepos.UngroupedServices()
 	releaseConnection(apgs)
 	return services

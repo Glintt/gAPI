@@ -4,7 +4,7 @@ import (
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 )
 
 type AppGroupRepository interface {
@@ -26,7 +26,7 @@ type AppGroupRepository interface {
 }
 
 // NewAppGroupRepository create an application group repository based on the database
-func NewAppGroupRepository(user users.User) AppGroupRepository {
+func NewAppGroupRepository(user userModels.User) AppGroupRepository {
 	if database.SD_TYPE == "mongo" {
 		session, db := database.GetSessionAndDB(database.MONGO_DB)
 		collection := db.C(constants.SERVICE_APPS_GROUP_COLLECTION)

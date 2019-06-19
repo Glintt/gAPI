@@ -2,7 +2,7 @@ package servicegroup
 
 import (
 	"github.com/Glintt/gAPI/api/database"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 )
 
 type ServiceGroupRepository interface {
@@ -21,7 +21,7 @@ type ServiceGroupRepository interface {
 }
 
 // NewServiceGroupRepository create an application group repository based on the database
-func NewServiceGroupRepository(user users.User) ServiceGroupRepository {
+func NewServiceGroupRepository(user userModels.User) ServiceGroupRepository {
 	if database.SD_TYPE == "mongo" {
 		session, db := database.GetSessionAndDB(database.MONGO_DB)
 		collection := db.C(SERVICE_GROUP_COLLECTION)

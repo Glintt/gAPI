@@ -9,14 +9,13 @@ const (
 	SERVICE_NAME = "USER_PERMISSION"
 )
 
-func getRepositoryAndBeginTransaction() providers.PermissionsRepositoryInterface {
-	repository := providers.GetPermissionRepository()
-	repository.CreateTransaction()
-	return repository
+func getRepository() providers.PermissionsRepositoryInterface {
+	return providers.GetPermissionRepository()
 }
 
 func GetUserPermissions(user_id string) ([]models.UserPermission, error){
-	repository := getRepositoryAndBeginTransaction()
+	repository := getRepository()
+	repository.CreateTransaction()
 	
 	permissions,err := repository.Get(user_id)
 	if err != nil {
@@ -28,7 +27,8 @@ func GetUserPermissions(user_id string) ([]models.UserPermission, error){
 }
 
 func AddPermission(permission models.UserPermission) error {
-	repository := getRepositoryAndBeginTransaction()
+	repository := getRepository()
+	repository.CreateTransaction()
 
 	err := repository.Add(permission)
 	if err != nil {
@@ -40,7 +40,8 @@ func AddPermission(permission models.UserPermission) error {
 }
 
 func UpdatePermission(userId string, permissions []models.UserPermission) error{
-	repository := getRepositoryAndBeginTransaction()	
+	repository := getRepository()	
+	repository.CreateTransaction()
 
 	err := repository.Update(userId, permissions)
 	if err != nil {
@@ -52,7 +53,8 @@ func UpdatePermission(userId string, permissions []models.UserPermission) error{
 }
 
 func DeletePermission(userId string, permissionId string) error{
-	repository := getRepositoryAndBeginTransaction()	
+	repository := getRepository()	
+	repository.CreateTransaction()
 
 	err := repository.Delete(userId, permissionId)
 	if err != nil {

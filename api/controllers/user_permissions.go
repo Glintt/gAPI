@@ -9,7 +9,6 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/user_permission"
 	user_permission_models "github.com/Glintt/gAPI/api/user_permission/models"
-	"github.com/Glintt/gAPI/api/users"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -18,8 +17,10 @@ func PermissionsServiceName() string {
 	return user_permission.SERVICE_NAME
 }
 
+
 func GetUserPermissionsHandler(c *routing.Context) error {
-	user := users.GetUserByUsername(c.Param("username"))
+	userService := getUserService(c)
+	user := userService.GetUserByUsername(c.Param("username"))
 
 	if len(user) == 0 {
 		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
@@ -38,7 +39,8 @@ func GetUserPermissionsHandler(c *routing.Context) error {
 }
 
 func UpdateUserPermissionHandler(c *routing.Context) error {
-	user := users.GetUserByUsername(c.Param("username"))
+	userService := getUserService(c)
+	user := userService.GetUserByUsername(c.Param("username"))
 
 	if len(user) == 0 {
 		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
@@ -62,7 +64,8 @@ func UpdateUserPermissionHandler(c *routing.Context) error {
 }
 
 func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
-	user := users.GetUserByUsername(c.Param("username"))
+	userService := getUserService(c)
+	user := userService.GetUserByUsername(c.Param("username"))
 	applicationId := c.Param("application_id")
 	// Get application group service
 	appGroupService, err := getAppGroupService(c)
@@ -106,7 +109,8 @@ func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
 }
 
 func RemovePermissionFromApplicationGroupHandler(c *routing.Context) error {
-	user := users.GetUserByUsername(c.Param("username"))
+	userService := getUserService(c)
+	user := userService.GetUserByUsername(c.Param("username"))
 	applicationId := c.Param("application_id")
 	appGroupService, err := getAppGroupService(c)
 	if err != nil {

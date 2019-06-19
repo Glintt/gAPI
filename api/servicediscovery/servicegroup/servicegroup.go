@@ -3,7 +3,7 @@ package servicegroup
 import (
 	"gopkg.in/mgo.v2/bson"
 	"github.com/Glintt/gAPI/api/authentication"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"errors"
 	routing "github.com/qiangxue/fasthttp-routing"
 )
@@ -18,7 +18,7 @@ type ServiceGroup struct {
 }
 
 type ServiceGroupService struct {
-	User          users.User
+	User          userModels.User
 	ServiceGroupRepos ServiceGroupRepository
 }
 
@@ -26,14 +26,14 @@ type ServiceGroupService struct {
 func NewServiceGroupService(c *routing.Context) (ServiceGroupService, error) {
 	user := authentication.GetAuthenticatedUser(c)
 	appGroupServ := ServiceGroupService{User: user}
-	err := appGroupServ.createRepositoryAndBeginTransaction()
+	err := appGroupServ.createRepository()
 	return appGroupServ, err
 }
 
 // NewServiceGroupServiceWithUser create service group service
-func NewServiceGroupServiceWithUser(user users.User) (ServiceGroupService, error) {
+func NewServiceGroupServiceWithUser(user userModels.User) (ServiceGroupService, error) {
 	appGroupServ := ServiceGroupService{User: user}
-	err := appGroupServ.createRepositoryAndBeginTransaction()
+	err := appGroupServ.createRepository()
 	return appGroupServ, err
 }
 
@@ -42,12 +42,11 @@ func releaseConnection(spgs *ServiceGroupService) {
 	spgs.ServiceGroupRepos.Release()	
 }
 
-func (spgs *ServiceGroupService) createRepositoryAndBeginTransaction() error {
+func (spgs *ServiceGroupService) createRepository() error {
 	spgs.ServiceGroupRepos = NewServiceGroupRepository(spgs.User)
 	if spgs.ServiceGroupRepos == nil {
 		return errors.New("Could not get application group repository")
 	}
-	spgs.ServiceGroupRepos.OpenTransaction()
 	return nil
 }
 
@@ -63,18 +62,21 @@ func (sg *ServiceGroup) Contains(serviceId bson.ObjectId) bool {
 
 // GetServiceGroups get list of servcie groups
 func (spgs *ServiceGroupService) GetServiceGroups() ([]ServiceGroup, error) {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	serviceGroups, err := spgs.ServiceGroupRepos.GetServiceGroups()
 	releaseConnection(spgs)
 	return serviceGroups, err
 }
 // GetServiceGroupById get service group by id
 func (spgs *ServiceGroupService) GetServiceGroupById(serviceGroupID string) (ServiceGroup, error) {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	serviceGroup, err := spgs.ServiceGroupRepos.GetServiceGroupById(serviceGroupID)
 	releaseConnection(spgs)
 	return serviceGroup, err
 }
 // AddServiceToGroup add servcie to an existing service group
 func (spgs *ServiceGroupService) AddServiceToGroup(serviceGroupId string, serviceId string) error {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	err := spgs.ServiceGroupRepos.AddServiceToGroup(serviceGroupId, serviceId)
 	releaseConnection(spgs)
 	return err
@@ -82,12 +84,14 @@ func (spgs *ServiceGroupService) AddServiceToGroup(serviceGroupId string, servic
 }
 // RemoveServiceFromGroup remove service from an existing service group
 func (spgs *ServiceGroupService) RemoveServiceFromGroup(serviceGroupId string, serviceId string) error {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	err := spgs.ServiceGroupRepos.RemoveServiceFromGroup(serviceGroupId, serviceId)
 	releaseConnection(spgs)
 	return err
 }
 // CreateServiceGroup create new service group
 func (spgs *ServiceGroupService) CreateServiceGroup(serviceGroup ServiceGroup) error {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	serviceGroup.Id = bson.NewObjectId()
 	err := spgs.ServiceGroupRepos.CreateServiceGroup(serviceGroup)
 	releaseConnection(spgs)
@@ -95,6 +99,7 @@ func (spgs *ServiceGroupService) CreateServiceGroup(serviceGroup ServiceGroup) e
 }
 // UpdateServiceGroup update an already existing service group
 func (spgs *ServiceGroupService) UpdateServiceGroup(serviceGroupId string, serviceGroup ServiceGroup) error {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	err := spgs.ServiceGroupRepos.UpdateServiceGroup(serviceGroupId, serviceGroup)
 	releaseConnection(spgs)
 	return err
@@ -102,6 +107,7 @@ func (spgs *ServiceGroupService) UpdateServiceGroup(serviceGroupId string, servi
 }
 // DeleteServiceGroup delete an already existing service group
 func (spgs *ServiceGroupService) DeleteServiceGroup(serviceGroupId string) error {
+	spgs.ServiceGroupRepos.OpenTransaction()
 	err := spgs.ServiceGroupRepos.DeleteServiceGroup(serviceGroupId)
 	releaseConnection(spgs)
 	return err

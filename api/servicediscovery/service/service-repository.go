@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/Glintt/gAPI/api/database"
-	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 )
 
 type ServiceRepositoryInterface interface {
@@ -15,7 +15,7 @@ type ServiceRepositoryInterface interface {
 	NormalizeServices() error
 }
 
-func GetServicesRepository(user users.User) ServiceRepositoryInterface {
+func GetServicesRepository(user userModels.User) ServiceRepositoryInterface {
 	if database.SD_TYPE == "mongo" {
 		return &ServiceMongoRepository{
 			User: user,
