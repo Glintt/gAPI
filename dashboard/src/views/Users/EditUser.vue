@@ -31,6 +31,22 @@
                 <input type="password" v-model="user.Password" class="form-control" id="userPassword" aria-describedby="nameHelp" placeholder="Enter password">
                 <small id="nameHelp" class="form-text text-primary">User password.</small>
             </div>
+            
+            <h5 v-if="user.OAuthClients != null && user.OAuthClients.length > 0">Clients:</h5>
+            <div v-for="client in user.OAuthClients" class="row" v-bind:key="client.ClientId">
+              <div class="form-group row col-sm">
+                <label for="userClientId">Client Id</label>
+                <input type="text" v-model="client.ClientId" class="form-control" id="userClientId" aria-describedby="userClientIdHelp" placeholder="Client id" disabled>
+                <small id="userClientIdHelp" class="form-text text-primary">User client id to use on requests (Header: GAPI_CLIENT_ID).</small>
+              </div>
+              <div class="form-group row col-sm">
+                <label for="userClientSecret">Client Secret</label>
+                <input type="text" v-model="client.ClientSecret" class="form-control" id="userClientSecret" aria-describedby="userClientSecretHelp" placeholder="Client secret" disabled>
+                <small id="userClientSecretHelp" class="form-text text-primary">User client secret.</small>
+              </div>
+
+            </div>
+            
 
             <div class="form-group row col-sm" v-if="loggedInUser.IsAdmin && user.Username !== loggedInUser.Username">
                 <i class="fas " :class="user.IsAdmin ? 'fa-lock text-success' : 'fa-unlock text-danger'" @click="toggleAdmin" />

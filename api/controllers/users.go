@@ -48,6 +48,10 @@ func FindUsersHandler(c *routing.Context) error {
 	userService := getUserService(c)
 
 	users := userService.FindUsersByUsernameOrEmail(searchQuery, page)
+
+	for i := range users {
+		users[i].OAuthClients = users[i].GetOAuthClients()
+	}
 	if users == nil {
 		return http.Ok(c, `[]`, UsersServiceName())
 	}

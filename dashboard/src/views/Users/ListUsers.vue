@@ -10,7 +10,7 @@
       :searchable="true"
       v-on:changePage="changePage"
       v-on:search="search"
-      :data="usersList"
+      :data="usersList.map(u => { let user = Object.assign({},u); delete user.OAuthClients; return user; })"
       :actions="actions"
       v-on:editUser="editUser"
       v-on:viewPermissions="viewPermissions"
@@ -51,6 +51,8 @@ export default {
   methods: {
     ...mapActions("users", ["updateList", "changeUser"]),
     editUser: function(user) {
+      user = this.usersList.find(u => u.Id === user.Id)
+      console.log(this.usersList.find(u => u.Id === user.Id))
       this.changeUser(user);
     },
     viewPermissions: function(user) {
