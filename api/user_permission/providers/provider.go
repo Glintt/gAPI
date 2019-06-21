@@ -7,6 +7,7 @@ import (
 
 type PermissionsRepositoryInterface interface{	
 	Get(userId string) ([]models.UserPermission, error)
+	HasPermission(userId string, permissionID string) (bool, error)
 	Add(userPermission models.UserPermission) error
 	Update(userId string, userPermission []models.UserPermission) error
 	Delete(userId string, serviceId string) error

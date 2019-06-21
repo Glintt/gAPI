@@ -7,7 +7,7 @@ import (
 	"github.com/Glintt/gAPI/api/plugins"
 	"github.com/Glintt/gAPI/api/ratelimiting"
 	"github.com/Glintt/gAPI/api/servicediscovery"
-	userModels "github.com/Glintt/gAPI/api/users/models"
+	// userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	thirdpartyauthentication "github.com/Glintt/gAPI/api/thirdpartyauthentication"
 	"github.com/Glintt/gAPI/api/utils"
@@ -24,20 +24,21 @@ var oauthserver thirdpartyauthentication.OAuthServer
 
 var SERVICE_NAME = "/proxy"
 
+// StartProxy starts the proxy service
 func StartProxy(router *routing.Router) {
 	oauthserver = config.GApiConfiguration.ThirdPartyOAuth
 
 	ratelimiting.InitRateLimiting()
-	router.To("GET,POST,PUT,PATCH,DELETE", "/*", ratelimiting.RateLimiting, HandleRequest)
-
-	
+	router.To("GET,POST,PUT,PATCH,DELETE", "/*", authentication.CheckAPIRequestClient, ratelimiting.RateLimiting, HandleRequest)	
 }
 
+
+// HandleRequest handles APIs requests
 func HandleRequest(c *routing.Context) error {
 	user := authentication.GetAuthenticatedUser(c)
-	if user.Username == "" {
-		user = userModels.GetInternalAPIUser()
-	}
+	// if user.Username == "" {
+	// 	user = userModels.GetInternalAPIUser()
+	// }
 
 	sd := *servicediscovery.GetServiceDiscoveryObject(user)
 
@@ -64,6 +65,10 @@ func HandleRequest(c *routing.Context) error {
 		cachedRequest.UpdateServiceCache = true
 	} else {
 		utils.LogMessage("SD FROM CACHE", utils.DebugLogType)
+	}
+
+	if user.HasPermissionToAccessService(cachedRequest.Service.Id.Hex()) == false {
+		return http.NoPermission(c, cachedRequest.Service.MatchingURI)
 	}
 
 	// OAuth authentication

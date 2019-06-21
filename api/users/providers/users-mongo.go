@@ -112,3 +112,17 @@ func (ur *UserMongoRepository) GetUserByUsername(username string) []models.User 
 
 	return users
 }
+
+func (ur *UserMongoRepository) GetUserByIdentifier(id string) models.User {
+	session, db := database.GetSessionAndDB(database.MONGO_DB)
+
+	query := bson.M{"$or": []bson.M{bson.M{"id": bson.ObjectIdHex(id)}}}
+
+	var user models.User
+
+	db.C(USERS_COLLECTION).Find(query).One(&user)
+
+	database.MongoDBPool.Close(session)
+
+	return user
+}

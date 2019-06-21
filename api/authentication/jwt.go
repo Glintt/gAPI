@@ -13,6 +13,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"golang.org/x/crypto/bcrypt"
+	"fmt"
 )
 
 var MinSizeSigningKey = 10
@@ -159,7 +160,7 @@ func NotAuthorized(c *routing.Context) error {
 }
 
 func GetUserFromToken(c *routing.Context) (jwt.MapClaims, error) {
-	token := c.Request.Header.Peek("Authorization")
+	token := c.Request.Header.Peek(AUTHORIZATION_HEADER)
 
 	return ValidateToken(string(token))
 }
@@ -168,7 +169,7 @@ func CheckUserMiddleware(c *routing.Context) error {
 	userClaims, validate := GetUserFromToken(c)
 
 	if validate == nil {
-		username := userClaims["Username"].(string)
+		username := userClaims[USERNAME_TOKEN_CLAIM].(string)
 		userService := getUserService()
 	
 		user := userService.GetUserByUsername(username)
@@ -194,7 +195,7 @@ func AuthorizationMiddleware(c *routing.Context) error {
 		return nil
 	}
 
-	c.Request.Header.Add("User", userClaims["Username"].(string))
+	c.Request.Header.Add("User", userClaims[USERNAME_TOKEN_CLAIM].(string))
 	return nil
 }
 
@@ -206,7 +207,7 @@ func UserNotAllowed(c *routing.Context) error {
 }
 
 func AdminRequiredMiddleware(c *routing.Context) error {
-	token := c.Request.Header.Peek("Authorization")
+	token := c.Request.Header.Peek(AUTHORIZATION_HEADER)
 
 	claims, validate := ValidateToken(string(token))
 
@@ -216,7 +217,7 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 		return nil
 	}
 
-	username := claims["Username"].(string)
+	username := claims[USERNAME_TOKEN_CLAIM].(string)
 	userService := getUserService()
 	usersList := userService.GetUserByUsername(username)
 
@@ -231,8 +232,8 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 }
 
 func OAuthClientRequiredMiddleware(c *routing.Context) error {
-	clientId := string(c.Request.Header.Peek("ClientId"))
-	clientSecret := string(c.Request.Header.Peek("ClientSecret"))
+	clientId := string(c.Request.Header.Peek(CLIENT_ID_HEADER))
+	clientSecret := string(c.Request.Header.Peek(CLIENT_SECRET_HEADER))
 
 	oauthClient := oauth_clients.Find(clientId, clientSecret)
 
@@ -246,8 +247,42 @@ func OAuthClientRequiredMiddleware(c *routing.Context) error {
 	return nil
 }
 
+// CheckAPIRequestClient check if client is associated to user and which is the user 
+func CheckAPIRequestClient(c *routing.Context) error {
+	requestClientID := string(c.Request.Header.Peek(GAPI_CLIENT_ID_HEADER))
 
-func GetAuthenticatedUser (c *routing.Context) userModels.User{
+	if requestClientID != "" {
+		c.Set(REQUEST_CLIENT_ID, requestClientID)
+	} else {
+		tokenString := string(c.Request.Header.Peek(AUTHORIZATION_HEADER))
+		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+		
+		parser := jwt.Parser{SkipClaimsValidation: true}
+		tokenParsed, _, err := parser.ParseUnverified(tokenString, jwt.MapClaims{})
+		if err != nil {
+			utils.LogMessage(err.Error(), utils.DebugLogType)
+			UserNotAllowed(c)
+			c.Abort()
+			return nil
+		}
+		claims := tokenParsed.Claims.(jwt.MapClaims)
+		
+		requestClientIDClaim := claims[CLIENT_ID_TOKEN_CLAIM]
+		if requestClientIDClaim == nil {
+			UserNotAllowed(c)
+			c.Abort()
+			return nil
+		}
+		c.Set(REQUEST_CLIENT_ID, requestClientIDClaim.(string))
+	}
+
+	user := GetRequestUserFromClientID(c)
+
+	c.Set("User", user)	
+	return nil
+}
+
+func GetAuthenticatedUser(c *routing.Context) userModels.User{
 	userInt := c.Get("User")
 	var user userModels.User
 	if userInt != nil {
@@ -255,4 +290,19 @@ func GetAuthenticatedUser (c *routing.Context) userModels.User{
 	}
 
 	return user;
+}
+
+func GetRequestUserFromClientID(c *routing.Context) userModels.User{
+	clientID := c.Get(REQUEST_CLIENT_ID).(string)
+	clientIDs := oauth_clients.FindByClientId(clientID)
+
+	for _, c := range clientIDs {
+		if c.UserId != "" {
+			userService := getUserService()
+	
+			return userService.GetUserByIdentifier(c.UserId)
+		}
+	}
+
+	return userModels.User{}
 }

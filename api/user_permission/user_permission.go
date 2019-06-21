@@ -26,6 +26,17 @@ func GetUserPermissions(user_id string) ([]models.UserPermission, error){
 	return permissions, nil
 }
 
+// UserHasPermissionToAccessService check if user has permission with to access service with id = serviceID
+func UserHasPermissionToAccessService(userID string, serviceID string) (bool, error){
+	repository := getRepository()
+	repository.CreateTransaction()
+	
+	hasPermission, err := repository.HasPermission(userID, serviceID)
+	
+	repository.CommitTransaction()
+	return hasPermission, err
+}
+
 func AddPermission(permission models.UserPermission) error {
 	repository := getRepository()
 	repository.CreateTransaction()

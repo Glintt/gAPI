@@ -16,6 +16,9 @@ const (
 	GET_PERMISSIONS_QUERY = `
 select user_id, service_id from gapi_user_services_permissions where user_id = :user_id
 `
+	HAS_PERMISSIONS_QUERY = `
+select user_id, service_id from gapi_user_services_permissions where user_id = :user_id and service_id = :service_id
+`
 	DELETE_PERMISSION_QUERY = `delete from gapi_user_services_permissions where user_id = :user_id and service_id = :service_id` 
 	DELETE_ALL_USER_PERMISSIONS_QUERY = `delete from gapi_user_services_permissions where user_id = :user_id` 
 	CREATE_USER_PERMISSION_QUERY = `insert into gapi_user_services_permissions(user_id, service_id) values (:user_id, :service_id)` 
@@ -57,6 +60,18 @@ func (por *PermissionsOracleRepository) Get(userId string) ([]models.UserPermiss
 
 	permissions := RowsToPermission(rows, false)
 	return permissions, nil
+}
+
+// HasPermission checks if user has permission 
+func (por *PermissionsOracleRepository) HasPermission(userID string, permissionID string) (bool, error) {
+	rows, err := por.tx.Query(HAS_PERMISSIONS_QUERY, userID, permissionID)
+	if err != nil {
+		return false, errors.New("Error making query: " + err.Error())
+	}
+
+	permissions := RowsToPermission(rows, false)
+	
+	return len(permissions) > 0, nil
 }
 
 func (por *PermissionsOracleRepository) Add(userPermission models.UserPermission) error{

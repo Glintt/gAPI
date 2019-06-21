@@ -85,3 +85,11 @@ func (us *UserService) GetUserByUsername(username string) []models.User {
 	releaseConnection(us)
 	return users
 }
+
+// GetUserByIdentifier search user by identifier
+func (us *UserService) GetUserByIdentifier(id string) models.User {
+	us.UserRepos.OpenTransaction()
+	user := us.UserRepos.GetUserByIdentifier(id)
+	releaseConnection(us)
+	return user
+}

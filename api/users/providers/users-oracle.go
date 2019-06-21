@@ -18,6 +18,7 @@ type UserOracleRepository struct {
 const (
 	FIND_BY_EMAIL_OR_USERNAME = `select id, username, password, email, isadmin from gapi_users where email like :email or username like :username`
 	FIND_BY_USERNAME = `select id, username, password, email, isadmin from gapi_users where username = :username`
+	FIND_BY_IDENTIFIER = `select id, username, password, email, isadmin from gapi_users where id = :id`
 	UPDATE_USER_ORACLE = `UPDATE gapi_users
 	SET 
 		username = :username, 
@@ -98,6 +99,21 @@ func (ur *UserOracleRepository) GetUserByUsername(username string) []models.User
 	}
 
 	return RowsToUser(rows, false)
+}
+
+func (ur *UserOracleRepository) GetUserByIdentifier(id string) models.User {
+	rows, err := ur.Tx.Query(FIND_BY_IDENTIFIER, id)
+	if err != nil {
+		return models.User{}
+	}
+
+	users := RowsToUser(rows, false)
+
+	if len(users) == 0 {
+		return models.User{}
+	}
+
+	return users[0]
 }
 
 func RowsToUser(rows *sql.Rows, containsPagination bool) []models.User {

@@ -16,6 +16,7 @@ type UserRepository interface {
 	UpdateUser(user models.User) error
 	FindUsersByUsernameOrEmail(q string, page int) []models.User
 	GetUserByUsername(username string) []models.User
+	GetUserByIdentifier(id string) models.User
 
 	OpenTransaction() error
 	CommitTransaction()
