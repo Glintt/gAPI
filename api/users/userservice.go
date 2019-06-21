@@ -48,7 +48,6 @@ func (us *UserService) createRepository() error {
 	if us.UserRepos == nil {
 		return errors.New("Could not get application group repository")
 	}
-	us.UserRepos.OpenTransaction()
 	return nil
 }
 

@@ -5,6 +5,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"github.com/Glintt/gAPI/api/user_permission"
 	"github.com/Glintt/gAPI/api/utils"
+	oauthClientModels "github.com/Glintt/gAPI/api/oauth_clients/models"
+	"github.com/Glintt/gAPI/api/oauth_clients"
 )
 
 type User struct {
@@ -13,8 +15,7 @@ type User struct {
 	Password string `json:",omitempty"`
 	Email    string
 	IsAdmin  bool
-	ClientId string
-	ClientSecret string
+	OAuthClients []oauthClientModels.OAuthClient `json:oauth_clients""`
 }
 
 // GetInternalAPIUser Returns an internal user with admin permissions
@@ -41,4 +42,8 @@ func (u *User) HasPermissionToAccessService(serviceID string) bool {
 	}
 
 	return hasPermission
+}
+// GetOAuthClients Get list of oauth clients associated to user 
+func (u *User) GetOAuthClients() []oauthClientModels.OAuthClient {
+	return oauth_clients.FindForUser(u.Id.Hex())
 }

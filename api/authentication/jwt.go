@@ -13,7 +13,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"golang.org/x/crypto/bcrypt"
-	"fmt"
 )
 
 var MinSizeSigningKey = 10

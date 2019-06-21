@@ -3,8 +3,6 @@ package providers
 import (
 	"github.com/Glintt/gAPI/api/oauth_clients/models"
 	"github.com/Glintt/gAPI/api/database"
-	userModels "github.com/Glintt/gAPI/api/users/models"
-
 )
 const (
 	OAUTH_CLIENTS_COLLECTION = "gapi_oauth_clients"
@@ -26,7 +24,7 @@ type OAuthClientRepository interface {
 
 
 // NewServiceGroupRepository create an application group repository based on the database
-func NewOAuthClientRepository(user userModels.User) OAuthClientRepository {
+func NewOAuthClientRepository() OAuthClientRepository {
 	if database.SD_TYPE == "mongo" {
 		session, db := database.GetSessionAndDB(database.MONGO_DB)
 		collection := db.C(OAUTH_CLIENTS_COLLECTION)

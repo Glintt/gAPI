@@ -29,25 +29,27 @@ func GetTokenHandler(c *routing.Context) error {
 func MeHandler(c *routing.Context) error {
 	c.Response.Header.SetContentType("application/json")
 	authorizationToken := c.Request.Header.Peek("Authorization")
-
 	tokenClaims, err := auth.ValidateToken(string(authorizationToken))
-
+	
 	if err != nil{
 		http.Response(c, `{"error":true, "msg":"`+ err.Error() + `"}`, 400, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
+		
 	}
-
 	username := tokenClaims["Username"].(string)
-
-	userService := getUserService(c)
-	usersList := userService.GetUserByUsername(username)
 	
+	userService := getUserService(c)
+	
+	usersList := userService.GetUserByUsername(username)
+		
 	if len(usersList) == 0 || len(usersList) > 1 {
 		http.Response(c, `{"error":true, "msg":"User not found."}`, 404, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 		return nil
 	}
 
 	usersList[0].Password = ""
+	usersList[0].OAuthClients = usersList[0].GetOAuthClients()
+	
 	userJSON,_ := json.Marshal(usersList[0])
 	http.Response(c, string(userJSON), 200, authentication.SERVICE_NAME, config.APPLICATION_JSON)
 	return nil
