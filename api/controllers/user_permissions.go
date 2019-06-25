@@ -8,6 +8,7 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/appgroups"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/user_permission"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	user_permission_models "github.com/Glintt/gAPI/api/user_permission/models"
 	routing "github.com/qiangxue/fasthttp-routing"
 	"gopkg.in/mgo.v2/bson"
@@ -17,6 +18,25 @@ func PermissionsServiceName() string {
 	return user_permission.SERVICE_NAME
 }
 
+func GetUserGroupsPermissionsHandler(c *routing.Context) error{
+	userService := getUserService(c)
+	user := userService.GetUserByUsername(c.Param("username"))
+
+	if len(user) == 0 {
+		http.Response(c, `{"error" : true, "msg": "User not found."}`, 404, PermissionsServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+
+	appgroupService,_ := appgroups.NewApplicationGroupServiceWithUser(userModels.GetInternalAPIUser())
+	applicationGroups, err := appgroupService.GetApplicationGroupsPermissions(user[0].Id.Hex())
+	if err != nil {
+		http.Response(c, `{"error" : true, "msg": "Error getting user's permitted application groups: `+err.Error()+`"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+	applicationGroupsJson, _ := json.Marshal(applicationGroups)
+	http.Ok(c, string(applicationGroupsJson), PermissionsServiceName())
+	return nil
+}
 
 func GetUserPermissionsHandler(c *routing.Context) error {
 	userService := getUserService(c)

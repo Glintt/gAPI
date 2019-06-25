@@ -49,6 +49,14 @@ func (apgs *ApplicationGroupService) createRepository() error {
 	return nil
 }
 
+// GetApplicationGroupsPermissions Get user application groups
+func (apgs *ApplicationGroupService) GetApplicationGroupsPermissions(userID string) ([]ApplicationGroup, error) {
+	apgs.AppGroupRepos.OpenTransaction()
+	appGroups ,err := apgs.AppGroupRepos.GetApplicationGroupsForUser(userID)
+	releaseConnection(apgs)
+	return appGroups, err
+}
+
 // UpdateApplicationGroup update application group
 func (apgs *ApplicationGroupService) UpdateApplicationGroup(appGroupID string, newGroup ApplicationGroup) error {
 	apgs.AppGroupRepos.OpenTransaction()

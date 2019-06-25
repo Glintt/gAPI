@@ -46,6 +46,12 @@ func (agmr *AppGroupMongoRepository) CreateApplicationGroup(bodyMap ApplicationG
 	return agmr.Collection.Insert(&bodyMap)
 }
 
+// GetApplicationGroupsForUser Gets application groups an user has access to
+func (agmr *AppGroupMongoRepository) GetApplicationGroupsForUser(userID string) ([]ApplicationGroup, error) {
+	return agmr.GetApplicationGroups(-1, ""), nil
+}
+
+
 // GetApplicationGroups get list of application groups
 func (agmr *AppGroupMongoRepository) GetApplicationGroups(page int, nameFilter string) []ApplicationGroup {
 	skips := constants.PAGE_LENGTH * (page - 1)

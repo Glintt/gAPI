@@ -7,7 +7,7 @@ import (
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/utils"
-
+	"errors"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -33,6 +33,26 @@ gapi_services b
 
 var ASSOCIATE_APPLICATION_TO_GROUP = `update gapi_services set applicationgroupid = :groupid where id = :id`
 var UNGROUPED_SERVICES = `select ` + service.SERVICE_COLUMNS + `  from gapi_services a left join gapi_services_groups b on a.groupid = b.id where applicationgroupid is null`
+const (
+	
+	GET_APPLICATION_GROUP_PERMISSIONS_QUERY = `
+	SELECT gapi_services_apps_groups.id, gapi_services_apps_groups.name, ''
+  FROM (  SELECT b.applicationgroupid as permited_app_group_id,
+                 COUNT (b.applicationgroupid) AS total_apps_in_group
+            FROM gapi_user_services_permissions a, gapi_services b
+           WHERE     a.service_id = b.id
+                 AND b.applicationgroupid IS NOT NULL and a.user_id = :user_id
+        GROUP BY b.applicationgroupid) perm_groups_counter,
+       (  SELECT b.applicationgroupid,
+                 COUNT (b.applicationgroupid) AS total_apps_in_group
+            FROM gapi_services b
+           WHERE b.applicationgroupid IS NOT NULL
+        GROUP BY b.applicationgroupid) groups_counter,
+        gapi_services_apps_groups
+ WHERE groups_counter.total_apps_in_group =
+		  perm_groups_counter.total_apps_in_group and gapi_services_apps_groups.id = perm_groups_counter.permited_app_group_id
+		  ` 
+)
 
 func (agmr *AppGroupOracleRepository) OpenTransaction() error {
 	tx, err := agmr.Db.Begin()
@@ -64,6 +84,17 @@ func (agmr *AppGroupOracleRepository) CreateApplicationGroup(bodyMap Application
 	}
 
 	return err
+}
+
+// GetApplicationGroupsForUser Gets application groups an user has access to
+func (agmr *AppGroupOracleRepository) GetApplicationGroupsForUser(userID string) ([]ApplicationGroup, error) {
+	rows, err := agmr.Tx.Query(GET_APPLICATION_GROUP_PERMISSIONS_QUERY, userID)
+	if err != nil {
+		return []ApplicationGroup{}, errors.New("Error making query: " + err.Error())
+	}
+
+	appGroups := RowsToAppGroup(rows, false)
+	return appGroups, nil
 }
 
 // GetApplicationGroups get list of application groups

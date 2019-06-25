@@ -13,6 +13,7 @@ func getRepository() providers.PermissionsRepositoryInterface {
 	return providers.GetPermissionRepository()
 }
 
+// GetUserPermissions get user's permissions
 func GetUserPermissions(user_id string) ([]models.UserPermission, error){
 	repository := getRepository()
 	repository.CreateTransaction()
@@ -37,6 +38,7 @@ func UserHasPermissionToAccessService(userID string, serviceID string) (bool, er
 	return hasPermission, err
 }
 
+// AddPermission add permission to a service
 func AddPermission(permission models.UserPermission) error {
 	repository := getRepository()
 	repository.CreateTransaction()

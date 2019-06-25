@@ -18,6 +18,7 @@ type AppGroupRepository interface {
 	AddServiceToGroup(appGroupID string, serviceID string) error
 	RemoveServiceFromGroup(appGroupID string, serviceID string) error
 	UngroupedServices() []service.Service
+	GetApplicationGroupsForUser(userID string) ([]ApplicationGroup, error)
 
 	OpenTransaction() error
 	CommitTransaction()
