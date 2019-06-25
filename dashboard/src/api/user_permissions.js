@@ -1,8 +1,8 @@
 const HTTP = require("@/api/http");
 
-export function get(user, cb) {
+export function get(username, cb) {
   return HTTP.GET(
-    HTTP.PathToCall(`/user-permissions/${user.Username}`),
+    HTTP.PathToCall(`/user-permissions/${username}/groups`),
     {}
   ).then(
     response => {
@@ -14,10 +14,25 @@ export function get(user, cb) {
   );
 }
 
-export function update(user, newPermissions, cb) {
-  return HTTP.PUT(
-    HTTP.PathToCall(`/user-permissions/${user.Username}`),
-    newPermissions,
+export function add(username, applicationId, cb) {
+  return HTTP.POST(
+    HTTP.PathToCall(`/user-permissions/${username}/${applicationId}`),
+    {},
+    {}
+  ).then(
+    response => {
+      cb(response);
+    },
+    response => {
+      HTTP.handleError(response, cb);
+    }
+  );
+}
+
+export function remove(username, applicationId, cb) {
+  return HTTP.DELETE(
+    HTTP.PathToCall(`/user-permissions/${username}/${applicationId}`),
+    {},
     {}
   ).then(
     response => {

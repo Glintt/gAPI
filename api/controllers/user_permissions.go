@@ -87,6 +87,12 @@ func AddPermissionToApplicationGroupHandler(c *routing.Context) error {
 	userService := getUserService(c)
 	user := userService.GetUserByUsername(c.Param("username"))
 	applicationId := c.Param("application_id")
+
+	if !bson.IsObjectIdHex(applicationId) {
+		http.Response(c, `{"error" : true, "msg": "Error getting user permissions"}`, 500, PermissionsServiceName(), config.APPLICATION_JSON)
+		return nil
+	}
+
 	// Get application group service
 	appGroupService, err := getAppGroupService(c)
 	if err != nil {

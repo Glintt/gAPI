@@ -124,18 +124,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="service in possibleMatches" v-bind:key="service.Id" v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || loggedInUser">
+                    <tr v-for="service in possibleMatches" v-bind:key="service.Id" 
+                      v-if="service.IsReachable || (service.UseGroupAttributes && service.GroupVisibility ) || loggedInUser">
                         <td>{{ service.Name }}</td>
                         <td>{{ service.MatchingURI }}</td>
                         <td>{{ service.APIDocumentation }}</td>
                         <td style="max-width: 20rem">
-                        <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" 
-                            data-toggle="tooltip" title="More info" style="margin-right: 1em" >
-                            <i class="fas fa-info-circle"></i>
-                        </router-link>
-                        <button class="btn btn-success" data-toggle="tooltip" title="Associate" @click="associate(service, selectedGroup)">
-                            Associate to App Group
-                        </button>
+                          <router-link :to="'/service-discovery/service?uri='+service.MatchingURI" 
+                              data-toggle="tooltip" title="More info" style="margin-right: 1em" >
+                              <i class="fas fa-info-circle"></i>
+                          </router-link>
+                          <button class="btn btn-success" data-toggle="tooltip" title="Associate" @click="associate(service, selectedGroup)">
+                              Associate to App Group
+                          </button>
                         </td>
                     </tr>
                 </tbody>
