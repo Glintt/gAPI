@@ -61,5 +61,6 @@
       "Name": "CallData"
     }
   },
-  "MatchingUriRegex": "newMatchingURIRegex"
+  "MatchingUriRegex": "newMatchingURIRegex",
+  "ServicesPermissionsEnabled": false
 }

@@ -5,7 +5,7 @@
     </div>
     <br />
     <div class="row">
-      <div class="col-md-6 offset-md-3 card card-body">
+      <div class="col-md-6 card card-body">
         <h5 class="text-success">Allowed</h5>
         <ul class="list-group">
           <li class="list-group-item" v-for="appGroup in permissions" v-bind:key="appGroup.Id">
@@ -14,10 +14,8 @@
           </li>
         </ul>
       </div>
-    </div>
-    <br/>
-    <div class="row">
-      <div class="col-md-6  offset-md-3 card card-body">
+    
+      <div class="col-md-6 card card-body">
         <h5 class="text-info">Application groups</h5>
         <div class="form-group">
           <select class="form-control" id="appGroupsId" v-model="appToAdd">

@@ -25,6 +25,7 @@ type GApiConfig struct {
 	Plugins          GApiPluginsConfig
 	ThirdPartyOAuth  thirdpartyauthentication.OAuthServer
 	MatchingUriRegex string
+	ServicesPermissionsEnabled bool
 }
 
 type ProtocolConfig struct {

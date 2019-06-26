@@ -7,6 +7,7 @@ import (
 	"github.com/Glintt/gAPI/api/utils"
 	oauthClientModels "github.com/Glintt/gAPI/api/oauth_clients/models"
 	"github.com/Glintt/gAPI/api/oauth_clients"
+	"github.com/Glintt/gAPI/api/config"
 )
 
 type User struct {
@@ -32,7 +33,7 @@ func GeneratePassword(password string) ([]byte, error) {
 
 // HasPermissionToAccessService check if user has permission to access service 
 func (u *User) HasPermissionToAccessService(serviceID string) bool {
-	if u.IsAdmin {
+	if u.IsAdmin || !config.GApiConfiguration.ServicesPermissionsEnabled {
 		return true
 	}
 	hasPermission , err := user_permission.UserHasPermissionToAccessService(u.Id.Hex(), serviceID)
@@ -43,6 +44,7 @@ func (u *User) HasPermissionToAccessService(serviceID string) bool {
 
 	return hasPermission
 }
+
 // GetOAuthClients Get list of oauth clients associated to user 
 func (u *User) GetOAuthClients() []oauthClientModels.OAuthClient {
 	return oauth_clients.FindForUser(u.Id.Hex())
