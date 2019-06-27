@@ -3,6 +3,7 @@ package controllers
 import (
 	"io/ioutil"
 	"net/http"
+	"crypto/tls"
 	netUrl "net/url"
 	"path"
 	"strings"
@@ -68,7 +69,12 @@ func GetServiceDocumentationUrl(serviceIdentifier string) (string, error) {
 }
 
 func GetHtml(url string) (*http.Response, string, error) {
-	response, err := http.Get(url)
+	tr := &http.Transport{
+        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+    }
+	client := &http.Client{Transport: tr}
+	
+	response, err := client.Get(url)
 	if err != nil {
 		utils.LogMessage(err.Error(), utils.ErrorLogType)
 		return response, err.Error(), err

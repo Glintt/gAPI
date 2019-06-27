@@ -64,10 +64,13 @@ func (service *Service) BalanceUrl() string {
 
 	for _, index := range indexesToTry {
 		host := service.Hosts[index]
-		_, err := net.Dial("tcp", host)
+		dialAddress := strings.Replace(host, "http://", "", -1)
+		dialAddress = strings.Replace(dialAddress, "https://", "", -1)
+		_, err := net.Dial("tcp", dialAddress)
 		if err == nil {
 			return host
 		}
+		utils.LogMessage("Dial error: "+ err.Error(), utils.DebugLogType)
 	}
 
 	return service.Domain + ":" + service.Port
@@ -85,9 +88,13 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 	uri = strings.Replace(uri, service.MatchingURI, service.ToURI, 1)
 
 	callURLWithoutProtocol := service.GetHost() + uri
-	callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
-
-	callURL := "http://" + callURLWithoutProtocol
+	
+	// callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
+	callURL := callURLWithoutProtocol
+	// If it doesn't have protocol, add http
+	if !strings.Contains(callURLWithoutProtocol, "http://") && !strings.Contains(callURLWithoutProtocol, "https://") {
+		callURL = "http://" +  callURL
+	}
 
 	return http.MakeRequest(method, callURL, body, headers)
 }
