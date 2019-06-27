@@ -2,6 +2,7 @@ package servicegroup
 
 import (
 	"errors"
+
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 
@@ -9,38 +10,53 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func GetServiceGroupsMongo() ([]ServiceGroup, error) {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
+const SERVICE_GROUP_COLLECTION = "services_groups"
 
+type ServiceGroupMongoRepository struct {
+	Session    *mgo.Session
+	Db         *mgo.Database
+	Collection *mgo.Collection
+}
+
+// OpenTransaction open new database transaction
+func (sgmr *ServiceGroupMongoRepository) OpenTransaction() error {
+	return nil
+}
+
+// CommitTransaction commit database transaction
+func (sgmr *ServiceGroupMongoRepository) CommitTransaction() {}
+
+// RollbackTransaction rollback database transaction
+func (sgmr *ServiceGroupMongoRepository) RollbackTransaction() {}
+
+// Release release database transaction to the pool
+func (sgmr *ServiceGroupMongoRepository) Release() {
+	database.MongoDBPool.Close(sgmr.Session)
+}
+
+// GetServiceGroups get list of service groups
+func (sgmr *ServiceGroupMongoRepository) GetServiceGroups() ([]ServiceGroup, error) {
 	var servicesGroup []ServiceGroup
-	err := db.C(SERVICE_GROUP_COLLECTION).Find(bson.M{}).All(&servicesGroup)
-
-	database.MongoDBPool.Close(session)
-
+	err := sgmr.Collection.Find(bson.M{}).All(&servicesGroup)
 	return servicesGroup, err
 }
 
-func GetServiceGroupByIdMongo(serviceGroup string) (ServiceGroup, error) {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
+// GetServiceGroupById get service group by id
+func (sgmr *ServiceGroupMongoRepository) GetServiceGroupById(serviceGroup string) (ServiceGroup, error) {
 	var sg ServiceGroup
 	var err error
 	if bson.IsObjectIdHex(serviceGroup) {
-		err = db.C(constants.SERVICE_GROUP_COLLECTION).FindId(bson.ObjectIdHex(serviceGroup)).One(&sg)
+		err = sgmr.Collection.FindId(bson.ObjectIdHex(serviceGroup)).One(&sg)
 	} else {
-		err = db.C(constants.SERVICE_GROUP_COLLECTION).Find(bson.M{"name": serviceGroup}).One(&sg)
+		err = sgmr.Collection.Find(bson.M{"name": serviceGroup}).One(&sg)
 	}
-
-	database.MongoDBPool.Close(session)
 
 	return sg, err
 }
 
-func CreateServiceGroupMongo(serviceGroup ServiceGroup) error {
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
+// CreateServiceGroup create new service group
+func (sgmr *ServiceGroupMongoRepository) CreateServiceGroup(serviceGroup ServiceGroup) error {
 	serviceGroup.Id = bson.NewObjectId()
-	collection := db.C(constants.SERVICE_GROUP_COLLECTION)
 	index := mgo.Index{
 		Key:        []string{"name"},
 		Unique:     true,
@@ -48,84 +64,64 @@ func CreateServiceGroupMongo(serviceGroup ServiceGroup) error {
 		Background: true,
 		Sparse:     true,
 	}
-	err := collection.EnsureIndex(index)
+	err := sgmr.Collection.EnsureIndex(index)
 	if err != nil {
 		return err
 	}
-	err = collection.Insert(&serviceGroup)
+	return sgmr.Collection.Insert(&serviceGroup)
+}
 
-	database.MongoDBPool.Close(session)
+// UpdateServiceGroup update an existing service group
+func (sgmr *ServiceGroupMongoRepository) UpdateServiceGroup(serviceGroupID string, serviceGroup ServiceGroup) error {
+	serviceGroupIdObj := bson.ObjectIdHex(serviceGroupID)
 
+	return sgmr.Collection.UpdateId(serviceGroupIdObj, serviceGroup)
+}
+
+// DeleteServiceGroup delete an existing service group
+func (sgmr *ServiceGroupMongoRepository) DeleteServiceGroup(serviceGroupID string) error {
+	serviceGroupIdObj := bson.ObjectIdHex(serviceGroupID)
+
+	err := sgmr.Collection.RemoveId(serviceGroupIdObj)
+
+	_, err = sgmr.Db.C(constants.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"groupid": nil}})
 	return err
 }
 
-func UpdateServiceGroupMongo(serviceGroupId string, serviceGroup ServiceGroup) error {
-	serviceGroupIdObj := bson.ObjectIdHex(serviceGroupId)
-
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	err := db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdObj, serviceGroup)
-
-	database.MongoDBPool.Close(session)
-	return err
-}
-
-func DeleteServiceGroupMongo(serviceGroupId string) error {
-	serviceGroupIdObj := bson.ObjectIdHex(serviceGroupId)
-
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	err := db.C(constants.SERVICE_GROUP_COLLECTION).RemoveId(serviceGroupIdObj)
-
-	_, err = db.C(constants.SERVICES_COLLECTION).UpdateAll(bson.M{}, bson.M{"$set": bson.M{"groupid": nil}})
-
-	database.MongoDBPool.Close(session)
-
-	return err
-}
-
-func AddServiceToGroupMongo(serviceGroupId string, serviceId string) error {
-	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
-	serviceIdHex := bson.ObjectIdHex(serviceId)
+// AddServiceToGroup add service to an existing service group
+func (sgmr *ServiceGroupMongoRepository) AddServiceToGroup(serviceGroupID string, serviceID string) error {
+	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupID)
+	serviceIdHex := bson.ObjectIdHex(serviceID)
 
 	removeFromAllGroups := bson.M{"$pull": bson.M{"services": serviceIdHex}}
 	updateGroup := bson.M{"$addToSet": bson.M{"services": serviceIdHex}}
 	updateService := bson.M{"$set": bson.M{"groupid": serviceGroupIdHex}}
 
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-	err := db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+	err := sgmr.Db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
 	if err != nil {
-		database.MongoDBPool.Close(session)
 		return errors.New("Update Service failed")
 	}
 
-	_, err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateAll(bson.M{}, removeFromAllGroups)
-	err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
-
-	database.MongoDBPool.Close(session)
-
-	return err
+	_, err = sgmr.Collection.UpdateAll(bson.M{}, removeFromAllGroups)
+	if err != nil {
+		return errors.New("Update Service failed")
+	}
+	return sgmr.Collection.UpdateId(serviceGroupIdHex, updateGroup)
 }
 
-func RemoveServiceFromGroupMongo(serviceGroupId string, serviceId string) error {
-	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupId)
-	serviceIdHex := bson.ObjectIdHex(serviceId)
+// RemoveServiceFromGroup remove service from an existing service group
+func (sgmr *ServiceGroupMongoRepository) RemoveServiceFromGroup(serviceGroupID string, serviceID string) error {
+	serviceGroupIdHex := bson.ObjectIdHex(serviceGroupID)
+	serviceIdHex := bson.ObjectIdHex(serviceID)
 
 	updateGroup := bson.M{"$pull": bson.M{"services": serviceIdHex}}
 	updateService := bson.M{"$set": bson.M{"groupid": nil, "usegroupattributes": false}}
 
-	session, db := database.GetSessionAndDB(database.MONGO_DB)
-
-	err := db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
+	err := sgmr.Db.C(constants.SERVICES_COLLECTION).UpdateId(serviceIdHex, updateService)
 
 	if err != nil {
-		database.MongoDBPool.Close(session)
 		return err
 	}
 
-	err = db.C(constants.SERVICE_GROUP_COLLECTION).UpdateId(serviceGroupIdHex, updateGroup)
-
-	database.MongoDBPool.Close(session)
-
-	return err
+	return sgmr.Collection.UpdateId(serviceGroupIdHex, updateGroup)
 }

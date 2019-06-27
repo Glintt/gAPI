@@ -4,10 +4,10 @@ import (
 	"errors"
 	"strings"
 	"time"
-
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/oauth_clients"
 	"github.com/Glintt/gAPI/api/users"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -30,6 +30,14 @@ type TokenRequestObj struct {
 type TokenCustomClaims struct {
 	Username string `json:"Username"`
 	jwt.StandardClaims
+}
+
+func getUserService() users.UserService {
+	uServ, err := users.NewUserServiceWithUser(userModels.GetInternalAPIUser())
+	if err != nil {
+		utils.LogMessage("Error creating UserService object", utils.InfoLogType)
+	}
+	return uServ
 }
 
 func InitGAPIAuthenticationServer() {
@@ -82,12 +90,13 @@ func GenerateToken(username string, password string) (string, error) {
 	return ss, nil
 }
 
-func LdapUserCreateOrUpdate(user users.User) {
-	err := users.CreateUser(user)
+func LdapUserCreateOrUpdate(user userModels.User) {
+	userService := getUserService()
+	err := userService.CreateUser(user)
 	if err != nil {
 		utils.LogMessage("Create user error = "+err.Error(), utils.DebugLogType)
 
-		userList := users.GetUserByUsername(user.Username)
+		userList := userService.GetUserByUsername(user.Username)
 		if len(userList) == 0 {
 			return
 		}
@@ -96,10 +105,10 @@ func LdapUserCreateOrUpdate(user users.User) {
 			user.Id = userList[0].Id
 			user.IsAdmin = userList[0].IsAdmin
 
-			hashedPwd, _ := users.GeneratePassword(user.Password)
+			hashedPwd, _ := userModels.GeneratePassword(user.Password)
 			user.Password = string(hashedPwd)
 
-			err = users.UpdateUser(user)
+			err = userService.UpdateUser(user)
 			if err != nil {
 				utils.LogMessage("Update user error = "+err.Error(), utils.DebugLogType)
 			}
@@ -107,13 +116,13 @@ func LdapUserCreateOrUpdate(user users.User) {
 	}
 }
 
-func ValidateUserCredentials(username string, password string) (users.User, error) {
+func ValidateUserCredentials(username string, password string) (userModels.User, error) {
 
 	if config.GApiConfiguration.Authentication.LDAP.Active && AuthenticateWithLDAP(username, password) {
 		email := username
 		username = strings.Split(username, "@")[0]
 
-		user := users.User{
+		user := userModels.User{
 			Username: username,
 			Password: password,
 			Email:    email,
@@ -122,9 +131,11 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 		LdapUserCreateOrUpdate(user)
 	}
 
-	userList := users.GetUserByUsername(username)
+	userService := getUserService()
+	
+	userList := userService.GetUserByUsername(username)
 	if len(userList) == 0 {
-		return users.User{}, errors.New("Not Authorized.")
+		return userModels.User{}, errors.New("Not Authorized.")
 	}
 
 	user := userList[0]
@@ -137,7 +148,7 @@ func ValidateUserCredentials(username string, password string) (users.User, erro
 		return user, nil
 	}
 
-	return users.User{}, errors.New("Not Authorized.")
+	return userModels.User{}, errors.New("Not Authorized.")
 }
 
 func NotAuthorized(c *routing.Context) error {
@@ -157,7 +168,18 @@ func CheckUserMiddleware(c *routing.Context) error {
 	userClaims, validate := GetUserFromToken(c)
 
 	if validate == nil {
-		c.Request.Header.Add("User", userClaims["Username"].(string))
+		username := userClaims["Username"].(string)
+		userService := getUserService()
+	
+		user := userService.GetUserByUsername(username)
+		if len(user) == 0 {
+			NotAuthorized(c)
+			c.Abort()
+			return nil
+		}
+		//userJson, _ := json.Marshal(user[0])
+		c.Set("User", user[0])
+		//c.Request.Header.Add("User", string(userJson))
 	}
 
 	return nil
@@ -195,7 +217,8 @@ func AdminRequiredMiddleware(c *routing.Context) error {
 	}
 
 	username := claims["Username"].(string)
-	usersList := users.GetUserByUsername(username)
+	userService := getUserService()
+	usersList := userService.GetUserByUsername(username)
 
 	if len(usersList) == 0 || len(usersList) > 1 || !usersList[0].IsAdmin {
 		UserNotAllowed(c)
@@ -221,4 +244,15 @@ func OAuthClientRequiredMiddleware(c *routing.Context) error {
 
 	c.Request.Header.Add("User", clientId+"_"+clientSecret)
 	return nil
+}
+
+
+func GetAuthenticatedUser (c *routing.Context) userModels.User{
+	userInt := c.Get("User")
+	var user userModels.User
+	if userInt != nil {
+		user = userInt.(userModels.User)
+	}
+
+	return user;
 }

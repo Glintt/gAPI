@@ -12,6 +12,7 @@ import Realtime from "./views/Analytics/Realtime.vue";
 import ListUsers from "./views/Users/ListUsers.vue";
 import EditUser from "./views/Users/EditUser.vue";
 import NewUser from "./views/Users/NewUser.vue";
+import UserPermissions from "./views/UserPermissions/UserPermissions.vue";
 import NewServiceGroup from "./views/ServiceDiscovery/NewServiceGroup.vue";
 import ListServicesGroup from "./views/ServiceDiscovery/ListServicesGroup.vue";
 import NewApplicationGroup from "./views/ServiceDiscovery/NewApplicationGroup.vue";
@@ -35,10 +36,17 @@ export default new Router({
       component: ListUsers,
       beforeEnter: OAuthValidator.requireAdminAuth
     },
+
     {
       path: "/users/create",
       name: "users-create",
       component: NewUser,
+      beforeEnter: OAuthValidator.requireAdminAuth
+    },
+    {
+      path: "/user-permissions/:username",
+      name: "user_permissions",
+      component: UserPermissions,
       beforeEnter: OAuthValidator.requireAdminAuth
     },
     {

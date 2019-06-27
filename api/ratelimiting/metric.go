@@ -3,6 +3,8 @@ package ratelimiting
 import (
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	"github.com/Glintt/gAPI/api/servicediscovery"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
@@ -38,6 +40,7 @@ func matchingUri(c *routing.Context) string {
 }
 
 func serviceForUri(c *routing.Context) service.Service {
+	sd := servicediscovery.GetServiceDiscoveryObject(userModels.GetInternalAPIUser())
 	s, _ := sd.GetEndpointForUri(string(c.Request.RequestURI()))
 	return s
 }

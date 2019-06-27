@@ -3,7 +3,6 @@ package ratelimiting
 import (
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
-	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/utils"
 	"sync"
@@ -31,13 +30,11 @@ type Updater struct {
 	ReqName string
 }
 
-var sd servicediscovery.ServiceDiscovery
 var rateLimitingMutex sync.RWMutex
 
 func InitRateLimiting() {
 	limiter = config.GApiConfiguration.RateLimiting
 	limits = make(map[string]RateStatus)
-	sd = *servicediscovery.GetServiceDiscoveryObject()
 }
 
 func RateLimiting(c *routing.Context) error {
