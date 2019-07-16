@@ -4,6 +4,7 @@ import (
 	"github.com/Glintt/gAPI/api/notifications"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/utils"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 
 	"net/http"
 	"time"
@@ -25,7 +26,7 @@ func InitHealthCheck() {
 
 	TickerTime = config.GApiConfiguration.Healthcheck.Frequency
 
-	sd = servicediscovery.GetServiceDiscoveryObject()
+	sd = servicediscovery.GetServiceDiscoveryObject(userModels.GetInternalAPIUser())
 
 	ticker := time.NewTicker(time.Duration(TickerTime) * time.Second)
 	quit := make(chan struct{})

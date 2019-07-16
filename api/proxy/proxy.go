@@ -1,6 +1,12 @@
 package proxy
 
 import (
+	"regexp"
+	"runtime"
+	"strconv"
+	"strings"
+
+	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/cache"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
@@ -8,18 +14,14 @@ import (
 	"github.com/Glintt/gAPI/api/ratelimiting"
 	"github.com/Glintt/gAPI/api/servicediscovery"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
-	authentication "github.com/Glintt/gAPI/api/thirdpartyauthentication"
+	thirdpartyauthentication "github.com/Glintt/gAPI/api/thirdpartyauthentication"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/utils"
-	"regexp"
-	"runtime"
-	"strconv"
-	"strings"
 
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
-var sd servicediscovery.ServiceDiscovery
-var oauthserver authentication.OAuthServer
+var oauthserver thirdpartyauthentication.OAuthServer
 
 var SERVICE_NAME = "/proxy"
 
@@ -29,10 +31,16 @@ func StartProxy(router *routing.Router) {
 	ratelimiting.InitRateLimiting()
 	router.To("GET,POST,PUT,PATCH,DELETE", "/*", ratelimiting.RateLimiting, HandleRequest)
 
-	sd = *servicediscovery.GetServiceDiscoveryObject()
 }
 
 func HandleRequest(c *routing.Context) error {
+	user := authentication.GetAuthenticatedUser(c)
+	if user.Username == "" {
+		user = userModels.GetInternalAPIUser()
+	}
+
+	sd := *servicediscovery.GetServiceDiscoveryObject(user)
+
 	utils.LogMessage("=========================================", utils.InfoLogType)
 	utils.LogMessage("REQUEST =====> Method = "+string(c.Method())+"; URI = "+string(c.Request.RequestURI()), utils.InfoLogType)
 	utils.LogMessage("=========================================", utils.InfoLogType)
@@ -44,14 +52,13 @@ func HandleRequest(c *routing.Context) error {
 		utils.LogMessage("SD NOT FROM CACHE", utils.DebugLogType)
 
 		var err error
-		cachedRequest.Service, err = getServiceFromServiceDiscovery(c)
+		cachedRequest.Service, err = getServiceFromServiceDiscovery(c, sd)
 
 		utils.LogMessage("IsExternalRequest = "+strconv.FormatBool(sd.IsExternalRequest(c)), utils.DebugLogType)
 		utils.LogMessage("IsReachableFromExternal = "+strconv.FormatBool(servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)), utils.DebugLogType)
 
 		if err != nil || (sd.IsExternalRequest(c) && !servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)) {
-			http.Response(c, `{"error": true, "msg": "Resource not found"}`, 404, SERVICE_NAME, config.APPLICATION_JSON)
-			return nil
+			return http.NotFound(c, "Resource not found", SERVICE_NAME)
 		}
 
 		cachedRequest.UpdateServiceCache = true
@@ -65,8 +72,7 @@ func HandleRequest(c *routing.Context) error {
 		cachedRequest.Protection = checkAuthorization(c, cachedRequest.Service)
 
 		if cachedRequest.Protection.Error != nil {
-			http.Response(c, `{"error":true, "msg":"Not Authorized."}`, 401, cachedRequest.Service.MatchingURI, config.APPLICATION_JSON)
-			return nil
+			return http.NotAuthorized(c, cachedRequest.Service.MatchingURI)
 		}
 
 		cachedRequest.UpdateProtectionCache = true
@@ -102,7 +108,7 @@ func HandleRequest(c *routing.Context) error {
 	return nil
 }
 
-func getApiResponse(c *routing.Context, authorization authentication.ProtectionInfo, s service.Service) http.ResponseInfo {
+func getApiResponse(c *routing.Context, authorization thirdpartyauthentication.ProtectionInfo, s service.Service) http.ResponseInfo {
 
 	c.Request.Header.Set(authorization.Header, authorization.UserInfo)
 	headers := http.GetHeadersFromRequest(c.Request)
@@ -114,15 +120,20 @@ func getApiResponse(c *routing.Context, authorization authentication.ProtectionI
 
 	response := s.Call(string(c.Method()), http.GetURIWithParams(c), headers, string(body))
 
+	respBody, err := response.BodyGunzip()
+	if err != nil {
+		respBody = response.Body()
+	}
+
 	return http.ResponseInfo{
 		StatusCode:  response.Header.StatusCode(),
 		ContentType: response.Header.ContentType(),
-		Body:        response.Body()}
+		Body:        respBody}
 }
 
-func checkAuthorization(c *routing.Context, s service.Service) authentication.ProtectionInfo {
+func checkAuthorization(c *routing.Context, s service.Service) thirdpartyauthentication.ProtectionInfo {
 	if !s.Protected {
-		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
+		return thirdpartyauthentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
 	}
 
 	endpoint := strings.Replace(string(c.RequestURI()), s.MatchingURI, "", 1)
@@ -136,24 +147,24 @@ func checkAuthorization(c *routing.Context, s service.Service) authentication.Pr
 			method := strings.ToLower(string(c.Method()))
 
 			if re.ReplaceAllString(endpoint, "") == "" && strings.Contains(value, method) {
-				return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
+				return thirdpartyauthentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
 			}
 		}
 	} else {
-		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
+		return thirdpartyauthentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: nil}
 	}
 
 	headerName, userInfo, notAuthorizedErr := Protect(s, c)
 
 	if notAuthorizedErr != nil {
-		return authentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: notAuthorizedErr}
+		return thirdpartyauthentication.ProtectionInfo{Header: "n/a", UserInfo: "n/a", Error: notAuthorizedErr}
 	}
 
-	return authentication.ProtectionInfo{Header: headerName, UserInfo: userInfo, Error: nil}
+	return thirdpartyauthentication.ProtectionInfo{Header: headerName, UserInfo: userInfo, Error: nil}
 
 }
 
-func getServiceFromServiceDiscovery(c *routing.Context) (service.Service, error) {
+func getServiceFromServiceDiscovery(c *routing.Context, sd servicediscovery.ServiceDiscovery) (service.Service, error) {
 	return sd.GetEndpointForUri(string(c.Request.RequestURI()))
 }
 

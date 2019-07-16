@@ -7,6 +7,7 @@ import (
 var SERVICE_DISCOVERY_URL = "http://localhost:8080"
 var SERVICE_DISCOVERY_GROUP = "/service-discovery"
 var USERS_GROUP = "/users"
+var USER_PERMISSIONS_GROUP = "/user-permissions"
 var OAUTH_CLIENTS_GROUP = "/oauth_clients"
 var ANALYTICS_GROUP = "/analytics"
 var ELASTICSEARCH_URL = "http://localhost:9200"

@@ -7,8 +7,8 @@ import (
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
 	"github.com/Glintt/gAPI/api/servicediscovery/appgroups"
-	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 )
 
 func LogsURL() string {
@@ -49,10 +49,13 @@ func APIAnalyticsElastic(apiEndpoint string) (string, int) {
 }
 
 func ApplicationAnalyticsElastic(appGroupId string) (string, int) {
-	appGroup, _ := appgroups.ApplicationGroupMethods[constants.SD_TYPE]["getbyid"].(func(string) (appgroups.ApplicationGroup, error))(appGroupId)
-	appGroupServices, _ := appgroups.ApplicationGroupMethods[constants.SD_TYPE]["getservicesforappgroup"].(func(appgroups.ApplicationGroup) ([]service.Service, error))(appGroup)
+	// Get application group service
+	appGroupService, _ := appgroups.NewApplicationGroupServiceWithUser(userModels.GetInternalAPIUser())
 
-	response := http.MakeRequest(config.POST, LogsURL(), ApplicationAnalyticsQuery(appGroupServices), nil)
+	appGroup, _ := appGroupService.GetApplicationGroupByID(appGroupId)
+	servicesList, _ := appGroupService.GetServicesForApplicationGroup(appGroup)
+
+	response := http.MakeRequest(config.POST, LogsURL(), ApplicationAnalyticsQuery(servicesList), nil)
 
 	return string(response.Body()), response.StatusCode()
 }
