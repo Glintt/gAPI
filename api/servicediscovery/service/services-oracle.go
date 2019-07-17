@@ -328,6 +328,8 @@ func (smo *ServiceOracleRepository) Find(s Service) (Service, error) {
 
 	query := AppendPermissionFilterToQuery(FIND_SERVICES_ORACLE, "a", "b", smo.User)
 
+	utils.LogMessage("Query = "+ query, utils.DebugLogType)
+	
 	rows, err := db.Query(query, s.Id.Hex(),
 		"/"+uriParts[0]+".*",
 		s.Identifier)

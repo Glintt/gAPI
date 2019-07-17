@@ -1,6 +1,12 @@
 package proxy
 
 import (
+	"regexp"
+	"runtime"
+	"strconv"
+	"strings"
+
+	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/cache"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
@@ -11,13 +17,9 @@ import (
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	thirdpartyauthentication "github.com/Glintt/gAPI/api/thirdpartyauthentication"
 	"github.com/Glintt/gAPI/api/utils"
-	"github.com/Glintt/gAPI/api/authentication"
-	"regexp"
-	"runtime"
-	"strconv"
-	"strings"
-
+	
 	routing "github.com/qiangxue/fasthttp-routing"
+	//"fmt"
 )
 
 var oauthserver thirdpartyauthentication.OAuthServer
@@ -125,10 +127,15 @@ func getApiResponse(c *routing.Context, authorization thirdpartyauthentication.P
 
 	response := s.Call(string(c.Method()), http.GetURIWithParams(c), headers, string(body))
 
+	respBody, err := response.BodyGunzip()
+	if err != nil {
+		respBody = response.Body()
+	}
+
 	return http.ResponseInfo{
 		StatusCode:  response.Header.StatusCode(),
 		ContentType: response.Header.ContentType(),
-		Body:        response.Body()}
+		Body:        respBody}
 }
 
 func checkAuthorization(c *routing.Context, s service.Service) thirdpartyauthentication.ProtectionInfo {

@@ -51,8 +51,8 @@ export default {
   methods: {
     ...mapActions("users", ["updateList", "changeUser"]),
     editUser: function(user) {
-      user = this.usersList.find(u => u.Id === user.Id)
-      console.log(this.usersList.find(u => u.Id === user.Id))
+      user = this.usersList.find(u => u.Id === user.Id);
+      console.log(this.usersList.find(u => u.Id === user.Id));
       this.changeUser(user);
     },
     viewPermissions: function(user) {
