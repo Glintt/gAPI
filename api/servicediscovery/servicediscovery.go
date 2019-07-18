@@ -11,6 +11,8 @@ import (
 	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/utils"
 	routing "github.com/qiangxue/fasthttp-routing"
+	
+	"github.com/Glintt/gAPI/api/cache/cacheable"
 )
 
 // ServiceDiscovery object with service discovery logic
@@ -18,6 +20,8 @@ type ServiceDiscovery struct {
 	registeredServices []service.Service
 	User               userModels.User
 }
+
+var serviceDiscoveryCache = cacheable.CacheableStorage{}
 
 // GetServiceDiscoveryObject return service discovery object with request user context
 func GetServiceDiscoveryObject(user userModels.User) *ServiceDiscovery {
@@ -76,8 +80,11 @@ func (serviceDisc *ServiceDiscovery) SetRegisteredServices(rs []service.Service)
 }
 
 func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) bool {
-	hosts, _ := service.GetServicesRepository(s.User).ListAllAvailableHosts()
-
+	var hosts []string
+	serviceDiscoveryCache.Cacheable("available_hosts", func() (interface{}, error) {
+		return service.GetServicesRepository(s.User).ListAllAvailableHosts()		
+	}, &hosts)
+	
 	requestHost := requestContxt.RemoteIP().String()
 
 	utils.LogMessage("ListAllAvailableHosts = "+strings.Join(hosts, ","), utils.DebugLogType)
@@ -95,7 +102,6 @@ func (s *ServiceDiscovery) IsExternalRequest(requestContxt *routing.Context) boo
 	return true
 }
 
-
 func (serviceDisc *ServiceDiscovery) GetAllServices() ([]service.Service, error) {
 	var services []service.Service
 	services = service.GetServicesRepository(serviceDisc.User).ListServices(-1, "")
@@ -112,8 +118,12 @@ func (serviceDisc *ServiceDiscovery) DeleteService(s service.Service) error {
 }
 
 func (serviceDisc *ServiceDiscovery) GetEndpointForUri(uri string) (service.Service, error) {
-	service := service.Service{MatchingURI: uri}
-	return serviceDisc.FindService(service)
+	cacheKey := "GetEndpointForUri_"+serviceDisc.User.Username+"_"+uri
+	s := service.Service{MatchingURI: uri}
+	err := serviceDiscoveryCache.Cacheable(cacheKey, func () (interface{}, error) {
+		return serviceDisc.FindService(s)
+	}, &s)
+	return s, err
 }
 
 func (serviceDisc *ServiceDiscovery) NormalizeServices() error {

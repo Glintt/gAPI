@@ -6,9 +6,9 @@ import (
 	"net"
 
 	"github.com/Glintt/gAPI/api/config"
-	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/servicediscovery/servicegroup"
 	sdUtils "github.com/Glintt/gAPI/api/servicediscovery/utils"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/utils"
 
 	"gopkg.in/mgo.v2/bson"
@@ -47,6 +47,7 @@ type Service struct {
 	GroupVisibility            bool
 	UseGroupAttributes         bool
 	ProtectedExclude           map[string]string
+	OAuthClientsEnabled        bool
 }
 
 func Contains(array []int, value int) bool {
@@ -70,7 +71,7 @@ func (service *Service) BalanceUrl() string {
 		if err == nil {
 			return host
 		}
-		utils.LogMessage("Dial error: "+ err.Error(), utils.DebugLogType)
+		utils.LogMessage("Dial error: "+err.Error(), utils.DebugLogType)
 	}
 
 	return service.Domain + ":" + service.Port
@@ -88,12 +89,12 @@ func (service *Service) Call(method string, uri string, headers map[string]strin
 	uri = strings.Replace(uri, service.MatchingURI, service.ToURI, 1)
 
 	callURLWithoutProtocol := service.GetHost() + uri
-	
+
 	// callURLWithoutProtocol = strings.Replace(callURLWithoutProtocol, "//", "/", -1)
 	callURL := callURLWithoutProtocol
 	// If it doesn't have protocol, add http
 	if !strings.Contains(callURLWithoutProtocol, "http://") && !strings.Contains(callURLWithoutProtocol, "https://") {
-		callURL = "http://" +  callURL
+		callURL = "http://" + callURL
 	}
 
 	return http.MakeRequest(method, callURL, body, headers)
@@ -149,7 +150,7 @@ func ValidateURL(url string) bool {
 
 func (service *Service) GetGroup() (servicegroup.ServiceGroup, error) {
 	groupID := service.GroupId.Hex()
-	// Create service group service 
+	// Create service group service
 	serviceGroupService, err := servicegroup.NewServiceGroupServiceWithUser(userModels.GetInternalAPIUser())
 	if err != nil {
 		return servicegroup.ServiceGroup{}, err

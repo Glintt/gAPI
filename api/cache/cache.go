@@ -3,14 +3,16 @@ package cache
 import (
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
+	"github.com/Glintt/gAPI/api/cache/cacheable"
 	"github.com/Glintt/gAPI/api/servicediscovery/constants"
 	"strings"
 	"time"
-
 	routing "github.com/qiangxue/fasthttp-routing"
 
 	"github.com/allegro/bigcache"
 )
+
+var globalCache = cacheable.GetCacheableStorageInstance()
 
 type Cache struct {
 	ServiceDiscovery *bigcache.BigCache
@@ -68,12 +70,17 @@ func InitCachingService() {
 		GatewayCache.gAPIApi, _ = bigcache.NewBigCache(gAPIApiConfig)
 	}
 }
+
 func InvalidateCache() {
 	GatewayCache.ServiceDiscovery.Reset()
 	GatewayCache.Apis.Reset()
 	GatewayCache.OAuth.Reset()
-	GatewayCache.gAPIApi.Reset()
+	if config.GApiConfiguration.Cache.Enabled { 
+		GatewayCache.gAPIApi.Reset()
+	}
+	globalCache.Reset()
 }
+
 func RemoveCache(key string, value []byte) {
 
 }

@@ -21,7 +21,7 @@ var SERVICE_COLUMNS = ` a.id, a.identifier,
 	a.healthcheckurl, a.lastactivetime, a.ratelimit, a.ratelimitexpirationtime, a.isreachable, 
 	a.groupid, a.usegroupattributes, 
 	a.servicemanagementhost, a.servicemanagementport,
-	a.servicemanagementendpoints, a.hosts, a.protectedexclude, b.isreachable as groupreachable `
+	a.servicemanagementendpoints, a.hosts, a.protectedexclude, b.isreachable as groupreachable, a.oauth_clients_enabled as oauth_clients_enabled`
 
 var LIST_SERVICES_ORACLE = `select ` + SERVICE_COLUMNS + ` 
 	from gapi_services a left join gapi_services_groups b on a.groupid = b.id where 
@@ -262,7 +262,7 @@ func (smo *ServiceOracleRepository) ListServices(page int, filterQuery string) [
 				WHERE rownum < ((:page * 10) + 1 )
 			)
 			WHERE r__ >= (((:page-1) * 10) + 1)`
-			
+
 		rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%", page)
 		pagination = true
 	} else {
@@ -328,8 +328,8 @@ func (smo *ServiceOracleRepository) Find(s Service) (Service, error) {
 
 	query := AppendPermissionFilterToQuery(FIND_SERVICES_ORACLE, "a", "b", smo.User)
 
-	utils.LogMessage("Query = "+ query, utils.DebugLogType)
-	
+	utils.LogMessage("Query = "+query, utils.DebugLogType)
+
 	rows, err := db.Query(query, s.Id.Hex(),
 		"/"+uriParts[0]+".*",
 		s.Identifier)
@@ -387,7 +387,7 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 				&groupid, &s.UseGroupAttributes,
 				&s.ServiceManagementHost, &s.ServiceManagementPort,
 				&mngendpoints, &hosts, &protectedexclude,
-				&s.GroupVisibility, &a,
+				&s.GroupVisibility, &s.OAuthClientsEnabled, &a,
 			)
 		} else {
 			rows.Scan(&id, &s.Identifier, &s.Name, &s.MatchingURI, &s.MatchingURIRegex, &s.ToURI, &s.Protected, &s.APIDocumentation, &s.IsCachingActive, &s.IsActive,
@@ -395,7 +395,7 @@ func RowsToService(rows *sql.Rows, containsPagination bool) []Service {
 				&groupid, &s.UseGroupAttributes,
 				&s.ServiceManagementHost, &s.ServiceManagementPort,
 				&mngendpoints, &hosts, &protectedexclude,
-				&s.GroupVisibility,
+				&s.GroupVisibility, &s.OAuthClientsEnabled,
 			)
 		}
 

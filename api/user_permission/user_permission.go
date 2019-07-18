@@ -3,7 +3,10 @@ package user_permission
 import (
 	"github.com/Glintt/gAPI/api/user_permission/providers"
 	"github.com/Glintt/gAPI/api/user_permission/models"
+	"github.com/Glintt/gAPI/api/cache/cacheable"
 )
+
+var cacheStorage = cacheable.GetCacheableStorageInstance()
 
 const (
 	SERVICE_NAME = "USER_PERMISSION"
@@ -14,27 +17,39 @@ func getRepository() providers.PermissionsRepositoryInterface {
 }
 
 // GetUserPermissions get user's permissions
-func GetUserPermissions(user_id string) ([]models.UserPermission, error){
-	repository := getRepository()
-	repository.CreateTransaction()
-	
-	permissions,err := repository.Get(user_id)
-	if err != nil {
-		repository.RollbackTransaction()
-		return permissions,err
-	}
-	repository.CommitTransaction()
-	return permissions, nil
+func GetUserPermissions(userID string) ([]models.UserPermission, error){
+	var permissions []models.UserPermission
+
+	err := cacheStorage.Cacheable("perm_"+userID, func() (interface{}, error) {
+		repository := getRepository()
+		repository.CreateTransaction()
+		
+		permissions,err := repository.Get(userID)
+		if err != nil {
+			repository.RollbackTransaction()
+			return permissions, err
+		}
+		repository.CommitTransaction()
+
+		return permissions, err
+	}, &permissions)
+
+	return permissions, err
 }
 
 // UserHasPermissionToAccessService check if user has permission with to access service with id = serviceID
 func UserHasPermissionToAccessService(userID string, serviceID string) (bool, error){
-	repository := getRepository()
-	repository.CreateTransaction()
-	
-	hasPermission, err := repository.HasPermission(userID, serviceID)
-	
-	repository.CommitTransaction()
+	var hasPermission bool
+	err := cacheStorage.Cacheable("perm_"+userID+"_"+serviceID, func() (interface{}, error) {
+		repository := getRepository()
+		repository.CreateTransaction()
+
+		hasPerm, err := repository.HasPermission(userID, serviceID)
+		
+		repository.CommitTransaction()
+		return hasPerm, err
+	}, &hasPermission)
+
 	return hasPermission, err
 }
 
@@ -49,6 +64,8 @@ func AddPermission(permission models.UserPermission) error {
 		return err
 	}
 	repository.CommitTransaction()
+
+	cacheStorage.Delete("perm_"+permission.UserId+"_"+permission.ServiceId)
 	return nil
 }
 
@@ -62,6 +79,9 @@ func UpdatePermission(userId string, permissions []models.UserPermission) error{
 		return err
 	}
 	err = repository.CommitTransaction()
+
+	// Remove cache in order to update instantly results
+	cacheStorage.Reset()
 	return nil
 }
 
@@ -75,5 +95,8 @@ func DeletePermission(userId string, permissionId string) error{
 		return err
 	}
 	repository.CommitTransaction()
+
+	// Remove cache in order to update instantly results
+	cacheStorage.Delete("perm_"+userId+"_"+permissionId)
 	return nil
 }

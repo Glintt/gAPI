@@ -1,10 +1,11 @@
 package providers
 
 import (
-	"github.com/Glintt/gAPI/api/user_permission/models"
-	"github.com/Glintt/gAPI/api/database"
-	"errors"
 	"database/sql"
+	"errors"
+
+	"github.com/Glintt/gAPI/api/database"
+	"github.com/Glintt/gAPI/api/user_permission/models"
 )
 
 type PermissionsOracleRepository struct {
@@ -17,11 +18,20 @@ const (
 select user_id, service_id from gapi_user_services_permissions where user_id = :user_id
 `
 	HAS_PERMISSIONS_QUERY = `
-select user_id, service_id from gapi_user_services_permissions where user_id = :user_id and service_id = :service_id
+	SELECT distinct user_id, service_id
+    FROM (SELECT a.user_id, a.service_id
+            FROM gapi_user_services_permissions a
+           WHERE     a.user_id = :user_id
+                 AND a.service_id = :service_id
+          UNION ALL
+          SELECT :user_id AS user_id, id AS service_id
+            FROM gapi_services
+           WHERE oauth_clients_enabled = 0 AND id = :service_id) a
+GROUP BY user_id, service_id
 `
-	DELETE_PERMISSION_QUERY = `delete from gapi_user_services_permissions where user_id = :user_id and service_id = :service_id` 
-	DELETE_ALL_USER_PERMISSIONS_QUERY = `delete from gapi_user_services_permissions where user_id = :user_id` 
-	CREATE_USER_PERMISSION_QUERY = `insert into gapi_user_services_permissions(user_id, service_id) values (:user_id, :service_id)` 
+	DELETE_PERMISSION_QUERY           = `delete from gapi_user_services_permissions where user_id = :user_id and service_id = :service_id`
+	DELETE_ALL_USER_PERMISSIONS_QUERY = `delete from gapi_user_services_permissions where user_id = :user_id`
+	CREATE_USER_PERMISSION_QUERY      = `insert into gapi_user_services_permissions(user_id, service_id) values (:user_id, :service_id)`
 )
 
 func (por *PermissionsOracleRepository) CreateTransaction() error {
@@ -47,7 +57,7 @@ func (por *PermissionsOracleRepository) Init() error {
 	db, err := database.ConnectToOracle(database.ORACLE_CONNECTION_STRING)
 	if err != nil {
 		return errors.New("Error connecting to database: " + err.Error())
-	}	
+	}
 	por.db = db
 	return nil
 }
@@ -62,7 +72,7 @@ func (por *PermissionsOracleRepository) Get(userId string) ([]models.UserPermiss
 	return permissions, nil
 }
 
-// HasPermission checks if user has permission 
+// HasPermission checks if user has permission
 func (por *PermissionsOracleRepository) HasPermission(userID string, permissionID string) (bool, error) {
 	rows, err := por.tx.Query(HAS_PERMISSIONS_QUERY, userID, permissionID)
 	if err != nil {
@@ -70,11 +80,11 @@ func (por *PermissionsOracleRepository) HasPermission(userID string, permissionI
 	}
 
 	permissions := RowsToPermission(rows, false)
-	
+
 	return len(permissions) > 0, nil
 }
 
-func (por *PermissionsOracleRepository) Add(userPermission models.UserPermission) error{
+func (por *PermissionsOracleRepository) Add(userPermission models.UserPermission) error {
 	por.Delete(userPermission.UserId, userPermission.ServiceId)
 
 	_, err := por.tx.Exec(CREATE_USER_PERMISSION_QUERY,
@@ -90,7 +100,7 @@ func (por *PermissionsOracleRepository) Delete(userId string, serviceId string) 
 	_, err := por.tx.Exec(DELETE_PERMISSION_QUERY,
 		userId, serviceId,
 	)
-	
+
 	if err != nil {
 		return errors.New("Permission could not be removed")
 	}
@@ -101,7 +111,7 @@ func (por *PermissionsOracleRepository) DeleteAll(userId string) error {
 	_, err := por.tx.Exec(DELETE_ALL_USER_PERMISSIONS_QUERY,
 		userId,
 	)
-	
+
 	if err != nil {
 		return errors.New("Permission could not be removed")
 	}
@@ -114,8 +124,8 @@ func (por *PermissionsOracleRepository) Update(userId string, userPermission []m
 	if err != nil {
 		return errors.New("Error updating user permissions")
 	}
-	
-	for _,v := range userPermission {
+
+	for _, v := range userPermission {
 		err = por.Add(v)
 		if err != nil {
 			return errors.New("Error updating user permissions")
@@ -124,7 +134,6 @@ func (por *PermissionsOracleRepository) Update(userId string, userPermission []m
 
 	return nil
 }
-
 
 func RowsToPermission(rows *sql.Rows, containsPagination bool) []models.UserPermission {
 	var permissions []models.UserPermission

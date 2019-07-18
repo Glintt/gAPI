@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
+	"encoding/json"
 	"github.com/robfig/cron"
 )
 
@@ -62,14 +62,10 @@ func configureLoggingFiles() {
 	initialized = true
 }
 
-func LogMessage(message string, logtype string) {
-	if logtype == DebugLogType && os.Getenv("DEBUG") != "true" {
-		return
-	}
-
+func getLoggerObject() *log.Logger {
 	currentTime := time.Now()
 	currDate := currentTime.UTC().String()
-	var logger = log.New(os.Stdout, currDate+" - ", log.LstdFlags)
+	logger := log.New(os.Stdout, currDate+" - ", log.LstdFlags)
 
 	// If log to file enabled, then change output to file inside gapi_log_files folder
 	if os.Getenv(FILE_LOGS_ENV_VAR) != "" && os.Getenv(FILE_LOGS_ENV_VAR) == "true" {
@@ -84,5 +80,40 @@ func LogMessage(message string, logtype string) {
 		defer f.Close()
 	}
 
+	return logger
+}
+
+func isLogEnabled(logtype string) bool {
+	if logtype == DebugLogType && os.Getenv("DEBUG") != "true" {
+		return false
+	}
+
+	return true
+}
+
+// LogMessage receives a string to log. It also receives a log type
+func LogMessage(message string, logtype string) {
+	if !isLogEnabled(logtype) {
+		return
+	}
+	
+	var logger = getLoggerObject()
+
 	logger.Println(message)
+}
+
+// LogObjectMessage receives an interface{} to log. It also receives a log type
+func LogObjectMessage(message interface{}, logtype string) {
+	if !isLogEnabled(logtype) {
+		return
+	}
+	
+	var logger = getLoggerObject()
+
+	msg, err := json.Marshal(message)
+	if err == nil {		
+		logger.Println(string(msg))
+	}else {
+		logger.Println(message)
+	}
 }

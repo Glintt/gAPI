@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"github.com/Glintt/gAPI/api/thirdpartyauthentication"
+	"github.com/Glintt/gAPI/api/utils"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -97,6 +98,7 @@ type GApiPluginsConfig struct {
 var GApiConfiguration GApiConfig
 
 func LoadGApiConfig() {
+	utils.LogMessage("===== LOADING GAPI CONFIGURATION FILE =====", utils.InfoLogType)
 	gapiJSON, err := ioutil.ReadFile(CONFIGS_LOCATION + GAPI_CONFIG_FILE)
 
 	if err != nil {
@@ -120,5 +122,11 @@ func LoadGApiConfig() {
 
 	GApiConfiguration.ThirdPartyOAuth.AuthorizeEndpoint = thirdpartyauthentication.GetAuthorizeEndpointUrl(GApiConfiguration.ThirdPartyOAuth)
 
+	printConfigurationInformation()
+	utils.LogMessage("===== FINISHED LOADING CONFIGURATION FILE =====", utils.InfoLogType)
 	return
+}
+
+func printConfigurationInformation() {
+	utils.LogObjectMessage(GApiConfiguration, utils.InfoLogType)
 }

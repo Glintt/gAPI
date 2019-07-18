@@ -13,11 +13,12 @@ import (
 	"github.com/Glintt/gAPI/api/plugins"
 	"github.com/Glintt/gAPI/api/ratelimiting"
 	"github.com/Glintt/gAPI/api/servicediscovery"
+
 	// userModels "github.com/Glintt/gAPI/api/users/models"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	thirdpartyauthentication "github.com/Glintt/gAPI/api/thirdpartyauthentication"
 	"github.com/Glintt/gAPI/api/utils"
-	
+
 	routing "github.com/qiangxue/fasthttp-routing"
 	//"fmt"
 )
@@ -31,9 +32,8 @@ func StartProxy(router *routing.Router) {
 	oauthserver = config.GApiConfiguration.ThirdPartyOAuth
 
 	ratelimiting.InitRateLimiting()
-	router.To("GET,POST,PUT,PATCH,DELETE", "/*", authentication.CheckAPIRequestClient, ratelimiting.RateLimiting, HandleRequest)	
+	router.To("GET,POST,PUT,PATCH,DELETE", "/*", authentication.CheckAPIRequestClient, ratelimiting.RateLimiting, HandleRequest)
 }
-
 
 // HandleRequest handles APIs requests
 func HandleRequest(c *routing.Context) error {
@@ -63,7 +63,6 @@ func HandleRequest(c *routing.Context) error {
 		if err != nil || (sd.IsExternalRequest(c) && !servicediscovery.IsServiceReachableFromExternal(cachedRequest.Service, sd)) {
 			return http.NotFound(c, "Resource not found", SERVICE_NAME)
 		}
-
 		cachedRequest.UpdateServiceCache = true
 	} else {
 		utils.LogMessage("SD FROM CACHE", utils.DebugLogType)
