@@ -7,6 +7,7 @@ import (
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"fmt"
 )
 
 type AppGroupMongoRepository struct {
@@ -16,7 +17,12 @@ type AppGroupMongoRepository struct {
 }
 
 // OpenTransaction open new database transaction
-func (agmr *AppGroupMongoRepository) OpenTransaction() error { return nil }
+func (agmr *AppGroupMongoRepository) OpenTransaction() error { 
+	agmr.Session, agmr.Db = database.GetSessionAndDB(database.MONGO_DB)
+	agmr.Collection = agmr.Db.C(constants.SERVICE_APPS_GROUP_COLLECTION)
+
+	return nil 
+}
 
 // CommitTransaction commit database transaction
 func (agmr *AppGroupMongoRepository) CommitTransaction() {}
@@ -70,8 +76,11 @@ func (agmr *AppGroupMongoRepository) GetApplicationGroupByID(appGroupID string) 
 // GetServicesForApplicationGroup get application group's services
 func (agmr *AppGroupMongoRepository) GetServicesForApplicationGroup(appGroup ApplicationGroup) ([]service.Service, error) {
 	var servicesList []service.Service
-	err := agmr.Collection.Find(bson.M{"_id": bson.M{"$in": appGroup.Services}}).All(&servicesList)
+	
+	agmr.Collection = agmr.Db.C(constants.SERVICES_COLLECTION)
 
+	err := agmr.Collection.Find(bson.M{"_id": bson.M{"$in": appGroup.Services}}).All(&servicesList)
+	e := appGroup.Services[1].Hex()
 	return servicesList, err
 }
 
