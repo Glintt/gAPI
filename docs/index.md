@@ -16,4 +16,5 @@ It also provides analytics which are useful to take value from request logs.
 1. [Reachability](reachability)
 1. [Service Management](service-management)
 1. [Plugins](plugins)
+1. [User Permissions](permissions)
 1. [Contributing](contributing)
