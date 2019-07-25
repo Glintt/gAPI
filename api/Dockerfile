@@ -57,7 +57,7 @@ COPY oci8.pc  /usr/lib/pkgconfig/
 
 # 2. Copy api runtime and configs
 COPY --from=builder /go/src/gAPI/api/server/server /go/src/gAPI/api/server
-COPY --from=builder /go/src/gAPI/api/migrations /go/src/gAPI/api/migrations
+COPY --from=builder /go/src/gAPI/api/server/migrations /go/src/gAPI/api/migrations
 COPY --from=builder /go/src/gAPI/api/generate_config.sh /go/src/gAPI/api/generate_config.sh
 
 WORKDIR /go/src/gAPI/api
