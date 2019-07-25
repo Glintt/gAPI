@@ -1,6 +1,6 @@
 ## Groups
 
-gAPI allows to associate APIs to an application group. 
+gAPI allows to associate APIs to an application group.
 
 These groups don't have any logic associated, they exists simply to better organize your APIs.
 
@@ -16,5 +16,5 @@ These groups don't have any logic associated, they exists simply to better organ
 1. Open the dashboard
 2. Open API information
 3. API configuration section
-4. From "Assocated Application Group", select the group you want to associate the API to
+4. From "Associated Application Group", select the group you want to associate the API to
 5. Associate button
