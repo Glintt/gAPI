@@ -6,9 +6,8 @@ Copy all configuration files to a new directory called _config/_. This new direc
 
 Configuration files explanation:
 
-1. **_oauth.json_** - oauth server configuration (domain, port, endpoint)
-2. **_services.json_** - All microservices registered on the api management. (this can be replaced with mongodb)
-3. **_gAPI.json_**
+1. **_gAPI.json_**
+
    - **Authentication** - user and password configuration to access admin area;
      - TokenExpirationTime - time for the token to expire. Min value = 30s
      - TokenSigningKey - Signing key for the token. Min length = 10
@@ -16,21 +15,31 @@ Configuration files explanation:
        - Active - If LDAP is enabled on gAPI or not
        - Domain - Ldap server
        - Port - Ldap Port (default: 389)
-   - **Logs** - activate/deactivate logs and type of logging (available: _Elastic_ or _Rabbit_)
+   - **Logs** - activate/deactivate logs and type of logging
+
+     - Active - activate/deactivate logs
+     - Type - logging type (available: _Elastic_ or _Oracle_)
+     - Queue - use queue (available: _Rabbit_). If another value is passed, or no value at all, an internal queue will be used.
+
    - **CORS** - AllowedOrigins (array with all allowed origins) and AllowCredentials
-   - **ServiceDiscovery** - configuration storage type (available: _file_ and _mongo_) - note that when it is being used mongo, you MUST specify MONGO_HOST and MONGO_DB environment variables.
-   - **Urls** - Base urls for some of the services available on gAPI api:
-     - SERVICE_DISCOVERY_GROUP - service discovery base url
-     - ANALYTICS_GROUP - analytics base url
+     - AllowedOrigins - list with origins allowed. (eg: ["http://localhost:8080"] )
+     - AllowCredentials - enable/disable allow credentials
+   - **ServiceDiscovery**
+     - Type - configuration storage type (available: _oracle_ and _mongo_)
    - **Healthcheck** - Healthcheck configuration
      - Active - boolean to activate or deactivate healthcheck monitoring
      - Frequency - Frequency in seconds at which monitor is done
      - Notification - Enable or disable notifications when service goes down.
    - **Notifications**
-     - Type - Notification type. Available options:
-       - Slack
+     - Type - Notification type (available options: "Slack")
      - Slack - Slack notifications configuration.
        - WebhookUrl - URL to POST notifications to
+   - **RateLimiting**
+     - Active - activate/deactivate rate limiting
+     - Limit - number of requests until limit being reached
+     - Period - number of minutes during which the limit is available.
+     - Metrics - List of metrics to use on rate limiting (available: "RemoteAddr", "MatchingUri")
+   - **ManagementTypes** - object with all actions to manage an API. these actions must be implemented by another external API and the url to manage must be configured on the API dashboard.
    - **Protocol**
      - Https - boolean to active or deactivate HTTPS
      - CertificateFile - certificate file location
@@ -49,7 +58,7 @@ Configuration files explanation:
        - Active
        - Source - where to fetch information from (ex: header)
        - Name - Information name (ex: user)
-4. **_users.json_** - Users registered on the system to access dashboard
+   - **MatchingUriRegex** - regex to use when searching for a service by MatchingURI
 
 ## Installation
 
@@ -61,12 +70,12 @@ gAPI is composed by six parts:
 2. [gAPI Dashboard](#gapi-dashboard "gAPI Dashboard")
    1. Environment Variables
    2. Run
-3. [gAPI rabbit listener](#gapi-rabbit-listener "gAPI rabbit listener") - only required when using RabbitMQ for queueing logs storage
+3. [gAPI rabbit listener](#gapi-rabbit-listener "gAPI rabbit listener") - only required when using RabbitMQ for queueing logs storage (_optional_)
    1. Environment Variables
    2. Run
 4. Elasticsearch - logs storage
 5. RabbitMQ - used as queue for logs (_optional_)
-6. MongoDB - used as service discovery storage engine (_optional_)
+6. Database - storage engine (_optional_)
 
 gAPI also can be run using docker:
 
@@ -76,6 +85,8 @@ gAPI also can be run using docker:
 ### gAPI Server
 
 ##### Environment Variables
+
+Environment Variables are specified on _.env.example_ file.
 
 1. Specify gAPI Server port:
 
@@ -106,18 +117,34 @@ RABBITMQ_PASSWORD=<rabbit password>
 RABBITMQ_QUEUE=<rabbit gapi queue name>
 ```
 
-5. Use MongoDB as service discovery storage engine:
+5. Database configuration:
 
-```
-MONGO_HOST=<mongodb host>
-MONGO_DB=<mongodb database name>
-```
+1. MongoDB:
+
+
+    ```
+    MONGO_HOST=<mongodb host>
+    MONGO_DB=<mongodb database name>
+    ```
+
+2. Oracle:
+
+
+    ```
+    ORACLE_CONNECTION_STRING=<oracle_connection_string>
+    ```
 
 6. Service discovery is a separate service:
 
 ```
 SERVICEDISCOVERY_HOST=<custom SD host>
 SERVICEDISCOVERY_PORT=<custom SD port>
+```
+
+7. Enable/Disable database migrations
+
+```
+RUN_MIGRATIONS=true
 ```
 
 ##### Run
