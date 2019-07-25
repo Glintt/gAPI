@@ -1,7 +1,7 @@
 # Database migrations
 
 gAPI database is based on migrations.
-Oracle migrations are stored inside folder _migrations/oracle_.
+Oracle migrations are stored inside folder _server/migrations/oracle_.
 
 ## How it works
 
