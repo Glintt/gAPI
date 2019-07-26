@@ -15,6 +15,7 @@ It also provides analytics which are useful to take value from request logs.
 1. [Services](services)
 1. [Service groups](groups)
 1. [Reachability](reachability)
+1. [Healthcheck](healthcheck)
 1. [Service Management](service-management)
 1. [Database migrations](migrations)
 1. [Plugins](plugins)
