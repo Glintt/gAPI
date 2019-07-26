@@ -1,7 +1,6 @@
-
 ## Service Management Module
 
-gAPI has a module that allows to integrate external service management services. 
+gAPI has a module that allows to integrate external service management services.
 This module is highly scalable and flexible allowing to easily add new management feature in an easy way.
 
 Currently, gAPI configuration example contains the following features to manage each service:
@@ -11,7 +10,6 @@ Currently, gAPI configuration example contains the following features to manage 
 3.  Redeploy a service
 4.  Backup a service version
 5.  View service internal logs
-
 
 ### How it works
 
@@ -30,24 +28,22 @@ All the features share the same host and port and, as consequence, for a single 
 1. Host - ServiceManagementHost
 2. Port - ServiceManagementPort
 
-
 ### Implementation
 
 #### Adding more managing features
 
-In order to add new features, you just need to add a new entry to management types map (*ManagementTypes*). This map is located inside the configuration file (*/api/configs/gAPI.json*)
+In order to add new features, you just need to add a new entry to management types map (_ManagementTypes_). This map is located inside the configuration file (_/api/configs/gAPI.json_)
 
 Example:
 
 ```
 "feature_name" : {
-		"action": "feature_name",
-		"method": "POST",
-		"icon": "fas fa-sync",
-		"background": "info",
-		"description": "feature_name service"}
+	"action": "feature_name",
+	"method": "POST",
+	"icon": "fas fa-sync",
+	"background": "info",
+	"description": "feature_name service"
+}
 ```
 
-
-If you need to handle the new feature in a custom way inside the dashboard, you need to add an to *CustomManagementActions* list with the new feature name.  This list is located at: */dashboard/src/api/service-discovery.js*
-
+If you need to handle the new feature in a custom way inside the dashboard, you need to add an to _CustomManagementActions_ list with the new feature name. This list is located at: _/dashboard/src/api/service-discovery.js_
