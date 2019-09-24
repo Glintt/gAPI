@@ -40,5 +40,9 @@ export function enableTooltip() {
 }
 
 export function urlConcat(host, path) {
-  return new URL(path, host).href;
+  try {
+    return new URL(path, host).href;
+  } catch (e) {
+    return `${host}/${path}`.replace("//", "");
+  }
 }

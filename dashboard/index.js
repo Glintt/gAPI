@@ -37,6 +37,10 @@ router.get("/assets/:file", (req, res) => {
   res.sendFile(`${__dirname}/dist/assets/` + req.params.file);
 });
 
+var proxy = require("express-http-proxy");
+
+app.use("/api", proxy(`${ApiProtocol}://${ApiHost}:${ApiPort}`));
+
 router.get("*", (req, res) => {
   res.set({
     "Api-Base": `${ApiProtocol}://${ApiHost}:${ApiPort}`,
@@ -64,7 +68,10 @@ function HttpsListen() {
     "utf8"
   );
   var certificate = fs.readFileSync(process.env.FRONTEND_CERT_FILE, "utf8");
-  var credentials = { key: privateKey, cert: certificate };
+  var credentials = {
+    key: privateKey,
+    cert: certificate
+  };
 
   var httpsServer = https.createServer(credentials, app);
   httpsServer.listen(port);
