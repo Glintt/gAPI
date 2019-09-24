@@ -72,6 +72,7 @@ func (agmr *AppGroupMongoRepository) GetServicesForApplicationGroup(appGroup App
 	var servicesList []service.Service
 	err := agmr.Collection.Find(bson.M{"_id": bson.M{"$in": appGroup.Services}}).All(&servicesList)
 
+	err := agmr.Collection.Find(bson.M{"_id": bson.M{"$in": appGroup.Services}}).All(&servicesList)
 	return servicesList, err
 }
 

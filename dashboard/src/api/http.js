@@ -2,10 +2,11 @@ import Vue from "vue";
 
 const OAuthAPI = require("@/api/auth");
 const API_CONFIG = require("@/configs/urls").config.API;
-const url = require("url");
+//const url = require("url");
 
 export function PathToCall(path) {
-  return url.resolve(API_CONFIG.getApiBaseUrl(), path);
+  // return url.resolve(API_CONFIG.getApiBaseUrl(), path);
+  return API_CONFIG.getApiBaseUrl() + path;
 }
 
 function AddAuthorizationToHeader(config) {

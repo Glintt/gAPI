@@ -6,6 +6,7 @@ export const config = {
     SOCKET_HOST: process.env.SOCKET_HOST || "localhost",
     SOCKET_PORT: process.env.SOCKET_PORT || "5000",
     BASE_PATH: "",
+    API_BASE_PATH: "/api",
     SERVICE_DISCOVERY_BASEPATH: "/service-discovery",
     ANALYTICS_BASEPATH: "/analytics",
 
@@ -18,14 +19,14 @@ export const config = {
     },
 
     getApiBaseUrl: function() {
-      let apiBaseUrl = this.getHeader("Api-Base");
+      // let apiBaseUrl = this.getHeader("Api-Base");
 
-      if (apiBaseUrl == undefined || apiBaseUrl == null) {
-        apiBaseUrl = `${this.PROTOCOL}://${this.HOST}:${this.PORT}/${
-          this.BASE_PATH
-        }`;
-      }
-      return apiBaseUrl;
+      // if (apiBaseUrl == undefined || apiBaseUrl == null) {
+      //   apiBaseUrl = `${this.PROTOCOL}://${this.HOST}:${this.PORT}/${
+      //     this.BASE_PATH
+      //   }`;
+      // }
+      return this.API_BASE_PATH;
     },
 
     getSocketBaseUrl: function() {
@@ -34,7 +35,7 @@ export const config = {
       if (socketBaseUrl == undefined || socketBaseUrl == null) {
         socketBaseUrl = `ws://${this.SOCKET_HOST}:${this.SOCKET_PORT}/`;
       }
-      console.log(socketBaseUrl);
+
       return socketBaseUrl;
     }
   }
