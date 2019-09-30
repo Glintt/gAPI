@@ -14,6 +14,7 @@ func ParsePageParam(c *routing.Context) (int, error){
 		if err != nil {
 			return page, errors.New("Invalid page provided")
 		}
+		return page, nil		
 	}
 	return page, nil
 }

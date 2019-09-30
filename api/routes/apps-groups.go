@@ -2,11 +2,12 @@ package routes
 
 import (
 	"github.com/Glintt/gAPI/api/controllers"
+	"github.com/Glintt/gAPI/api/authentication"
 	routing "github.com/qiangxue/fasthttp-routing"
 )
 
 func InitAppsGroupsApi(router *routing.Router) {
-	router.Get("/apps-groups", controllers.GetAppGroups)
+	router.Get("/apps-groups", authentication.CheckUserMiddleware, controllers.GetAppGroups)
 	router.Post("/apps-groups", controllers.CreateAppGroup)
 	router.Get("/apps-groups/matches", controllers.AppGroupsMatches)
 	router.Get("/apps-groups/ungrouped", controllers.UngroupedApps)

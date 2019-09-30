@@ -171,7 +171,7 @@ func RegisterHandler(c *routing.Context) error {
 
 // parseListServicesHandlerParameters parses page and search query parameters for GET /services  
 func parseListServicesHandlerParameters(c *routing.Context) (string, int, error){
-	page := 1
+	pageF := 1
 	searchQuery := ""
 
 	if c.QueryArgs().Has("page") {
@@ -179,12 +179,13 @@ func parseListServicesHandlerParameters(c *routing.Context) (string, int, error)
 		if err != nil {
 			return "", page, errors.New("Invalid page")
 		}
+		pageF = page
 	}
 	if c.QueryArgs().Has("q") {
 		searchQuery = string(c.QueryArgs().Peek("q"))
 	}
 
-	return searchQuery, page, nil
+	return searchQuery, pageF, nil
 }
 
 // ListServicesHandler handles /services get request

@@ -263,7 +263,7 @@ func (smo *ServiceOracleRepository) ListServices(page int, filterQuery string) [
 			)
 			WHERE r__ >= (((:page-1) * 10) + 1)`
 
-		rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%", page)
+			rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%", page)
 		pagination = true
 	} else {
 		rows, err = db.Query(query, "%"+filterQuery+"%", "%"+filterQuery+"%")

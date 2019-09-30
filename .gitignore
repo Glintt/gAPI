@@ -1,4 +1,5 @@
 api/configs/
+api/server/configs/
 **/bin/
 
 dashboard/node_modules

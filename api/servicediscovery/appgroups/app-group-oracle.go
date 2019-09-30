@@ -3,23 +3,35 @@ package appgroups
 import (
 	"database/sql"
 	"strings"
-
+	
 	"github.com/Glintt/gAPI/api/database"
 	"github.com/Glintt/gAPI/api/servicediscovery/service"
 	"github.com/Glintt/gAPI/api/utils"
 	"errors"
 	"gopkg.in/mgo.v2/bson"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 )
 
 type AppGroupOracleRepository struct {
 	Db      *sql.DB
 	DbError error
 	Tx      *sql.Tx
+	User userModels.User
 }
 
 var INSERT_APPLICATION_GROUP = `insert into gapi_services_apps_groups(id, name) values (:id, :name)`
 var LIST_APPLICATION_GROUP_V2 = `select a.id, a.name, listagg(b.id,', ') within group(order by b.id) services from gapi_services_apps_groups a left join gapi_services b
 on b.applicationgroupid = a.id  where a.name like :name group by (a.id, a.name)`
+
+var LIST_APPLICATION_GROUP_V4 = `
+
+SELECT c.id, c.name, d.id services
+          FROM gapi_services_apps_groups c,
+               gapi_services d
+         WHERE  c.name like :name
+                   AND d.applicationgroupid = c.id
+group by (c.id, c.name, d.id)
+         `
 var LIST_APPLICATION_GROUP = `select a.id, a.name from gapi_services_apps_groups a where a.name like :name`
 var GET_APPLICATION_GROUP_BY_ID = `select id, name, '' as services from gapi_services_apps_groups where id = :id`
 var GET_SERVICES_FOR_APPLICATION_GROUP = `select ` + service.SERVICE_COLUMNS + ` 
@@ -100,7 +112,7 @@ func (agmr *AppGroupOracleRepository) GetApplicationGroupsForUser(userID string)
 // GetApplicationGroups get list of application groups
 func (agmr *AppGroupOracleRepository) GetApplicationGroups(page int, nameFilter string) []ApplicationGroup {
 	var groups []ApplicationGroup
-	query := LIST_APPLICATION_GROUP_V2
+	query := LIST_APPLICATION_GROUP_V4
 	if page != -1 {
 		query = `SELECT * FROM
 	 		(
@@ -112,13 +124,16 @@ func (agmr *AppGroupOracleRepository) GetApplicationGroups(page int, nameFilter 
 	 			WHERE rownum < ((:page * 10) + 1 )
 	 		)
 	 		WHERE r__ >= (((:page-1) * 10) + 1)`
-		rows, _ := agmr.Tx.Query(query, "%"+nameFilter+"%", page)
+		rows, _ := agmr.Tx.Query(query, 
+			// agmr.User.Id.Hex(),
+			"%"+nameFilter+"%", page)
 		groups = RowsToAppGroup(rows, true)
 	} else {
-		rows, _ := agmr.Tx.Query(query, "%"+nameFilter+"%")
+		rows, _ := agmr.Tx.Query(query,
+			//agmr.User.Id.Hex(), 
+			"%"+nameFilter+"%")
 		groups = RowsToAppGroup(rows, false)
 	}
-
 	return groups
 }
 
@@ -222,6 +237,11 @@ func (agmr *AppGroupOracleRepository) UngroupedServices() []service.Service {
 // RowsToAppGroup get applications groups from sql rows
 func RowsToAppGroup(rows *sql.Rows, containsPagination bool) []ApplicationGroup {
 	var appGroups []ApplicationGroup
+	if rows == nil {
+		return appGroups
+	}
+
+	OUTER:
 	for rows.Next() {
 		var appG ApplicationGroup
 		var id string
@@ -233,13 +253,13 @@ func RowsToAppGroup(rows *sql.Rows, containsPagination bool) []ApplicationGroup 
 			rows.Scan(&id, &appG.Name, &servicesList)
 		}
 
-		servicesListArray := strings.Split(servicesList, ",")
 		if bson.IsObjectIdHex(id) {
 			appG.Id = bson.ObjectIdHex(id)
 		} else {
 			appG.Id = bson.NewObjectId()
 		}
 
+		servicesListArray := strings.Split(servicesList, ",")
 		services := make([]bson.ObjectId, 0)
 		for _, s := range servicesListArray {
 			if !bson.IsObjectIdHex(strings.Trim(s, " ")) {
@@ -247,8 +267,15 @@ func RowsToAppGroup(rows *sql.Rows, containsPagination bool) []ApplicationGroup 
 			}
 			services = append(services, bson.ObjectIdHex(strings.Trim(s, " ")))
 		}
-
 		appG.Services = services
+
+		for idx := range appGroups {
+			if appGroups[idx].Name == appG.Name {
+				appGroups[idx].Services = append(appG.Services,  appGroups[idx].Services...)
+				continue OUTER
+			}
+		}
+
 		appGroups = append(appGroups, appG)
 	}
 

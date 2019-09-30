@@ -36,6 +36,7 @@ func NewAppGroupRepository(user userModels.User) AppGroupRepository {
 			Session:    session,
 			Db:         db,
 			Collection: collection,
+			User: user,
 		}
 	}
 	if database.SD_TYPE == "oracle" {
@@ -46,6 +47,7 @@ func NewAppGroupRepository(user userModels.User) AppGroupRepository {
 		return &AppGroupOracleRepository{
 			Db:      db,
 			DbError: err,
+			User: user,
 		}
 	}
 	return nil

@@ -7,12 +7,14 @@ import (
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	userModels "github.com/Glintt/gAPI/api/users/models"
 )
 
 type AppGroupMongoRepository struct {
 	Session    *mgo.Session
 	Db         *mgo.Database
 	Collection *mgo.Collection
+	User userModels.User
 }
 
 // OpenTransaction open new database transaction
