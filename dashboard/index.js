@@ -39,9 +39,7 @@ router.get("/assets/:file", (req, res) => {
 
 var proxy = require("express-http-proxy");
 
-app.use("/api", proxy(`${ApiProtocol}://${ApiHost}:${ApiPort}`));
-
-router.get("*", (req, res) => {
+router.get("/dashboard/*", (req, res) => {
   res.set({
     "Api-Base": `${ApiProtocol}://${ApiHost}:${ApiPort}`,
     "Socket-Base": `${ApiProtocol}://${SocketHost}:${SocketPort}`
@@ -50,6 +48,8 @@ router.get("*", (req, res) => {
 });
 
 app.use("/", router);
+
+app.use("/", proxy(`${ApiProtocol}://${ApiHost}:${ApiPort}`));
 
 switch (protocol) {
   case "https":
