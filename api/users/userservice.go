@@ -24,7 +24,7 @@ func InitUsers() {
 
 	userService.UserRepos.InitUsers()
 	
-	err := userService.UserRepos.CreateUser(models.User{Username: "admin", Email: "admin@gapi.com", Password: "admin", IsAdmin: true})
+	err := userService.CreateUser(models.User{Username: "admin", Email: "admin@gapi.com", Password: "admin", IsAdmin: true})
 	if err != nil {
 		utils.LogMessage(err.Error(), utils.ErrorLogType)
 	}

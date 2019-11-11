@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+
 	"github.com/Glintt/gAPI/api/authentication"
 	"github.com/Glintt/gAPI/api/config"
 	"github.com/Glintt/gAPI/api/http"
@@ -22,7 +23,6 @@ func ServiceDiscoveryServiceName() string {
 	return constants.SERVICE_NAME
 }
 
-
 // ServiceDiscovery return service discovery object with user context, only with access to user's resources
 func ServiceDiscovery(c *routing.Context) *servicediscovery.ServiceDiscovery {
 	user := authentication.GetAuthenticatedUser(c)
@@ -36,7 +36,7 @@ func InternalServiceDiscovery() *servicediscovery.ServiceDiscovery {
 
 // ServiceNotFound return Service not found response
 func ServiceNotFound(c *routing.Context) error {
-	return http.NotFound(c,"Service not found.", ServiceDiscoveryServiceName())
+	return http.NotFound(c, "Service not found.", ServiceDiscoveryServiceName())
 }
 
 // NormalizeServices normalizes all services so theyt match the specified rules
@@ -47,7 +47,6 @@ func NormalizeServices(c *routing.Context) error {
 	}
 	return http.OkFormated(c, "Normalization done.", ServiceDiscoveryServiceName())
 }
-
 
 // UpdateHandler updates the service
 func UpdateHandler(c *routing.Context) error {
@@ -107,7 +106,7 @@ func AutoRegisterHandler(c *routing.Context) error {
 
 	serv, _ = serviceDiscovery.FindService(serviceFound)
 	s2, _ := json.Marshal(serv)
-	
+
 	http.Response(c, string(s2), 201, "AUTO_REGISTER", "application/json")
 	return nil
 }
@@ -169,13 +168,14 @@ func RegisterHandler(c *routing.Context) error {
 	return http.Created(c, "Service registered successfuly", ServiceDiscoveryServiceName())
 }
 
-// parseListServicesHandlerParameters parses page and search query parameters for GET /services  
-func parseListServicesHandlerParameters(c *routing.Context) (string, int, error){
+// parseListServicesHandlerParameters parses page and search query parameters for GET /services
+func parseListServicesHandlerParameters(c *routing.Context) (string, int, error) {
 	page := 1
+	var err error
 	searchQuery := ""
 
 	if c.QueryArgs().Has("page") {
-		page, err := strconv.Atoi(string(c.QueryArgs().Peek("page")))
+		page, err = strconv.Atoi(string(c.QueryArgs().Peek("page")))
 		if err != nil {
 			return "", page, errors.New("Invalid page")
 		}
@@ -191,7 +191,7 @@ func parseListServicesHandlerParameters(c *routing.Context) (string, int, error)
 func ListServicesHandler(c *routing.Context) error {
 	// create service discovery object with authenticated user
 	serviceDiscovery := ServiceDiscovery(c)
-	
+
 	// Get page and search query parameters
 	searchQuery, page, err := parseListServicesHandlerParameters(c)
 	if err != nil {
@@ -200,7 +200,7 @@ func ListServicesHandler(c *routing.Context) error {
 
 	services := serviceDiscovery.ListServices(page, searchQuery)
 	if len(services) == 0 {
-	 	return http.Ok(c, `[]`, ServiceDiscoveryServiceName())
+		return http.Ok(c, `[]`, ServiceDiscoveryServiceName())
 	}
 
 	list, err := json.Marshal(services)
@@ -275,7 +275,7 @@ func ManageServiceHandler(c *routing.Context) error {
 		success, callResponse := service.ServiceManagementCall(managementType)
 
 		if success {
-			return http.Ok(c,`{"error": false, "msg": "Service `+managementType+` successfuly.", "service_response": `+strconv.Quote(callResponse)+`}`, ServiceDiscoveryServiceName())
+			return http.Ok(c, `{"error": false, "msg": "Service `+managementType+` successfuly.", "service_response": `+strconv.Quote(callResponse)+`}`, ServiceDiscoveryServiceName())
 		}
 		return http.Error(c, `Service could not be `+managementType+`.`, 400, ServiceDiscoveryServiceName())
 	}
